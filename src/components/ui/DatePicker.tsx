@@ -3,19 +3,18 @@ import { ArrowRight, X } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 import type { DateRange } from 'react-day-picker';
 import { format, parseISO } from 'date-fns';
-import SearchInput from './SearchInput';
 import 'react-day-picker/dist/style.css';
 
 interface DatePickerProps {
   value?: { checkIn: string; checkOut: string };
   onChange?: (range: DateRange | undefined) => void;
+  className?: string;
 }
 
-const DatePicker = ({ value, onChange }: DatePickerProps) => {
+const DatePicker = ({ value, onChange, className }: DatePickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync internal range with passed values
   const range: DateRange | undefined = value?.checkIn ? {
     from: parseISO(value.checkIn),
     to: value.checkOut ? parseISO(value.checkOut) : undefined
@@ -31,43 +30,52 @@ const DatePicker = ({ value, onChange }: DatePickerProps) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // RULE: Box Design Designed Once. 
+  // Padding (pt-6 pb-2), Rounding (rounded-xl), and Font weight matched to standard Input.
+  const boxBaseStyles = "peer block w-full px-4 pt-6 pb-2 text-sm font-bold text-gray-900 bg-white border border-gray-200 rounded-xl transition-all cursor-pointer flex items-center justify-between focus:outline-none focus:ring-0 select-none";
+  const boxActiveStyles = isOpen ? "border-brand-green ring-1 ring-brand-green/20" : "hover:border-gray-300";
+
   return (
-    <div className="relative flex-1" ref={containerRef}>
-      {/* Wrapper to ensure click opens the calendar */}
-      <div 
-        className="cursor-pointer" 
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <SearchInput 
-          label="Dates" 
-          className={isOpen ? "bg-gray-50 ring-1 ring-brand-green/20" : ""}
+    <div className={`relative w-full group ${className}`} ref={containerRef}>
+      <div className="relative">
+        <div 
+          onClick={() => setIsOpen(!isOpen)}
+          className={`${boxBaseStyles} ${boxActiveStyles}`}
+          tabIndex={0}
         >
-          <div className="flex items-center w-full justify-between">
-            <span className={`text-sm font-semibold tracking-tight ${range?.from ? 'text-brand-dark' : 'text-gray-400'}`}>
-              {range?.from ? format(range.from, 'd MMM yyyy') : "Arrival"}
+          <span className={range?.from ? 'text-brand-dark' : 'text-gray-400'}>
+            {range?.from ? format(range.from, 'd MMM yyyy') : "Arrival"}
+          </span>
+
+          <ArrowRight size={14} className="text-gray-300 mx-2" />
+
+          <div className="flex items-center gap-2">
+            <span className={range?.to ? 'text-brand-dark' : 'text-gray-400'}>
+              {range?.to ? format(range.to, 'd MMM yyyy') : "Departure"}
             </span>
-            <ArrowRight size={14} className="mx-4 text-gray-300" />
-            <div className="flex items-center gap-2">
-              <span className={`text-sm font-semibold tracking-tight ${range?.to ? 'text-brand-dark' : 'text-gray-400'}`}>
-                {range?.to ? format(range.to, 'd MMM yyyy') : "Departure"}
-              </span>
-              {range && (range.from || range.to) && (
-                <X 
-                  size={14} 
-                  className="ml-2 text-gray-300 hover:text-red-500 transition-colors" 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    onChange?.(undefined); 
-                  }} 
-                />
-              )}
-            </div>
+            
+            {range && (range.from || range.to) && (
+              <button 
+                className="ml-1 p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-red-500 transition-colors"
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  onChange?.(undefined); 
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
-        </SearchInput>
+        </div>
+
+        {/* RULE: Label designed once. Exact match to Input system. */}
+        <label className="absolute text-sm text-gray-400 duration-150 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 font-medium pointer-events-none">
+          Dates
+        </label>
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-white shadow-2xl rounded-2xl border border-gray-100 p-6 z-[9999] min-w-[320px] md:min-w-[650px] animate-entrance">
+        <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 bg-white shadow-2xl rounded-[2rem] border border-gray-100 p-6 z-[9999] min-w-[320px] md:min-w-[650px] animate-entrance">
           <DayPicker
             mode="range"
             selected={range}
