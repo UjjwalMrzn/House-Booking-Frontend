@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-green: #4ade80;
+  --color-brand-dark: #222222;
+  --color-brand-gray: #f7f7f7;
+  --font-sans: 'Inter', sans-serif;
+  
+  /* Adding a serif font for that premium cottage feel */
+  --font-serif: 'Playfair Display', serif;
+}
+
+/* --- BASE REFINEMENTS --- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #fafafa; /* Slight off-white to make white components pop */
+    color: var(--color-brand-dark);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* --- PREMIUM UI UTILITIES --- */
+
+/* Subtle glow for the hero image */
+.hero-glow {
+  box-shadow: 0 0 80px -20px rgba(74, 222, 128, 0.3);
+}
+
+/* Smooth entrance animation for sections */
+.animate-entrance {
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* --- CALENDAR V8 FINAL FIXES --- */
+
+/* Force Side-by-Side Months */
+.rdp-months {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 30px !important;
+  justify-content: center !important;
+}
+
+/* Global Theme Colors */
+.rdp {
+  --rdp-accent-color: var(--color-brand-green) !important;
+  --rdp-background-color: #dcfce7 !important; /* Light Green Range */
+  margin: 0 !important;
+}
+
+/* Selection Styles (Circles for Start/End) */
+.rdp-day_selected:not(.rdp-day_range_middle) {
+  background-color: var(--color-brand-green) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  font-weight: bold !important;
+}
+
+/* Range Middle (The connecting strip) */
+.rdp-day_range_middle {
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
+  border-radius: 0 !important;
+}
+
+/* Connect the Selection Blocks */
+.rdp-day_range_start {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.rdp-day_range_end {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+/* Custom Nav Buttons Hover */
+.rdp-nav_button:hover {
+  background-color: #f0fdf4 !important;
+  color: var(--color-brand-green) !important;
+}
