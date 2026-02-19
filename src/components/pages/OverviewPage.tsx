@@ -21,6 +21,8 @@ const OverviewPage = () => {
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
 
+  const propertyId = id || '1';
+
   const {
     data: property,
     isLoading,
@@ -35,8 +37,19 @@ const OverviewPage = () => {
     if (error) toast.error("Connection Error");
   }, [error, toast]);
 
+  const formatDescription = (text: string) => {
+    if (!text) return null;
+    return text.split('.').map((sentence, index) => 
+      sentence.trim() ? (
+        <span key={index} className="block mb-2">
+          {sentence.trim()}.
+        </span>
+      ) : null
+    );
+  };
+
   return (
-    <main className="pt-24 bg-white min-h-screen font-sans text-brand-dark animate-fade-in px-6 max-w-7xl mx-auto">
+    <main className="pt-24 bg-white min-h-screen font-sans text-brand-dark animate-fade-in px-6 max-w-7xl mx-auto pb-20">
       <div className="grid lg:grid-cols-3 gap-16 items-start">
         {/* LEFT CONTENT */}
         <div className="lg:col-span-2 space-y-16">
@@ -123,14 +136,10 @@ const OverviewPage = () => {
             </div>
           </section>
 
-          {/* AMENITIES SECTION - Fixed the missing usage of getIcon */}
+          {/* AMENITIES SECTION */}
           <section className="pt-12 border-t border-gray-100">
             <h2 className="text-2xl font-bold mb-8 tracking-tight">
-              {isLoading ? (
-                <Skeleton variant="text" className="w-32" />
-              ) : (
-                "Amenities"
-              )}
+              {isLoading ? <Skeleton variant="text" className="w-32" /> : "Amenities"}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {isLoading

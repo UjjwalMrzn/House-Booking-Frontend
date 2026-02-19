@@ -26,7 +26,7 @@ function App() {
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/overview" element={<Navigate to="/overview/3" replace />} />
+              <Route path="/overview" element={<Navigate to="/overview/1" replace />} />
               <Route path="/overview/:id" element={<OverviewPage />} />
               <Route path="/book/:id" element={<ReservationPage />} />
               <Route path="/success" element={<SuccessPage />} />
