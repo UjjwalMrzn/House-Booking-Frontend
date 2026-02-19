@@ -21,7 +21,7 @@ const OverviewPage = () => {
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(1);
 
-  const propertyId = id || '1';
+  // const propertyId = id || '1';
 
   const {
     data: property,
@@ -36,17 +36,6 @@ const OverviewPage = () => {
   useEffect(() => {
     if (error) toast.error("Connection Error");
   }, [error, toast]);
-
-  const formatDescription = (text: string) => {
-    if (!text) return null;
-    return text.split('.').map((sentence, index) => 
-      sentence.trim() ? (
-        <span key={index} className="block mb-2">
-          {sentence.trim()}.
-        </span>
-      ) : null
-    );
-  };
 
   return (
     <main className="pt-24 bg-white min-h-screen font-sans text-brand-dark animate-fade-in px-6 max-w-7xl mx-auto pb-20">
