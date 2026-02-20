@@ -1,6 +1,8 @@
 import { useLocation, Link } from 'react-router-dom';
 import { CheckCircle, Home, ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
+// FIXED: Integrated the Single Source of Truth constant
+import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
 
 const SuccessPage = () => {
   const location = useLocation();
@@ -43,7 +45,8 @@ const SuccessPage = () => {
             </Button>
           </Link>
           
-          <Link to="/overview" className="flex items-center justify-center gap-2 text-[10px] font-black text-gray-400 hover:text-brand-dark uppercase tracking-[0.2em] transition-colors">
+          {/* FIXED: Redirect points to the global fallback property ID */}
+          <Link to={`/overview/${DEFAULT_PROPERTY_ID}`} className="flex items-center justify-center gap-2 text-[10px] font-black text-gray-400 hover:text-brand-dark uppercase tracking-[0.2em] transition-colors">
             <Home size={14} /> Browse more properties <ArrowRight size={14} />
           </Link>
         </div>

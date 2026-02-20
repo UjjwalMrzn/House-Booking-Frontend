@@ -12,7 +12,9 @@ import GalleryPage from './components/pages/GalleryPage';
 import MapPage from './components/pages/MapPage';
 import ReviewsPage from './components/pages/ReviewsPage';
 import ContactPage from './components/pages/ContactPage';
-import SearchPage from './components/pages/SearchPage';
+// import SearchPage from './components/pages/SearchPage';
+// FIXED: Importing the global constant for the single source of truth
+import { DEFAULT_PROPERTY_ID } from './utils/constants';
 
 const Home = () => (
   <div className="animate-entrance">
@@ -31,7 +33,7 @@ function App() {
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/overview" element={<Navigate to="/overview/1" replace />} />
+              <Route path="/overview" element={<Navigate to={`/overview/${DEFAULT_PROPERTY_ID}`} replace />} />
               <Route path="/overview/:id" element={<OverviewPage />} />
               <Route path="/book/:id" element={<ReservationPage />} />
               <Route path="/success" element={<SuccessPage />} />
@@ -39,7 +41,7 @@ function App() {
               <Route path="/map/:id" element={<MapPage />} />
               <Route path="/reviews/:id" element={<ReviewsPage />} />
               <Route path="/contact" element={<ContactPage />} />
-              <Route path="/search" element={<SearchPage />} />
+              {/* <Route path="/search" element={<SearchPage />} /> */}
             </Routes>
           </main>
           <Footer />

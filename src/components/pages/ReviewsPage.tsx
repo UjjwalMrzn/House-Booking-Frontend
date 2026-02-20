@@ -1,5 +1,4 @@
 import { useState } from "react";
-// FIXED: Changed "react-dom" to "react-router-dom"
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
@@ -9,6 +8,8 @@ import Button from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import StarRating from "../ui/StarRating";
 import ReviewModal from "../ui/ReviewModal";
+// FIXED: Integrated the Single Source of Truth constant
+import { DEFAULT_PROPERTY_ID } from "../../utils/constants";
 
 const ReviewsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,14 +19,16 @@ const ReviewsPage = () => {
 
   const { data: property, isLoading: isPropLoading } = useQuery({
     queryKey: ["property", id],
-    queryFn: () => propertyService.getPropertyDetails(id || "1"),
-    enabled: !!id,
+    // FIXED: Uses global fallback constant instead of hardcoded "1"
+    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_PROPERTY_ID),
+    enabled: true,
   });
 
   const { data: reviews, isLoading: isRevLoading } = useQuery({
     queryKey: ["reviews", id],
-    queryFn: () => reviewService.getReviewsByProperty(id || "1"),
-    enabled: !!id,
+    // FIXED: Uses global fallback constant instead of hardcoded "1"
+    queryFn: () => reviewService.getReviewsByProperty(id || DEFAULT_PROPERTY_ID),
+    enabled: true,
   });
 
   const isLoading = isPropLoading || isRevLoading;
@@ -68,7 +71,7 @@ const ReviewsPage = () => {
               <h3 className="text-xl font-black text-brand-dark mb-3">{review.title}</h3>
               <p className="text-sm text-gray-500 leading-relaxed mb-8">{review.comment}</p>
               <div className="text-[10px] font-bold text-gray-400 text-right">
-                Stayed on {new Date(review.createdAt).toISOString().split('T')[0]}
+                Stayed on {review.createdAt ? new Date(review.createdAt).toISOString().split('T')[0] : 'N/A'}
               </div>
             </div>
           ))
@@ -78,7 +81,8 @@ const ReviewsPage = () => {
       <ReviewModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        propertyId={id || "1"} 
+        // FIXED: Uses global fallback constant
+        propertyId={id || DEFAULT_PROPERTY_ID} 
       />
     </main>
   );

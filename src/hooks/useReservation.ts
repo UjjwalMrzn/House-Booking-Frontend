@@ -6,6 +6,8 @@ import { propertyService } from "../api/propertyService";
 import { bookingService } from "../api/bookingApi";
 import { customerService } from "../api/customerService";
 import { useToast } from "../components/ui/Toaster";
+// FIXED: Integrated the Single Source of Truth constant
+import { DEFAULT_PROPERTY_ID } from "../utils/constants";
 
 export const useReservation = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,15 +21,15 @@ export const useReservation = () => {
 
   const { data: property, isLoading } = useQuery({
     queryKey: ["property", id],
-    queryFn: () => propertyService.getPropertyDetails(id || "1"),
-    enabled: !!id,
+    // FIXED: Uses global fallback constant instead of hardcoded "1"
+    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_PROPERTY_ID),
+    enabled: true,
   });
 
   const [guests, setGuests] = useState(
     parseInt(searchParams.get("guests") || "1"),
   );
 
-  // FIXED: Standardized keys to match the camelCase used in Hero and Overview Sidebar
   const [dates, setDates] = useState({
     checkIn: searchParams.get("checkIn") || "",
     checkOut: searchParams.get("checkOut") || "",
@@ -74,10 +76,8 @@ export const useReservation = () => {
 
     setIsSubmitting(true);
     try {
-      // FIXED: Switched to the specialized customerService.createCustomer
       const response = await customerService.createCustomer(contact);
       
-      // Axios returns data inside the 'data' property
       const newCustomerId = response.data.id;
 
       if (!newCustomerId)
@@ -105,9 +105,9 @@ export const useReservation = () => {
 
     setIsSubmitting(true);
     try {
-      // Maps UI state to Backend naming convention (snake_case)
       const bookingPayload = {
-        property: parseInt(id || "1"),
+        // FIXED: Uses global fallback constant
+        property: parseInt(id || DEFAULT_PROPERTY_ID),
         check_in: dates.checkIn,
         check_out: dates.checkOut,
         customer: customerId,

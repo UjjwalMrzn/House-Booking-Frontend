@@ -4,6 +4,8 @@ import { propertyService } from "../../api/propertyService";
 import { mapService } from "../../api/mapService";
 import { ArrowLeft, MapPin, Map as MapIcon } from "lucide-react";
 import { Skeleton } from "../ui/Skeleton";
+// FIXED: Integrated the Single Source of Truth constant
+import { DEFAULT_PROPERTY_ID } from "../../utils/constants";
 
 const MapPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,15 +14,17 @@ const MapPage = () => {
   // Fetch Property Details (for Title & Address)
   const { data: property, isLoading: isPropertyLoading } = useQuery({
     queryKey: ["property", id],
-    queryFn: () => propertyService.getPropertyDetails(id || "1"),
-    enabled: !!id,
+    // FIXED: Uses global fallback constant instead of hardcoded "1"
+    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_PROPERTY_ID),
+    enabled: true,
   });
 
   // Fetch Map Coordinates
   const { data: mapData, isLoading: isMapLoading } = useQuery({
     queryKey: ["map", id],
-    queryFn: () => mapService.getMapByPropertyId(id || "1"),
-    enabled: !!id,
+    // FIXED: Uses global fallback constant instead of hardcoded "1"
+    queryFn: () => mapService.getMapByPropertyId(id || DEFAULT_PROPERTY_ID),
+    enabled: true,
   });
 
   const isLoading = isPropertyLoading || isMapLoading;
@@ -64,7 +68,7 @@ const MapPage = () => {
             <iframe 
               width="100%" 
               height="100%" 
-              className="absolute inset-0"
+              className="absolute inset-0" 
               style={{ border: 0 }}
               src={`https://maps.google.com/maps?q=${mapData.latitude},${mapData.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`} 
               allowFullScreen 

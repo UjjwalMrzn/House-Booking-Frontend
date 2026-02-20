@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+// FIXED: Integrated useSearchParams to sync bar state with the URL squad
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
 import Button from '../ui/Button';
 import { Skeleton } from '../ui/Skeleton';
-import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
+// FIXED: Integrated the Single Source of Truth constant
+import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
 
 interface StickyBookingBarProps {
   property: any;
@@ -14,8 +17,23 @@ interface StickyBookingBarProps {
 const StickyBookingBar = ({ property, isLoading }: StickyBookingBarProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
+  // FIXED: Access search parameters to sync with the rest of the squad
+  const [searchParams] = useSearchParams();
+
   const [guests, setGuests] = useState(1);
   const [dates, setDates] = useState({ checkIn: '', checkOut: '' });
+
+  // FIXED: Logic to keep sticky bar state in sync with URL choices
+  useEffect(() => {
+    const g = searchParams.get('guests');
+    if (g) setGuests(parseInt(g));
+    
+    setDates({
+      checkIn: searchParams.get('checkIn') || '',
+      checkOut: searchParams.get('checkOut') || ''
+    });
+  }, [searchParams]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 shadow-[0_-15px_40px_rgba(0,0,0,0.12)] py-4 animate-slide-up">
@@ -68,8 +86,9 @@ const StickyBookingBar = ({ property, isLoading }: StickyBookingBarProps) => {
              <Skeleton className="h-14 w-32 rounded-xl" />
            ) : (
              <Button 
-               onClick={() => navigate(`/book/${id || '3'}?checkin=${dates.checkIn}&checkout=${dates.checkOut}&guests=${guests}`)}
-               className="whitespace-nowrap px-10"
+                // FIXED: Uses global constant and camelCase parameter keys for squad consistency
+                onClick={() => navigate(`/book/${id || DEFAULT_PROPERTY_ID}?checkIn=${dates.checkIn}&checkOut=${dates.checkOut}&guests=${guests}`)}
+                className="whitespace-nowrap px-10"
              >
                Book Now
              </Button>

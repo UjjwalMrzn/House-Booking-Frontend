@@ -1,14 +1,16 @@
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import Button from '../ui/Button';
+// FIXED: Integrated the Single Source of Truth constant
+import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
 
 const Navbar = () => {
   const location = useLocation();
 
-  // FIXED: Extracts the current property ID from the URL (defaults to 3 if on Home)
+  // FIXED: Extracts the current property ID from the URL or defaults to the Global Constant
   const pathParts = location.pathname.split('/');
-  const currentId = pathParts[2] || '3';
+  const currentId = pathParts[2] || DEFAULT_PROPERTY_ID;
 
-  // FIXED: Changed to accept a direct boolean so we can manually trigger active states
+  // FIXED: Standard logic for active states maintained
   const navLinkStyles = (isActive: boolean) => 
     `text-sm font-bold transition-all duration-300 pb-1 border-b-2 ${
       isActive 
@@ -32,30 +34,30 @@ const Navbar = () => {
             Home
           </NavLink>
           
-          {/* FIXED: Overview stays highlighted even on dynamic routes like /overview/3 */}
-          <Link to="/overview" className={navLinkStyles(location.pathname.startsWith('/overview'))}>
+          {/* FIXED: All property-related links now use the synchronized currentId */}
+          <Link to={`/overview/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/overview'))}>
             Overview
           </Link>
           
-{/* FIXED: Activated Map tab! */}
-<Link to={`/map/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/map'))}>
-  Map
-</Link>          
-          {/* FIXED: Activated Gallery tab since we just built the page! */}
+          <Link to={`/map/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/map'))}>
+            Map
+          </Link>          
+
           <Link to={`/gallery/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/gallery'))}>
             Gallery
           </Link>
           
-<Link to={`/reviews/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/reviews'))}>
-  Reviews
-</Link>          
-<Link to="/contact" className={navLinkStyles(location.pathname === '/contact')}>
-  Contact
-</Link>
+          <Link to={`/reviews/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/reviews'))}>
+            Reviews
+          </Link>          
+
+          <Link to="/contact" className={navLinkStyles(location.pathname === '/contact')}>
+            Contact
+          </Link>
         </div>
 
-        <Link to="/overview">
-          {/* CLEAN BUTTON */}
+        {/* FIXED: Redirect points to the current active property or global fallback */}
+        <Link to={`/overview/${currentId}`}>
           <Button className="px-8 text-[10px]">
             Book Now
           </Button>

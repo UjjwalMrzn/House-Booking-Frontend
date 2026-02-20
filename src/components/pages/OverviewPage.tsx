@@ -21,6 +21,9 @@ const OverviewPage = () => {
   // FIXED: Access search parameters (?checkIn=...&guests=...)
   const [searchParams] = useSearchParams();
 
+  // SINGLE SOURCE OF TRUTH ID Logic
+  const DEFAULT_ID = import.meta.env.VITE_DEFAULT_PROPERTY_ID || "1";
+
   // FIXED: Initialize state with URL data if it exists, otherwise use defaults
   const [checkIn, setCheckIn] = useState(searchParams.get('checkIn') || "");
   const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') || "");
@@ -38,18 +41,19 @@ const OverviewPage = () => {
     error,
   } = useQuery({
     queryKey: ["property", id],
-    queryFn: () => propertyService.getPropertyDetails(id || "1"),
-    enabled: !!id,
+    // FIXED: Uses the dynamic environment fallback instead of hardcoded "1"
+    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_ID),
+    enabled: !!id || !!DEFAULT_ID,
   });
 
+  // FIXED: Loop-guarded error notification
   useEffect(() => {
-  if (error && !hasShownError) {
-    toast.error("Connection Error: Property not found");
-    setHasShownError(true);
-  }
-  // Reset when error clears
-  if (!error) setHasShownError(false);
-}, [error, toast, hasShownError]);
+    if (error && !hasShownError) {
+      toast.error("Connection Error: Property not found");
+      setHasShownError(true);
+    }
+    if (!error) setHasShownError(false);
+  }, [error, toast, hasShownError]);
 
   const tabs = useMemo(() => {
     const baseTabs = [
@@ -196,7 +200,7 @@ const OverviewPage = () => {
                       image={img.image} 
                       noZoom={true} 
                       className="cursor-pointer"
-                      onClick={() => navigate(`/gallery/${id}`, { state: { imageIndex: index } })}
+                      onClick={() => navigate(`/gallery/${id || DEFAULT_ID}`, { state: { imageIndex: index } })}
                     />
                   ))}
             </div>
@@ -204,7 +208,7 @@ const OverviewPage = () => {
             {!isLoading && property?.images?.length > 6 && (
               <div className="mt-8">
                 <button 
-                  onClick={() => navigate(`/gallery/${id}`)}
+                  onClick={() => navigate(`/gallery/${id || DEFAULT_ID}`)}
                   className="text-brand-green font-black text-xs uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1"
                 >
                   Explore all pictures
@@ -314,7 +318,7 @@ const OverviewPage = () => {
                 
                 {/* FIXED: Query parameters added so data carries over to ReservationPage */}
                 <Button 
-                  onClick={() => navigate(`/book/${id || "1"}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`)} 
+                  onClick={() => navigate(`/book/${id || DEFAULT_ID}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`)} 
                   fullWidth
                 >
                   Book Now

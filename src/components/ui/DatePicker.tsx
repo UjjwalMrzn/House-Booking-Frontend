@@ -8,7 +8,7 @@ const DatePicker = ({ value, onChange, className }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropDirection, setDropDirection] = useState<'down' | 'up'>('down');
   
-  // FIXED: Track hovered date to render the dynamic "between" selection gap
+  // FIXED LOGIC: Tracking the hovered date to render the selection gap
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +22,7 @@ const DatePicker = ({ value, onChange, className }: any) => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        setHoveredDate(null); // Reset hover on close
+        setHoveredDate(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -33,22 +33,16 @@ const DatePicker = ({ value, onChange, className }: any) => {
     if (!isOpen && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
-
-      if (spaceBelow < 420) {
-        setDropDirection('up');
-      } else {
-        setDropDirection('down');
-      }
+      setDropDirection(spaceBelow < 420 ? 'up' : 'down');
     }
     if (isOpen) setHoveredDate(null);
     setIsOpen(!isOpen);
   };
 
-  // 56px Locked Design.
   const boxBaseStyles = "peer block w-full h-[56px] px-4 pt-5 pb-1.5 text-[14px] font-bold text-gray-900 bg-white border border-gray-200 rounded-xl transition-all cursor-pointer flex items-center justify-between focus:outline-none focus:ring-0 select-none";
   const boxActiveStyles = isOpen ? "border-brand-green ring-1 ring-brand-green/20" : "hover:border-gray-300";
 
-  // Helper to strip time from dates so we can accurately compare pure calendar days
+  // Helper to strip time for accurate day comparison
   const normalizeDate = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
   return (
@@ -82,7 +76,6 @@ const DatePicker = ({ value, onChange, className }: any) => {
       {isOpen && (
         <div 
           className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} left-1/2 -translate-x-1/2 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.2)] rounded-[2rem] border border-gray-100 p-6 z-[99999] min-w-[320px] md:min-w-[600px] animate-entrance`}
-          style={{ zIndex: 99999 }}
         >
           <DayPicker 
             mode="range" 
@@ -96,8 +89,7 @@ const DatePicker = ({ value, onChange, className }: any) => {
             }} 
             numberOfMonths={window.innerWidth > 768 ? 2 : 1} 
             fromDate={new Date()}
-            
-            // FIXED: Automatically maps existing CSS classes to dates based on your mouse hover
+            // FIXED: Hover logic to trigger design-locked selection gap classes
             onDayMouseEnter={(date) => {
               if (range?.from && !range?.to) setHoveredDate(date);
             }}
@@ -105,9 +97,7 @@ const DatePicker = ({ value, onChange, className }: any) => {
             modifiers={{
               hoverRange: (date) => {
                 if (!range?.from || range?.to || !hoveredDate) return false;
-                const d = normalizeDate(date);
-                const f = normalizeDate(range.from);
-                const h = normalizeDate(hoveredDate);
+                const d = normalizeDate(date), f = normalizeDate(range.from), h = normalizeDate(hoveredDate);
                 return d > Math.min(f, h) && d < Math.max(f, h);
               },
               hoverEnd: (date) => {
@@ -116,8 +106,8 @@ const DatePicker = ({ value, onChange, className }: any) => {
               }
             }}
             modifiersClassNames={{
-              hoverRange: "rdp-day_range_middle", // Triggers your light green middle CSS
-              hoverEnd: "rdp-day_selected"       // Triggers your solid green circle CSS
+              hoverRange: "rdp-day_range_middle", // Triggers existing light green middle CSS
+              hoverEnd: "rdp-day_selected"       // Triggers existing solid green circle CSS
             }}
           />
         </div>

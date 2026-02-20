@@ -3,21 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
+// FIXED: Standardizing date format with the rest of the squad
+import { format } from 'date-fns';
+// FIXED: Integrated the Single Source of Truth
+import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
 
 const Hero = () => {
   const navigate = useNavigate();
   const [guests, setGuests] = useState(1);
   const [dates, setDates] = useState({ checkIn: '', checkOut: '' });
 
-  // FIXED LOGIC: Redirects directly to the property overview instead of a search page
+  // FIXED LOGIC: Redirects using the global property ID constant
   const handleBookingRedirect = () => {
     const params = new URLSearchParams({
       checkIn: dates.checkIn,
       checkOut: dates.checkOut,
       guests: guests.toString()
     });
-    // Redirecting to property ID 3 (your main property)
-    navigate(`/overview/3?${params.toString()}`);
+    // FIXED: No more hardcoded ID
+    navigate(`/overview/${DEFAULT_PROPERTY_ID}?${params.toString()}`);
   };
 
   return (
@@ -43,8 +47,9 @@ const Hero = () => {
             <DatePicker 
               value={dates} 
               onChange={(range: any) => setDates({ 
-                checkIn: range?.from ? range.from.toISOString() : '', 
-                checkOut: range?.to ? range.to.toISOString() : '' 
+                // FIXED: Using 'yyyy-MM-dd' to match Overview and Reservation parsing
+                checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '', 
+                checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : '' 
               })} 
             />
           </div>
@@ -56,7 +61,6 @@ const Hero = () => {
           </div>
           
           <div className="flex items-center">
-            {/* FIXED: Changed text to "Book Now" to match the direct redirect logic */}
             <Button size="md" className="h-[56px] rounded-xl px-10" onClick={handleBookingRedirect}>
               Book Now
             </Button>

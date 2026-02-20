@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
 import { ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
+// FIXED: Integrated the Single Source of Truth constant
+import { DEFAULT_PROPERTY_ID } from "../../utils/constants";
 
 const GalleryPage = () => {
   const { id } = useParams();
@@ -12,10 +14,11 @@ const GalleryPage = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(
     location.state?.imageIndex !== undefined ? location.state.imageIndex : null
   ); 
-   
+    
   const { data: property, isLoading } = useQuery({
     queryKey: ["property", id],
-    queryFn: () => propertyService.getPropertyDetails(id || "1"),
+    // FIXED: Uses global fallback constant instead of hardcoded "1"
+    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_PROPERTY_ID),
   });
 
   const images = property?.images || [];
@@ -28,7 +31,7 @@ const GalleryPage = () => {
     setSelectedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : images.length - 1));
   }, [images.length]);
 
-  // FIXED: Smart close logic. 
+  // FIXED: Smart close logic maintained. 
   // If user came from overview image click -> go back to overview.
   // If user is just browsing gallery -> close viewer, stay in gallery.
   const handleClose = useCallback(() => {
@@ -53,7 +56,7 @@ const GalleryPage = () => {
       if (selectedIndex === null) return;
       if (e.key === "ArrowRight") showNext();
       if (e.key === "ArrowLeft") showPrev();
-      if (e.key === "Escape") handleClose(); // FIXED: Uses smart close
+      if (e.key === "Escape") handleClose(); 
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
