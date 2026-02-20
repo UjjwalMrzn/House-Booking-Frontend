@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { reviewService } from "../../api/reviewService";
+// FIXED: Using the new universal customerService
+import { customerService } from "../../api/customerService"; 
 import { X } from "lucide-react";
 import Button from "./Button";
 import { useToast } from "./Toaster";
@@ -56,7 +58,8 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(" ") || "Guest";
 
-      const customerResponse = await reviewService.createCustomer({
+      // FIXED: Switched to centralized customerService
+      const customerResponse = await customerService.createCustomer({
         firstName,
         lastName,
         email: formData.email,
@@ -64,12 +67,13 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
         phoneNumber: formData.phoneNumber || "0000000000"
       });
 
+      // FIXED: Using ID from axios response data
       await reviewService.createReview({
         property: Number(propertyId),
         rating: formData.rating,
         title: formData.title,
         comment: formData.comments,
-        customer: customerResponse.id
+        customer: customerResponse.data.id
       });
 
       queryClient.invalidateQueries({ queryKey: ["reviews", propertyId] });
@@ -97,7 +101,6 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
     <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={onClose}></div>
       
-      {/* FIXED: Added 'scrollbar-hide' logic and increased horizontal padding (px-12) */}
       <div className={`
         bg-white w-full max-w-2xl rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative z-10 animate-scale-up 
         max-h-[90vh] overflow-y-auto

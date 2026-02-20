@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+// FIXED: Added useSearchParams to grab data from the Hero redirect
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
 import { getIcon } from "../../utils/iconMap";
@@ -16,12 +17,20 @@ const OverviewPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
+  
+  // FIXED: Access search parameters (?checkIn=...&guests=...)
+  const [searchParams] = useSearchParams();
 
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState(1);
+  // FIXED: Initialize state with URL data if it exists, otherwise use defaults
+  const [checkIn, setCheckIn] = useState(searchParams.get('checkIn') || "");
+  const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') || "");
+  const [guests, setGuests] = useState(() => {
+    const guestsFromUrl = searchParams.get('guests');
+    return guestsFromUrl ? parseInt(guestsFromUrl) : 1;
+  });
   
   const [activeTab, setActiveTab] = useState("description");
+  const [hasShownError, setHasShownError] = useState(false);
 
   const {
     data: property,
@@ -34,8 +43,13 @@ const OverviewPage = () => {
   });
 
   useEffect(() => {
-    if (error) toast.error("Connection Error");
-  }, [error, toast]);
+  if (error && !hasShownError) {
+    toast.error("Connection Error: Property not found");
+    setHasShownError(true);
+  }
+  // Reset when error clears
+  if (!error) setHasShownError(false);
+}, [error, toast, hasShownError]);
 
   const tabs = useMemo(() => {
     const baseTabs = [
@@ -298,9 +312,9 @@ const OverviewPage = () => {
                 />
                 <GuestSelector value={guests} onChange={setGuests} />
                 
-                {/* FIXED: Query parameters added so the data carries over to the ReservationPage exactly like the StickyBar! */}
+                {/* FIXED: Query parameters added so data carries over to ReservationPage */}
                 <Button 
-                  onClick={() => navigate(`/book/${id || "1"}?checkin=${checkIn}&checkout=${checkOut}&guests=${guests}`)} 
+                  onClick={() => navigate(`/book/${id || "1"}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`)} 
                   fullWidth
                 >
                   Book Now

@@ -8,12 +8,15 @@ import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
 import { format } from 'date-fns';
 
-const COUNTRY_OPTIONS = [
-  "Nepal", "United States", "United Kingdom", "Australia", "Canada", "India", "China", 
-  "Japan", "Germany", "France", "Italy", "Spain", "Brazil", "Mexico", "South Korea", 
-  "Russia", "South Africa", "Netherlands", "Sweden", "Switzerland", "New Zealand", 
-  "Singapore", "United Arab Emirates", "Saudi Arabia", "Thailand", "Vietnam"
-].sort();
+// FIXED: Dynamic country list using Intl API for a professional, universal list
+const COUNTRY_OPTIONS = new Intl.DisplayNames(['en'], { type: 'region' });
+const ALL_COUNTRIES = Array.from({ length: 250 }, (_, i) => {
+  try {
+    const code = String.fromCharCode(65 + Math.floor(i / 26), 65 + (i % 26));
+    const name = COUNTRY_OPTIONS.of(code);
+    return name && name !== code ? name : null;
+  } catch { return null; }
+}).filter(Boolean).sort() as string[];
 
 const ReservationPage = () => {
   const { 
@@ -109,34 +112,34 @@ const ReservationPage = () => {
               <div className="animate-fade-in space-y-8">
                 <h1 className="text-3xl font-black tracking-tight text-[#1A1A1A]">Your contact details</h1>
                 <div className="bg-white p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-gray-100 space-y-8">
-                   <Input 
-                    label="Email Address *" 
-                    type="email" 
-                    value={contact.email} 
-                    onChange={(e: any) => setContact({...contact, email: e.target.value})} 
-                    required 
-                   />
-                   <div className="grid md:grid-cols-2 gap-6">
-                      <Input label="First Name *" value={contact.firstName} onChange={(e: any) => setContact({...contact, firstName: e.target.value})} required />
-                      <Input label="Last Name *" value={contact.lastName} onChange={(e: any) => setContact({...contact, lastName: e.target.value})} required />
-                   </div>
-                   <div className="grid md:grid-cols-2 gap-6">
-                     <Input label="Phone Number *" type="tel" value={contact.phoneNumber} onChange={(e: any) => setContact({...contact, phoneNumber: e.target.value})} required />
-                     <Select 
-                      label="Country of Residence *"
-                      value={contact.country}
-                      onChange={(val) => setContact({...contact, country: val})} 
-                      options={COUNTRY_OPTIONS}
-                      required
-                     />
-                   </div>
-                   <Button 
-  disabled={!isContactValid || isSubmitting} 
-  onClick={saveCustomerAndContinue}
-  fullWidth
->
-  {isSubmitting ? "Saving..." : "Continue to Dates"}
-</Button>
+                    <Input 
+                     label="Email Address *" 
+                     type="email" 
+                     value={contact.email} 
+                     onChange={(e: any) => setContact({...contact, email: e.target.value})} 
+                     required 
+                    />
+                    <div className="grid md:grid-cols-2 gap-6">
+                       <Input label="First Name *" value={contact.firstName} onChange={(e: any) => setContact({...contact, firstName: e.target.value})} required />
+                       <Input label="Last Name *" value={contact.lastName} onChange={(e: any) => setContact({...contact, lastName: e.target.value})} required />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <Input label="Phone Number *" type="tel" value={contact.phoneNumber} onChange={(e: any) => setContact({...contact, phoneNumber: e.target.value})} required />
+                      <Select 
+                       label="Country of Residence *"
+                       value={contact.country}
+                       onChange={(val) => setContact({...contact, country: val})} 
+                       options={ALL_COUNTRIES}
+                       required
+                      />
+                    </div>
+                    <Button 
+                      disabled={!isContactValid || isSubmitting} 
+                      onClick={saveCustomerAndContinue}
+                      fullWidth
+                    >
+                      {isSubmitting ? "Saving..." : "Continue to Dates"}
+                    </Button>
                 </div>
               </div>
             )}
@@ -145,22 +148,22 @@ const ReservationPage = () => {
               <div className="animate-fade-in space-y-8">
                 <h1 className="text-3xl font-black tracking-tight text-[#1A1A1A]">Dates & Guests</h1>
                 <div className="bg-white p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-gray-100 space-y-10">
-                   <DatePicker 
-                    value={{ checkIn: dates.checkIn, checkOut: dates.checkOut }}
-                    onChange={(range: any) => setDates({
-                      ...dates, 
-                      checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '',
-                      checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : ''
-                    })}
-                   />
-                   <GuestSelector value={guests} onChange={setGuests} />
-                   <Button 
-  disabled={!isDatesValid} 
-  onClick={() => setCurrentStep(3)}
-  fullWidth
->
-  Continue to Payment
-</Button>
+                    <DatePicker 
+                     value={{ checkIn: dates.checkIn, checkOut: dates.checkOut }}
+                     onChange={(range: any) => setDates({
+                       ...dates, 
+                       checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '',
+                       checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : ''
+                     })}
+                    />
+                    <GuestSelector value={guests} onChange={setGuests} />
+                    <Button 
+                      disabled={!isDatesValid} 
+                      onClick={() => setCurrentStep(3)}
+                      fullWidth
+                    >
+                      Continue to Payment
+                    </Button>
                 </div>
               </div>
             )}
@@ -169,21 +172,21 @@ const ReservationPage = () => {
               <div className="animate-fade-in space-y-8">
                 <h1 className="text-3xl font-black tracking-tight text-[#1A1A1A]">Payment details</h1>
                 <div className="bg-white p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-gray-100 space-y-8">
-                   <div className="bg-[#FFF9E5] border border-[#FFEAB3] rounded-2xl p-6 flex gap-4 text-xs text-[#856404] leading-relaxed">
-                     <Info className="shrink-0" size={18}/> 
-                     <div><strong>No payment processed until confirmation.</strong> We will send you an email with updates.</div>
-                   </div>
-                   <div className="flex justify-between items-center py-8 border-y border-gray-100">
-                     <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Amount Due Today (50%)</span>
-                     <span className="text-3xl font-black text-brand-green">${pricing.dueNow.toLocaleString()}</span>
-                   </div>
-                   <Button 
-  onClick={confirmBooking} 
-  disabled={isSubmitting}
-  fullWidth
->
-  {isSubmitting ? "Processing..." : "Agree & Confirm Reservation"}
-</Button>
+                    <div className="bg-[#FFF9E5] border border-[#FFEAB3] rounded-2xl p-6 flex gap-4 text-xs text-[#856404] leading-relaxed">
+                      <Info className="shrink-0" size={18}/> 
+                      <div><strong>No payment processed until confirmation.</strong> We will send you an email with updates.</div>
+                    </div>
+                    <div className="flex justify-between items-center py-8 border-y border-gray-100">
+                      <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Amount Due Today (50%)</span>
+                      <span className="text-3xl font-black text-brand-green">${pricing.dueNow.toLocaleString()}</span>
+                    </div>
+                    <Button 
+                      onClick={confirmBooking} 
+                      disabled={isSubmitting}
+                      fullWidth
+                    >
+                      {isSubmitting ? "Processing..." : "Agree & Confirm Reservation"}
+                    </Button>
                 </div>
               </div>
             )}
@@ -195,8 +198,8 @@ const ReservationPage = () => {
               <div className="mb-8 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-brand-dark">Reservation summary</h3>
                 <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full flex items-center gap-1.5 border border-amber-100">
-                   <Clock size={12} strokeWidth={3} />
-                   <span className="text-[10px] font-black uppercase tracking-wider">Pending</span>
+                    <Clock size={12} strokeWidth={3} />
+                    <span className="text-[10px] font-black uppercase tracking-wider">Pending</span>
                 </div>
               </div>
 
@@ -229,12 +232,12 @@ const ReservationPage = () => {
 
               <div className="bg-[#F9F9F7] rounded-2xl p-6 space-y-3">
                 <div className="flex justify-between text-xs font-bold text-gray-500">
-                   <span>Rental ({pricing.nights} nights)</span>
-                   <span>${pricing.rental.toLocaleString()}</span>
+                    <span>Rental ({pricing.nights} nights)</span>
+                    <span>${pricing.rental.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-xl font-black text-brand-dark pt-3 border-t border-gray-200">
-                   <span>Total (USD)</span>
-                   <span>${pricing.total.toLocaleString()}</span>
+                    <span>Total (USD)</span>
+                    <span>${pricing.total.toLocaleString()}</span>
                 </div>
               </div>
             </div>

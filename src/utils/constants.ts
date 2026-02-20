@@ -1,0 +1,1 @@
+export const DEFAULT_PROPERTY_ID = import.meta.env.VITE_DEFAULT_PROPERTY_ID || "1";

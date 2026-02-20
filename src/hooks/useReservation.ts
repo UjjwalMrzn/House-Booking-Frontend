@@ -3,14 +3,15 @@ import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { differenceInDays, parseISO } from "date-fns";
 import { propertyService } from "../api/propertyService";
-import { bookingApi } from "../api/bookingApi";
-import { useToast } from "../components/ui/Toaster"; // IMPORTED
+import { bookingService } from "../api/bookingApi";
+import { customerService } from "../api/customerService";
+import { useToast } from "../components/ui/Toaster";
 
 export const useReservation = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const toast = useToast(); // HOOK
+  const toast = useToast();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,9 +27,10 @@ export const useReservation = () => {
     parseInt(searchParams.get("guests") || "1"),
   );
 
+  // FIXED: Standardized keys to match the camelCase used in Hero and Overview Sidebar
   const [dates, setDates] = useState({
-    checkIn: searchParams.get("checkin") || "",
-    checkOut: searchParams.get("checkout") || "",
+    checkIn: searchParams.get("checkIn") || "",
+    checkOut: searchParams.get("checkOut") || "",
   });
 
   const [contact, setContact] = useState({
@@ -59,7 +61,6 @@ export const useReservation = () => {
   }, [dates, property]);
 
   const saveCustomerAndContinue = async () => {
-    // Strict Validation
     if (
       !contact.firstName ||
       !contact.lastName ||
@@ -73,7 +74,10 @@ export const useReservation = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await bookingApi.createCustomer(contact);
+      // FIXED: Switched to the specialized customerService.createCustomer
+      const response = await customerService.createCustomer(contact);
+      
+      // Axios returns data inside the 'data' property
       const newCustomerId = response.data.id;
 
       if (!newCustomerId)
@@ -101,6 +105,7 @@ export const useReservation = () => {
 
     setIsSubmitting(true);
     try {
+      // Maps UI state to Backend naming convention (snake_case)
       const bookingPayload = {
         property: parseInt(id || "1"),
         check_in: dates.checkIn,
@@ -108,7 +113,7 @@ export const useReservation = () => {
         customer: customerId,
       };
 
-      const response = await bookingApi.createBooking(bookingPayload);
+      const response = await bookingService.createBooking(bookingPayload);
 
       toast.success("Booking Confirmed! Redirecting...");
 
