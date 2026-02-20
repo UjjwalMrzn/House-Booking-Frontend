@@ -67,37 +67,54 @@ const OverviewPage = () => {
     return baseTabs;
   }, [property]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const isBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 10;
-      if (isBottom && tabs.length > 0) {
-        setActiveTab(tabs[tabs.length - 1].id);
-        return;
-      }
+ // src/components/pages/OverviewPage.tsx
 
-      const scrollPosition = window.scrollY + 150; 
-      for (let i = tabs.length - 1; i >= 0; i--) {
-        const section = document.getElementById(tabs[i].id);
-        if (section && section.offsetTop <= scrollPosition) {
+// src/components/pages/OverviewPage.tsx
+
+useEffect(() => {
+  const handleScroll = () => {
+    // 1. Check if we are at the very bottom of the page to force the last tab
+    const isBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
+    if (isBottom && tabs.length > 0) {
+      setActiveTab(tabs[tabs.length - 1].id);
+      return;
+    }
+
+    // 2. Optimized trigger point
+    // Using a dynamic trigger point (1/3 of the screen height) is more reliable than a static 150px
+    const triggerPoint = window.innerHeight / 3;
+    
+    // Iterate backwards to find the section currently "occupying" the top area
+    for (let i = tabs.length - 1; i >= 0; i--) {
+      const section = document.getElementById(tabs[i].id);
+      if (section) {
+        const rect = section.getBoundingClientRect();
+        // If the top of the section has reached the upper third of the screen
+        if (rect.top <= triggerPoint) {
           setActiveTab(tabs[i].id);
           break;
         }
       }
-    };
-    
-    window.addEventListener("scroll", handleScroll);
-    handleScroll(); 
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [tabs]);
-
-  const scrollToSection = (sectionId: string) => {
-    setActiveTab(sectionId); 
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const y = element.getBoundingClientRect().top + window.scrollY - 120; 
-      window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
+  
+  window.addEventListener("scroll", handleScroll);
+  // Initial check in case user refreshed the page while scrolled down
+  handleScroll(); 
+  
+  return () => window.removeEventListener("scroll", handleScroll);
+}, [tabs]);
+
+const scrollToSection = (sectionId: string) => {
+  setActiveTab(sectionId); 
+  const element = document.getElementById(sectionId);
+  if (element) {
+    // Standardized offset to clear the sticky navbar (80px) and tab bar (approx 60px)
+    const yOffset = -140; 
+    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }
+};
 
   return (
     <main className="pt-24 bg-white min-h-screen font-sans text-brand-dark animate-fade-in px-6 max-w-7xl mx-auto pb-20">
@@ -205,16 +222,17 @@ const OverviewPage = () => {
                   ))}
             </div>
 
-            {!isLoading && property?.images?.length > 6 && (
-              <div className="mt-8">
-                <button 
-                  onClick={() => navigate(`/gallery/${id || DEFAULT_ID}`)}
-                  className="text-brand-green font-black text-xs uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1"
-                >
-                  Explore all pictures
-                </button>
-              </div>
-            )}
+           {/* FIXED: The "Explore all pictures" button is now always visible for a better user experience */}
+{!isLoading && (
+  <div className="mt-8">
+    <button 
+      onClick={() => navigate(`/gallery/${id || DEFAULT_ID}`)}
+      className="text-brand-green font-black text-xs uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1"
+    >
+      Explore all pictures
+    </button>
+  </div>
+)}
           </section>
 
           {/* AMENITIES SECTION */}
