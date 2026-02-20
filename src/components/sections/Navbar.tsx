@@ -1,8 +1,15 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import Button from '../ui/Button';
 
 const Navbar = () => {
-  const navLinkStyles = ({ isActive }: { isActive: boolean }) => 
+  const location = useLocation();
+
+  // FIXED: Extracts the current property ID from the URL (defaults to 3 if on Home)
+  const pathParts = location.pathname.split('/');
+  const currentId = pathParts[2] || '3';
+
+  // FIXED: Changed to accept a direct boolean so we can manually trigger active states
+  const navLinkStyles = (isActive: boolean) => 
     `text-sm font-bold transition-all duration-300 pb-1 border-b-2 ${
       isActive 
         ? 'text-brand-green border-brand-green' 
@@ -20,12 +27,31 @@ const Navbar = () => {
         </Link>
 
         <div className="hidden md:flex items-center gap-10">
-          <NavLink to="/" className={navLinkStyles}>Home</NavLink>
-          <NavLink to="/overview" className={navLinkStyles}>Overview</NavLink>
-          <button className="text-sm font-bold text-gray-300 cursor-not-allowed">Map</button>
-          <button className="text-sm font-bold text-gray-300 cursor-not-allowed">Gallery</button>
-          <button className="text-sm font-bold text-gray-300 cursor-not-allowed">Reviews</button>
-          <button className="text-sm font-bold text-gray-300 cursor-not-allowed">Contact</button>
+          {/* Home stays exact */}
+          <NavLink to="/" className={({ isActive }) => navLinkStyles(isActive)}>
+            Home
+          </NavLink>
+          
+          {/* FIXED: Overview stays highlighted even on dynamic routes like /overview/3 */}
+          <Link to="/overview" className={navLinkStyles(location.pathname.startsWith('/overview'))}>
+            Overview
+          </Link>
+          
+{/* FIXED: Activated Map tab! */}
+<Link to={`/map/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/map'))}>
+  Map
+</Link>          
+          {/* FIXED: Activated Gallery tab since we just built the page! */}
+          <Link to={`/gallery/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/gallery'))}>
+            Gallery
+          </Link>
+          
+<Link to={`/reviews/${currentId}`} className={navLinkStyles(location.pathname.startsWith('/reviews'))}>
+  Reviews
+</Link>          
+<Link to="/contact" className={navLinkStyles(location.pathname === '/contact')}>
+  Contact
+</Link>
         </div>
 
         <Link to="/overview">

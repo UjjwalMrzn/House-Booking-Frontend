@@ -1,21 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowRight, X } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
-import type { DateRange } from 'react-day-picker';
 import { format, parseISO } from 'date-fns';
 import 'react-day-picker/dist/style.css';
 
-interface DatePickerProps {
-  value?: { checkIn: string; checkOut: string };
-  onChange?: (range: DateRange | undefined) => void;
-  className?: string;
-}
-
-const DatePicker = ({ value, onChange, className }: DatePickerProps) => {
+const DatePicker = ({ value, onChange, className }: any) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropDirection, setDropDirection] = useState<'down' | 'up'>('down');
+  
+  // FIXED: Track hovered date to render the dynamic "between" selection gap
+  const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
+  
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const range: DateRange | undefined = value?.checkIn ? {
+  const range = value?.checkIn ? {
     from: parseISO(value.checkIn),
     to: value.checkOut ? parseISO(value.checkOut) : undefined
   } : undefined;
@@ -24,68 +22,103 @@ const DatePicker = ({ value, onChange, className }: DatePickerProps) => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setHoveredDate(null); // Reset hover on close
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // RULE: Box Design Designed Once. 
-  // Padding (pt-6 pb-2), Rounding (rounded-xl), and Font weight matched to standard Input.
-  const boxBaseStyles = "peer block w-full px-4 pt-6 pb-2 text-sm font-bold text-gray-900 bg-white border border-gray-200 rounded-xl transition-all cursor-pointer flex items-center justify-between focus:outline-none focus:ring-0 select-none";
+  const toggleOpen = () => {
+    if (!isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+
+      if (spaceBelow < 420) {
+        setDropDirection('up');
+      } else {
+        setDropDirection('down');
+      }
+    }
+    if (isOpen) setHoveredDate(null);
+    setIsOpen(!isOpen);
+  };
+
+  // 56px Locked Design.
+  const boxBaseStyles = "peer block w-full h-[56px] px-4 pt-5 pb-1.5 text-[14px] font-bold text-gray-900 bg-white border border-gray-200 rounded-xl transition-all cursor-pointer flex items-center justify-between focus:outline-none focus:ring-0 select-none";
   const boxActiveStyles = isOpen ? "border-brand-green ring-1 ring-brand-green/20" : "hover:border-gray-300";
+
+  // Helper to strip time from dates so we can accurately compare pure calendar days
+  const normalizeDate = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
   return (
     <div className={`relative w-full group ${className}`} ref={containerRef}>
       <div className="relative">
-        <div 
-          onClick={() => setIsOpen(!isOpen)}
-          className={`${boxBaseStyles} ${boxActiveStyles}`}
-          tabIndex={0}
-        >
-          <span className={range?.from ? 'text-brand-dark' : 'text-gray-400'}>
+        <div onClick={toggleOpen} className={`${boxBaseStyles} ${boxActiveStyles}`} tabIndex={0}>
+          <span className={range?.from ? 'text-gray-900' : 'text-gray-400'}>
             {range?.from ? format(range.from, 'd MMM yyyy') : "Arrival"}
           </span>
-
-          <ArrowRight size={14} className="text-gray-300 mx-2" />
-
+          <ArrowRight size={14} className="text-gray-300 mx-1" />
           <div className="flex items-center gap-2">
-            <span className={range?.to ? 'text-brand-dark' : 'text-gray-400'}>
+            <span className={range?.to ? 'text-gray-900' : 'text-gray-400'}>
               {range?.to ? format(range.to, 'd MMM yyyy') : "Departure"}
             </span>
-            
             {range && (range.from || range.to) && (
-              <button 
-                className="ml-1 p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-red-500 transition-colors"
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  onChange?.(undefined); 
-                }}
-              >
+              <button className="ml-1 p-1 hover:bg-gray-100 rounded-full text-gray-400" onClick={(e) => { 
+                e.stopPropagation(); 
+                onChange?.(undefined); 
+                setHoveredDate(null); 
+              }}>
                 <X size={14} />
               </button>
             )}
           </div>
         </div>
-
-        {/* RULE: Label designed once. Exact match to Input system. */}
-        <label className="absolute text-sm text-gray-400 duration-150 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 font-medium pointer-events-none">
+        <label className="absolute text-[12px] text-gray-400 duration-150 transform -translate-y-2.5 scale-75 top-3.5 z-10 origin-[0] left-4 font-medium pointer-events-none">
           Dates
         </label>
       </div>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 bg-white shadow-2xl rounded-[2rem] border border-gray-100 p-6 z-[9999] min-w-[320px] md:min-w-[650px] animate-entrance">
-          <DayPicker
-            mode="range"
-            selected={range}
-            onSelect={(newRange) => {
-              onChange?.(newRange);
-              if (newRange?.from && newRange?.to) setIsOpen(false);
-            }}
-            numberOfMonths={window.innerWidth > 768 ? 2 : 1}
-            showOutsideDays
+        <div 
+          className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} left-1/2 -translate-x-1/2 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.2)] rounded-[2rem] border border-gray-100 p-6 z-[99999] min-w-[320px] md:min-w-[600px] animate-entrance`}
+          style={{ zIndex: 99999 }}
+        >
+          <DayPicker 
+            mode="range" 
+            selected={range} 
+            onSelect={(newRange) => { 
+              onChange?.(newRange); 
+              if (newRange?.from && newRange?.to) {
+                setIsOpen(false); 
+                setHoveredDate(null);
+              }
+            }} 
+            numberOfMonths={window.innerWidth > 768 ? 2 : 1} 
             fromDate={new Date()}
+            
+            // FIXED: Automatically maps existing CSS classes to dates based on your mouse hover
+            onDayMouseEnter={(date) => {
+              if (range?.from && !range?.to) setHoveredDate(date);
+            }}
+            onDayMouseLeave={() => setHoveredDate(null)}
+            modifiers={{
+              hoverRange: (date) => {
+                if (!range?.from || range?.to || !hoveredDate) return false;
+                const d = normalizeDate(date);
+                const f = normalizeDate(range.from);
+                const h = normalizeDate(hoveredDate);
+                return d > Math.min(f, h) && d < Math.max(f, h);
+              },
+              hoverEnd: (date) => {
+                if (!range?.from || range?.to || !hoveredDate) return false;
+                return normalizeDate(date) === normalizeDate(hoveredDate);
+              }
+            }}
+            modifiersClassNames={{
+              hoverRange: "rdp-day_range_middle", // Triggers your light green middle CSS
+              hoverEnd: "rdp-day_selected"       // Triggers your solid green circle CSS
+            }}
           />
         </div>
       )}

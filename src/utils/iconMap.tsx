@@ -1,16 +1,60 @@
-import { Wifi, PawPrint, Users, Bed, Bath, Car, Tv, Utensils, Globe } from 'lucide-react';
+import React from 'react';
+import { 
+  Snowflake, 
+  PawPrint, 
+  SquareParking, 
+  Wifi, 
+  Tv, 
+  Coffee,
+  Waves,
+  Flame,
+  // Info 
+} from 'lucide-react';
 
-export const getIcon = (iconName: string) => {
-  const icons: Record<string, any> = {
-    wifi: <Wifi size={20} />,
-    pet: <PawPrint size={20} />,
-    users: <Users size={20} />,
-    bed: <Bed size={20} />,
-    bath: <Bath size={20} />,
-    car: <Car size={20} />,
-    tv: <Tv size={20} />,
-    kitchen: <Utensils size={20} />,
-    globe: <Globe size={20} />,
-  };
-  return icons[iconName.toLowerCase()] || <Globe size={20} />;
+export const getIcon = (iconString: string): React.ReactNode | null => {
+  if (!iconString) return null;
+
+  // Standardize the backend string to lowercase to prevent matching errors (e.g., "Pet" vs "pet")
+  const normalized = iconString.toLowerCase().trim();
+
+  switch (normalized) {
+    case 'ac':
+    case 'air conditioning':
+    case 'aircon':
+      return <Snowflake size={20} />;
+    
+    case 'pet':
+    case 'pets':
+      return <PawPrint size={20} />;
+    
+    case 'park':
+    case 'parking':
+      return <SquareParking size={20} />;
+      
+    case 'wifi':
+    case 'internet':
+      return <Wifi size={20} />;
+      
+    case 'tv':
+    case 'television':
+    case 'cable':
+      return <Tv size={20} />;
+      
+    case 'pool':
+    case 'swimming pool':
+      return <Waves size={20} />;
+      
+    case 'kitchen':
+    case 'cooking':
+      return <Coffee size={20} />;
+      
+    case 'heating':
+    case 'heater':
+      return <Flame size={20} />;
+
+    // Add any other specific backend strings here as your app grows
+      
+    default:
+      return null; // OverviewPage will fallback to <Info size={20} /> if null is returned
+  }
 };

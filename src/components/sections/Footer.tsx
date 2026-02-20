@@ -25,7 +25,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className={legalStyles}>
-            <p>© 2026 Hinsley Cottage — Powered by Gecko Works</p>
+            <p>© 2026 Hinsley Cottage — Powered by Podamibe Nepal</p>
           </div>
           
           <div className="flex gap-8">

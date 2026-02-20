@@ -8,6 +8,11 @@ import ScrollToTop from './components/ScrollToTop';
 import ReservationPage from './components/pages/ReservationPage';
 import SuccessPage from './components/pages/SuccessPage';
 import { ToastProvider } from './components/ui/Toaster'; // IMPORTED
+import GalleryPage from './components/pages/GalleryPage';
+import MapPage from './components/pages/MapPage';
+import ReviewsPage from './components/pages/ReviewsPage';
+import ContactPage from './components/pages/ContactPage';
+import SearchPage from './components/pages/SearchPage';
 
 const Home = () => (
   <div className="animate-entrance">
@@ -26,10 +31,15 @@ function App() {
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/overview" element={<Navigate to="/overview/1" replace />} />
+              <Route path="/overview" element={<Navigate to="/overview/3" replace />} />
               <Route path="/overview/:id" element={<OverviewPage />} />
               <Route path="/book/:id" element={<ReservationPage />} />
               <Route path="/success" element={<SuccessPage />} />
+              <Route path="/gallery/:id" element={<GalleryPage />} />
+              <Route path="/map/:id" element={<MapPage />} />
+              <Route path="/reviews/:id" element={<ReviewsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/search" element={<SearchPage />} />
             </Routes>
           </main>
           <Footer />

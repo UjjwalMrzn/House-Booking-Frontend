@@ -1,17 +1,15 @@
 import React from 'react';
 
 interface FeatureCardProps {
-  // Common Props
   title?: string;
   description?: string;
   className?: string;
-  
-  // Variant 1: Icon (for Amenities)
   icon?: React.ReactNode;
-  
-  // Variant 2: Image (for Gallery/Features)
   image?: string;
   aspect?: 'square' | 'video' | 'portrait';
+  noZoom?: boolean;
+  // FIXED: Added onClick to the interface
+  onClick?: () => void;
 }
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ 
@@ -20,7 +18,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   icon, 
   image, 
   aspect = 'square', 
-  className = "" 
+  className = "",
+  noZoom = false,
+  onClick // Added here
 }) => {
   const aspectClasses = {
     square: 'aspect-square',
@@ -28,21 +28,22 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     portrait: 'aspect-[3/4]'
   };
 
-  // The "Universal Box" CSS - Defined ONCE here
   const boxStyles = "group overflow-hidden rounded-[2rem] border border-gray-100 bg-white transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.04)] hover:border-gray-200";
 
   return (
-    <div className={`${boxStyles} ${className}`}>
-      {/* IMAGE VARIANT */}
+    /* FIXED: Applied onClick to the wrapper div */
+    <div 
+      className={`${boxStyles} ${className} ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       {image && (
         <img 
           src={image} 
           alt={title || "Feature"}
-          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${aspectClasses[aspect]}`}
+          className={`w-full h-full object-cover transition-transform duration-700 ${!noZoom ? 'group-hover:scale-105' : ''} ${aspectClasses[aspect]}`}
         />
       )}
 
-      {/* ICON/TEXT VARIANT (Amenities) */}
       {!image && (
         <div className="p-6 flex items-start gap-4">
           {icon && (

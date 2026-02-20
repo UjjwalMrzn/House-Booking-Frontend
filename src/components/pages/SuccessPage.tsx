@@ -36,9 +36,9 @@ const SuccessPage = () => {
         </div>
 
         <div className="flex flex-col gap-6">
-          <Link to="/" className="w-full">
-            {/* Component now handles its own full-width logic */}
-            <Button>
+          {/* FIXED: Added 'block' to Link and 'fullWidth' to Button so they stretch together perfectly */}
+          <Link to="/" className="w-full block">
+            <Button fullWidth>
               Return to Home
             </Button>
           </Link>

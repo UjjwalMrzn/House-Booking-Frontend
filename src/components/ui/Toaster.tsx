@@ -37,10 +37,11 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ success, error, info }}>
       {children}
-      {/* RULE: Container designed once. Fixed position and pointer logic strictly internal. */}
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
+      {/* FIXED: Positioned at top-24 (below navbar) and right-6. 
+        Z-index bumped to 110000 to stay ABOVE ReviewModal (100000).
+      */}
+      <div className="fixed top-24 right-6 z-[110000] flex flex-col gap-3 pointer-events-none">
         {toasts.map((toast) => {
-          // RULE: Design CSS Once. Lock in color pairs and rounding.
           const styles = {
             error: {
               border: "border-red-100",
