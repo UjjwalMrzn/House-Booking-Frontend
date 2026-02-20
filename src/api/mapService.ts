@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Replace with your actual configured axios instance if you have one
 const apiClient = axios.create({
-  baseURL: 'http://192.168.10.3:9000',
+  baseURL: 'http://192.168.3.11:8000',
 });
 
 export const mapService = {
