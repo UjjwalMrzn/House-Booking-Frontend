@@ -15,6 +15,7 @@ import ContactPage from './components/pages/ContactPage';
 // import SearchPage from './components/pages/SearchPage';
 // FIXED: Importing the global constant for the single source of truth
 import { DEFAULT_PROPERTY_ID } from './utils/constants';
+import BackToTop from './components/BackToTop';
 
 const Home = () => (
   <div className="animate-entrance">
@@ -28,6 +29,7 @@ function App() {
     <ToastProvider> {/* WRAPPED */}
       <Router>
         <ScrollToTop />
+        <BackToTop />
         <div className="min-h-screen bg-white flex flex-col">
           <Navbar />
           <main className="flex-grow">
