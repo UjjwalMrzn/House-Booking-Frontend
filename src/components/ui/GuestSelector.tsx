@@ -9,7 +9,7 @@ const GuestSelector = ({ value, onChange, min = 1, max = 10, className = "" }: a
     <div className={`relative w-full group ${className}`}>
       <div className="relative">
         <div className={boxBaseStyles}>
-          <span className="text-[14px] font-bold text-gray-900">
+          <span className="text-[14px] font-normal text-gray-900">
             {value} Guest{value > 1 ? 's' : ''}
           </span>
           <div className="flex items-center gap-2">

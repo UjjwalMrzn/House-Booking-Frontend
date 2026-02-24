@@ -7,5 +7,10 @@ export const bookingService = {
   getConfirmedBookings: async () => {
     const response = await api.get('/bookings?status=confirmed');
     return response.data.results || response.data;
+  },
+
+  getAllBookings: async () => {
+    const response = await api.get('/bookings/');
+    return response.data;
   }
 };

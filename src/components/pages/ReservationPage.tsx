@@ -204,8 +204,11 @@ const ReservationPage = () => {
               </div>
 
               <div className="flex gap-5 mb-8 pb-8 border-b border-gray-50">
-                <img src={property?.images?.[0]?.image} alt="Property" className="w-16 h-16 object-cover rounded-xl" />
-                <div>
+<img 
+  src={property?.images?.find((img: any) => img.is_main)?.image || property?.images?.[0]?.image} 
+  alt="Property" 
+  className="w-16 h-16 object-cover rounded-xl" 
+/>                <div>
                   <h4 className="font-bold text-brand-dark text-sm">{property?.title}</h4>
                   <div className="flex items-center gap-1 text-[10px] text-brand-green font-bold uppercase mt-1">
                     <Star size={10} fill="currentColor"/> Superhost

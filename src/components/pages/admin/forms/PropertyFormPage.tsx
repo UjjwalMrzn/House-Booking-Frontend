@@ -1,0 +1,109 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { propertyService } from '../../../../api/propertyService';
+import { useToast } from '../../../ui/Toaster';
+import { ArrowLeft, Home, Image as ImageIcon, ListChecks, FileText, Lock } from 'lucide-react';
+// import Button from '../../../ui/Button';
+
+// Import our beautiful new modular tabs!
+import BasicTab from './tabs/BasicTab';
+import ImagesTab from './tabs/ImagesTab';
+import AmenitiesTab from './tabs/AmenitiesTab';
+import PoliciesTab from './tabs/PoliciesTab';
+
+const PropertyFormPage = () => {
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
+  const navigate = useNavigate();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [activeTab, setActiveTab] = useState<'basic' | 'images' | 'amenities' | 'policies'>('basic');
+
+  const [formData, setFormData] = useState({
+    title: '', description: '', address: '', base_price_per_night: '',
+    max_guests: '', beds: '', bedrooms: '', bathroom: ''
+  });
+
+  const { data: existingProperty, isLoading: isFetching } = useQuery({
+    queryKey: ['property', id],
+    queryFn: () => propertyService.getProperty(id!),
+    enabled: isEditMode,
+  });
+
+  useEffect(() => {
+    if (existingProperty) {
+      setFormData({
+        title: existingProperty.title || '', description: existingProperty.description || '',
+        address: existingProperty.address || '', base_price_per_night: existingProperty.base_price_per_night || '',
+        max_guests: existingProperty.max_guests || '', beds: existingProperty.beds || '',
+        bedrooms: existingProperty.bedrooms || '', bathroom: existingProperty.bathroom || ''
+      });
+    }
+  }, [existingProperty]);
+
+  const basicMutation = useMutation({
+    mutationFn: (data: any) => isEditMode ? propertyService.updateProperty({ id: id!, data }) : propertyService.createProperty(data),
+    onSuccess: (responseData) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-properties'] });
+      toast.success(`Property ${isEditMode ? 'updated' : 'created'} successfully!`);
+      if (!isEditMode && responseData?.id) {
+        navigate(`/admin/properties/edit/${responseData.id}`, { replace: true });
+        setActiveTab('images');
+      }
+    },
+    onError: () => toast.error(`Failed to save property details.`)
+  });
+
+  if (isEditMode && isFetching) return <div className="p-10 text-center text-gray-400 font-bold">Loading...</div>;
+
+  const getTabClass = (tabName: string) => {
+    if (!isEditMode && tabName !== 'basic') return "flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold text-gray-400 bg-gray-50/80 border border-gray-100 cursor-not-allowed select-none";
+    if (activeTab === tabName) return "flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold text-white bg-brand-dark shadow-[0_8px_15px_-5px_rgba(0,0,0,0.3)] transition-all";
+    return "flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold text-gray-500 bg-white border border-gray-100 hover:bg-gray-50 hover:text-brand-dark transition-all cursor-pointer shadow-sm";
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto w-full animate-fade-in">
+      <div className="mb-6 flex items-center gap-4">
+        <Link to="/admin/properties" className="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center text-gray-500 hover:text-brand-dark transition-all shadow-sm">
+          <ArrowLeft size={18} strokeWidth={2.5} />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-black text-brand-dark tracking-tight">{isEditMode ? 'Manage Property' : 'Add New Property'}</h1>
+          <p className="text-xs font-bold text-gray-400 mt-0.5">{isEditMode ? 'Update details, photos, and policies.' : 'Enter basic details first.'}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2.5 mb-5">
+        <button onClick={() => setActiveTab('basic')} className={getTabClass('basic')}><Home size={14} /> Basic Info</button>
+        <button onClick={() => isEditMode && setActiveTab('images')} className={getTabClass('images')} disabled={!isEditMode}>{isEditMode ? <ImageIcon size={14} /> : <Lock size={12} />} Photos</button>
+        <button onClick={() => isEditMode && setActiveTab('amenities')} className={getTabClass('amenities')} disabled={!isEditMode}>{isEditMode ? <ListChecks size={14} /> : <Lock size={12} />} Amenities</button>
+        <button onClick={() => isEditMode && setActiveTab('policies')} className={getTabClass('policies')} disabled={!isEditMode}>{isEditMode ? <FileText size={14} /> : <Lock size={12} />} Policies</button>
+      </div>
+
+      {activeTab === 'basic' && (
+        <BasicTab 
+          formData={formData} 
+          handleChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })} 
+          handleSubmit={(e) => { e.preventDefault(); basicMutation.mutate({ ...formData, base_price_per_night: Number(formData.base_price_per_night), max_guests: Number(formData.max_guests), beds: Number(formData.beds), bedrooms: Number(formData.bedrooms), bathroom: Number(formData.bathroom) }); }} 
+          isPending={basicMutation.isPending} 
+        />
+      )}
+      
+      {activeTab === 'images' && <ImagesTab propertyId={id!} images={existingProperty?.images} />}
+      {activeTab === 'amenities' && <AmenitiesTab propertyId={id!} assignedAmenities={existingProperty?.amenities} />}
+      
+      {activeTab === 'policies' && (
+        <PoliciesTab 
+          propertyId={id!} 
+          checkInOutRules={existingProperty?.checkInOutRules} 
+          policies={existingProperty?.policies} 
+        />
+      )}
+    </div>
+  );
+};
+
+export default PropertyFormPage;

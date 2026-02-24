@@ -3,7 +3,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
-import { getIcon } from "../../utils/iconMap";
 import FeatureCard from "../ui/FeatureCard";
 import DatePicker from "../ui/DatePicker";
 import GuestSelector from "../ui/GuestSelector";
@@ -11,7 +10,8 @@ import Button from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toaster";
 import { format } from "date-fns";
-import { Users, Bed, Bath, MapPin, Info } from "lucide-react";
+import { Users, Bed, Bath, MapPin } from "lucide-react";
+import DynamicIcon from "../ui/DynamicIcon";
 
 const OverviewPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -244,13 +244,13 @@ const scrollToSection = (sectionId: string) => {
               {isLoading
                 ? [1, 2, 3, 4].map((i) => <Skeleton key={i} variant="input" />)
                 : property?.amenities?.map((amenity: any, index: number) => (
-                    <FeatureCard
-                      key={index}
-                      icon={getIcon(amenity.icon) || <Info size={20} />}
-                      title={amenity.name}
-                      description={amenity.description}
-                    />
-                  ))}
+              <FeatureCard
+                key={index}
+                icon={<DynamicIcon name={amenity.icon || 'Info'} size={20} />} // <--- NEW LINE
+                title={amenity.name}
+                description={amenity.description}
+              />
+            ))}
             </div>
           </section>
 

@@ -37,7 +37,7 @@ const Select: React.FC<SelectProps> = ({ label, options, value, onChange, classN
 
   // RULE: Box Design Designed Once.
   // Height (pt-6 pb-2) and Rounding (rounded-xl) matched exactly to Input.tsx
-  const boxBaseStyles = "peer block w-full px-4 pt-6 pb-2 text-sm font-bold text-gray-900 bg-white border border-gray-200 rounded-xl cursor-pointer flex items-center justify-between transition-all select-none outline-none";
+  const boxBaseStyles = "peer block w-full px-4 pt-6 pb-2 text-sm font-normal text-gray-900 bg-white border border-gray-200 rounded-xl cursor-pointer flex items-center justify-between transition-all select-none outline-none";
   const boxActiveStyles = isOpen ? "border-brand-green ring-1 ring-brand-green/20" : "hover:border-gray-300";
 
   return (
