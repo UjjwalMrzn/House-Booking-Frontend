@@ -92,24 +92,24 @@ setMainImage: async (imageId: string | number) => {
 
   // Check-In / Check-Out Rules
   addCheckInOutRule: async (data: { property: string | number, check_in: string, check_out: string }) => {
-    return await api.post('/check-in-out-rules/', data); // Adjust URL if backend named it differently
+    return await api.post('/check-in-out/', data); // Adjust URL if backend named it differently
   },
   updateCheckInOutRule: async (id: number, data: { check_in: string, check_out: string }) => {
-    return await api.patch(`/check-in-out-rules/${id}/`, data);
+    return await api.patch(`/check-in-out/${id}/`, data);
   },
   deleteCheckInOutRule: async (id: number) => {
-    return await api.delete(`/check-in-out-rules/${id}/`);
+    return await api.delete(`/check-in-out/${id}/`);
   },
 
   // General Policies (e.g., Cancellation, Smoking)
   addPropertyPolicy: async (data: { property: string | number, name: string, description: string }) => {
-    return await api.post('/policies/', data); // Adjust URL if backend named it differently
+    return await api.post('/policy/', data); // Adjust URL if backend named it differently
   },
   updatePropertyPolicy: async (id: number, data: { name: string, description: string }) => {
-    return await api.patch(`/policies/${id}/`, data);
+    return await api.patch(`/policy/${id}/`, data);
   },
   deletePropertyPolicy: async (id: number) => {
-    return await api.delete(`/policies/${id}/`);
+    return await api.delete(`/policy/${id}/`);
   },
 };
 
