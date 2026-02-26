@@ -1,29 +1,26 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom'; // <--- NEW IMPORT
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../../../api/propertyService';
 import { useToast } from '../../../../ui/Toaster';
 import { FileText, Clock, Plus, Edit, Trash2, X, ShieldAlert } from 'lucide-react';
 import Button from '../../../../ui/Button';
 import Input from '../../../../ui/Input';
-import TimePicker from '../../../../ui/TimePicker'; // Check the import path
+import TimePicker from '../../../../ui/TimePicker'; 
 
 interface PoliciesTabProps {
   propertyId: string;
   checkInOutRules: any[];
   policies: any[];
+  isViewMode?: boolean;
 }
 
-const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules = [], policies = [] }) => {
-  const queryClient = useQueryClient();
+const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules = [], policies = [], isViewMode }) => {  const queryClient = useQueryClient();
   const toast = useToast();
 
-  // State for Check-in/out Modal
   const [ruleForm, setRuleForm] = useState({ isOpen: false, isEdit: false, id: null as number | null, check_in: '', check_out: '' });
-  
-  // State for General Policies Modal
   const [policyForm, setPolicyForm] = useState({ isOpen: false, isEdit: false, id: null as number | null, name: '', description: '' });
 
-  // --- MUTATIONS: CHECK-IN / OUT ---
   const saveRuleMutation = useMutation({
     mutationFn: async (data: typeof ruleForm) => {
       if (data.isEdit && data.id) return propertyService.updateCheckInOutRule(data.id, { check_in: data.check_in, check_out: data.check_out });
@@ -45,7 +42,6 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
     }
   });
 
-  // --- MUTATIONS: POLICIES ---
   const savePolicyMutation = useMutation({
     mutationFn: async (data: typeof policyForm) => {
       if (data.isEdit && data.id) return propertyService.updatePropertyPolicy(data.id, { name: data.name, description: data.description });
@@ -79,8 +75,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
             </div>
             <h3 className="text-lg font-black text-brand-dark tracking-tight">Check-in & Check-out</h3>
           </div>
-          {/* Only allow adding if there isn't one already (usually properties only have 1 schedule) */}
-          {checkInOutRules.length === 0 && (
+          {checkInOutRules.length === 0 && !isViewMode && (
             <Button onClick={() => setRuleForm({ isOpen: true, isEdit: false, id: null, check_in: '14:00', check_out: '11:00' })} className="px-4 py-2 text-xs flex items-center gap-2 bg-amber-500 hover:bg-amber-600 shadow-amber-500/30">
               <Plus size={14} strokeWidth={3} /> Add Times
             </Button>
@@ -106,6 +101,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
                       <p className="text-lg font-black text-brand-dark">{rule.check_out}</p>
                     </div>
                   </div>
+                  {!isViewMode && (
                   <div className="flex gap-2">
                     <button onClick={() => setRuleForm({ isOpen: true, isEdit: true, id: rule.id, check_in: rule.check_in, check_out: rule.check_out })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-500 hover:text-amber-500 transition-colors">
                       <Edit size={14} />
@@ -114,6 +110,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
                       <Trash2 size={14} />
                     </button>
                   </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -130,9 +127,11 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
             </div>
             <h3 className="text-lg font-black text-brand-dark tracking-tight">House Rules & Policies</h3>
           </div>
+          {!isViewMode && (
           <Button onClick={() => setPolicyForm({ isOpen: true, isEdit: false, id: null, name: '', description: '' })} className="px-4 py-2 text-xs flex items-center gap-2">
             <Plus size={14} strokeWidth={3} /> Add Policy
           </Button>
+          )}
         </div>
 
         <div className="p-6">
@@ -153,6 +152,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
                       <p className="text-xs font-bold text-gray-400 mt-1 leading-relaxed">{policy.description}</p>
                     </div>
                   </div>
+                  {!isViewMode && (
                   <div className="flex gap-2 shrink-0 ml-4">
                     <button onClick={() => setPolicyForm({ isOpen: true, isEdit: true, id: policy.id, name: policy.name, description: policy.description })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-brand-green hover:text-white transition-colors">
                       <Edit size={14} />
@@ -161,6 +161,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
                       <Trash2 size={14} />
                     </button>
                   </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -168,16 +169,16 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
         </div>
       </div>
 
-      {/* --- MODAL: CHECK-IN / OUT TIMES --- */}
-      {ruleForm.isOpen && (
+      {/* --- MODAL: CHECK-IN / OUT TIMES (Teleported to document.body) --- */}
+      {ruleForm.isOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in" onMouseDown={() => setRuleForm({ ...ruleForm, isOpen: false })}>
-          <div className="bg-white w-full max-w-md rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden animate-slide-up" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="bg-white w-full max-w-md relative rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 animate-slide-up" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 rounded-t-[2rem]">
               <h3 className="text-lg font-black text-brand-dark tracking-tight">Set Property Times</h3>
               <button onClick={() => setRuleForm({ ...ruleForm, isOpen: false })} className="text-gray-400 hover:text-brand-dark transition-colors"><X size={20} strokeWidth={3} /></button>
             </div>
             <div className="p-6 space-y-5">
-             <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <TimePicker 
                   label="Check-in Time" 
                   value={ruleForm.check_in} 
@@ -196,35 +197,45 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* --- MODAL: POLICIES --- */}
-      {policyForm.isOpen && (
+      {/* --- MODAL: POLICIES (Teleported to document.body) --- */}
+      {policyForm.isOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in" onMouseDown={() => setPolicyForm({ ...policyForm, isOpen: false })}>
-          <div className="bg-white w-full max-w-md rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden animate-slide-up" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+          <div className="bg-white w-full max-w-md relative rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 animate-slide-up" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 rounded-t-[2rem]">
               <h3 className="text-lg font-black text-brand-dark tracking-tight">{policyForm.isEdit ? 'Edit Policy' : 'Add Policy'}</h3>
               <button onClick={() => setPolicyForm({ ...policyForm, isOpen: false })} className="text-gray-400 hover:text-brand-dark transition-colors"><X size={20} strokeWidth={3} /></button>
             </div>
             <div className="p-6 space-y-5">
-              <Input label="Policy Name" name="name" value={policyForm.name} onChange={(e) => setPolicyForm({ ...policyForm, name: e.target.value })} placeholder="e.g., Cancellation Policy, Smoking..." required />
-              <div className="space-y-1.5">
+              <Input label="Policy Name" name="name" value={policyForm.name} onChange={(e) => setPolicyForm({ ...policyForm, name: e.target.value })} placeholder="e.g., Cancellation Policy, Smoking..." maxLength={150} required />
+              <div className="space-y-1.5 relative group pb-4">
                 <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Policy Details</label>
                 <textarea 
                   value={policyForm.description} 
                   onChange={(e) => setPolicyForm({ ...policyForm, description: e.target.value })} 
                   placeholder="Explain the rules clearly to your guests..." 
+                  maxLength={500} 
                   rows={4}
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-brand-dark outline-none focus:border-brand-green resize-none"
                 />
+                {!isViewMode && (
+                  <div className="absolute bottom-0 right-2 text-[10px] font-bold text-gray-400">
+                    <span className={policyForm.description?.length >= 500 ? 'text-red-500' : ''}>
+                      {policyForm.description?.length || 0}
+                    </span> / 500
+                  </div>
+                )}
               </div>
               <Button onClick={() => savePolicyMutation.mutate(policyForm)} disabled={!policyForm.name || !policyForm.description || savePolicyMutation.isPending} className="w-full py-3">
                 {savePolicyMutation.isPending ? 'Saving...' : 'Save Policy'}
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

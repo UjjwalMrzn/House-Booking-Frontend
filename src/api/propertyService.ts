@@ -111,5 +111,15 @@ setMainImage: async (imageId: string | number) => {
   deletePropertyPolicy: async (id: number) => {
     return await api.delete(`/policy/${id}/`);
   },
+getAllBookings: async () => {
+    // FIXED: Changed to '/bookings/'
+    const response = await api.get('/bookings/'); 
+    // FIXED: Django sends paginated data, so we extract the 'results' array
+    return response.data.results || response.data; 
+  },
+  updateBookingStatus: async (id: number, status: 'confirmed' | 'cancelled' | 'pending') => {
+    // FIXED: Changed to '/bookings/'
+    const response = await api.patch(`/bookings/${id}/`, { status });
+    return response.data;
+  },
 };
-

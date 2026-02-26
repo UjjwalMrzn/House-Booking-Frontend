@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom'; // <--- ADDED PORTAL
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../../../api/propertyService';
 import { useToast } from '../../../../ui/Toaster';
@@ -9,9 +10,10 @@ import DynamicIcon from '../../../../ui/DynamicIcon';
 interface AmenitiesTabProps {
   propertyId: string;
   assignedAmenities: any[];
+  isViewMode?: boolean;
 }
 
-const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmenities = [] }) => {
+const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmenities = [], isViewMode }) => {
   const queryClient = useQueryClient();
   const toast = useToast();
 
@@ -28,7 +30,7 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
     description: '' 
   });
 
-  // NEW: State to control our custom dropdown
+  // State to control our custom dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -81,9 +83,11 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
             </div>
             <h3 className="text-lg font-black text-brand-dark tracking-tight">Property Amenities</h3>
           </div>
-          <Button onClick={() => setAmenityForm({ isOpen: true, isEdit: false, assignmentId: null, amenityId: '', description: '' })} className="px-4 py-2 text-xs flex items-center gap-2">
-            <Plus size={14} strokeWidth={3} /> Add Amenity
-          </Button>
+          {!isViewMode && (
+            <Button onClick={() => setAmenityForm({ isOpen: true, isEdit: false, assignmentId: null, amenityId: '', description: '' })} className="px-4 py-2 text-xs flex items-center gap-2">
+              <Plus size={14} strokeWidth={3} /> Add Amenity
+            </Button>
+          )}
         </div>
 
         {/* List */}
@@ -105,6 +109,7 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
                       <p className="text-xs font-bold text-gray-400 mt-0.5">{amenity.description}</p>
                     </div>
                   </div>
+                  {!isViewMode && (
                   <div className="flex gap-2">
                    <button 
                       onClick={() => {
@@ -126,6 +131,7 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
                       <Trash2 size={14} />
                     </button>
                   </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -133,8 +139,8 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
         </div>
       </div>
 
-      {/* MODAL */}
-      {amenityForm.isOpen && (
+      {/* MODAL: Teleported to document.body */}
+      {amenityForm.isOpen && createPortal(
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in"
           onMouseDown={() => {
@@ -208,15 +214,23 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative group pb-4">
                 <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Custom Description</label>
                 <textarea 
                   value={amenityForm.description} 
                   onChange={(e) => setAmenityForm({ ...amenityForm, description: e.target.value })} 
                   placeholder="e.g., Fast 500Mbps WiFi, Pets welcome..." 
+                  maxLength={150} 
                   rows={3}
                   className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-brand-dark outline-none focus:border-brand-green resize-none"
                 />
+                {!isViewMode && (
+                  <div className="absolute bottom-0 right-2 text-[10px] font-bold text-gray-400">
+                    <span className={amenityForm.description?.length >= 150 ? 'text-red-500' : ''}>
+                      {amenityForm.description?.length || 0}
+                    </span> / 150
+                  </div>
+                )}
               </div>
 
               <Button 
@@ -228,7 +242,8 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
               </Button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

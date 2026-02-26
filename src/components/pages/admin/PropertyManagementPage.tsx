@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../api/propertyService';
 import { useToast } from '../../ui/Toaster';
-import { Plus, Home, MapPin, Edit, Trash2, Users, BedDouble, Star, Search } from 'lucide-react';
+import { Plus, Home, MapPin, Edit, Trash2, Users, BedDouble, Star, Search, Eye } from 'lucide-react';
 import { Skeleton } from '../../ui/Skeleton';
 import { Link } from 'react-router-dom';
 import Modal from '../../ui/Modal';
@@ -117,7 +117,7 @@ const PropertyManagementPage = () => {
                 </thead>
                 <tbody className="text-sm font-bold text-brand-dark">
                   {filteredProperties.map((property: any) => {
-const mainImage = property.images?.find((img: any) => img.is_main)?.image || property.images?.[0]?.image;                    
+                    const mainImage = property.images?.find((img: any) => img.is_main)?.image || property.images?.[0]?.image;                    
                     const rating = typeof property.average_rating === 'number' 
                       ? property.average_rating.toFixed(1) 
                       : (property.average_rating ? Number(property.average_rating).toFixed(1) : 'New');
@@ -171,8 +171,18 @@ const mainImage = property.images?.find((img: any) => img.is_main)?.image || pro
                         </td>
 
                         <td className="py-3 px-5 text-right rounded-r-2xl">
+                          {/* FIXED: Removed opacity-0 and group-hover classes so buttons are always visible */}
                           <div className="flex items-center justify-end gap-1.5">
-                            {/* FIXED: Shrunk action buttons to w-8 h-8 */}
+                            
+                            {/* NEW: View Public Listing Button */}
+                            <Link 
+                              to={`/admin/properties/view/${property.id}`} 
+                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-500 transition-all shadow-sm"
+                              title="View Property Details"
+                            >
+                              <Eye size={14} />
+                            </Link>
+
                             <Link 
                               to={`/admin/properties/edit/${property.id}`}
                               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-brand-green hover:border-brand-green hover:text-white transition-all shadow-sm"
@@ -180,13 +190,14 @@ const mainImage = property.images?.find((img: any) => img.is_main)?.image || pro
                             >
                               <Edit size={14} />
                             </Link>
+                            
                             <button 
-  onClick={() => setDeleteModal({ isOpen: true, id: property.id, title: property.title })} // NEW CLICK LOGIC
-  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm"
-  title="Delete Property"
->
-  <Trash2 size={14} />
-</button>
+                              onClick={() => setDeleteModal({ isOpen: true, id: property.id, title: property.title })}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm"
+                              title="Delete Property"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         </td>
 
