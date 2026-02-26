@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { createPortal } from 'react-dom'; // <--- NEW IMPORT
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../../../api/propertyService';
 import { useToast } from '../../../../ui/Toaster';
-import { FileText, Clock, Plus, Edit, Trash2, X, ShieldAlert } from 'lucide-react';
+import { FileText, Clock, Plus, Edit, Trash2, ShieldAlert } from 'lucide-react';
 import Button from '../../../../ui/Button';
 import Input from '../../../../ui/Input';
 import TimePicker from '../../../../ui/TimePicker'; 
+import Modal from '../../../../ui/Modal';
+import FormModal from '../../../../ui/FormModal'; 
 
 interface PoliciesTabProps {
   propertyId: string;
@@ -15,15 +16,22 @@ interface PoliciesTabProps {
   isViewMode?: boolean;
 }
 
-const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules = [], policies = [], isViewMode }) => {  const queryClient = useQueryClient();
+const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules = [], policies = [], isViewMode }) => {
+  const queryClient = useQueryClient();
   const toast = useToast();
 
   const [ruleForm, setRuleForm] = useState({ isOpen: false, isEdit: false, id: null as number | null, check_in: '', check_out: '' });
   const [policyForm, setPolicyForm] = useState({ isOpen: false, isEdit: false, id: null as number | null, name: '', description: '' });
 
+  const [deleteRuleModal, setDeleteRuleModal] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
+  const [deletePolicyModal, setDeletePolicyModal] = useState<{ isOpen: boolean; id: number | null; name: string }>({ isOpen: false, id: null, name: "" });
+
+  // CLEANED OF HACKS: Strictly relies on standard `data.id`
   const saveRuleMutation = useMutation({
     mutationFn: async (data: typeof ruleForm) => {
-      if (data.isEdit && data.id) return propertyService.updateCheckInOutRule(data.id, { check_in: data.check_in, check_out: data.check_out });
+      if (data.isEdit && data.id) {
+        return propertyService.updateCheckInOutRule(data.id, { check_in: data.check_in, check_out: data.check_out });
+      }
       return propertyService.addCheckInOutRule({ property: propertyId, check_in: data.check_in, check_out: data.check_out });
     },
     onSuccess: () => {
@@ -31,7 +39,10 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
       setRuleForm({ isOpen: false, isEdit: false, id: null, check_in: '', check_out: '' });
       toast.success("Times saved successfully!");
     },
-    onError: () => toast.error("Failed to save times.")
+    onError: (error: any) => {
+      const backendError = error.response?.data?.error || "Failed to save times.";
+      toast.error(backendError);
+    }
   });
 
   const deleteRuleMutation = useMutation({
@@ -39,6 +50,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property', propertyId] });
       toast.success("Times removed.");
+      setDeleteRuleModal({ isOpen: false, id: null });
     }
   });
 
@@ -52,7 +64,10 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
       setPolicyForm({ isOpen: false, isEdit: false, id: null, name: '', description: '' });
       toast.success("Policy saved successfully!");
     },
-    onError: () => toast.error("Failed to save policy.")
+    onError: (error: any) => {
+      const backendError = error.response?.data?.error || "Failed to save policy.";
+      toast.error(backendError);
+    }
   });
 
   const deletePolicyMutation = useMutation({
@@ -60,6 +75,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property', propertyId] });
       toast.success("Policy removed.");
+      setDeletePolicyModal({ isOpen: false, id: null, name: "" });
     }
   });
 
@@ -106,7 +122,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
                     <button onClick={() => setRuleForm({ isOpen: true, isEdit: true, id: rule.id, check_in: rule.check_in, check_out: rule.check_out })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-500 hover:text-amber-500 transition-colors">
                       <Edit size={14} />
                     </button>
-                    <button onClick={() => window.confirm("Remove these times?") && deleteRuleMutation.mutate(rule.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-500 hover:text-red-500 transition-colors">
+                    <button onClick={() => setDeleteRuleModal({ isOpen: true, id: rule.id })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-500 hover:text-red-500 transition-colors">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -157,7 +173,7 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
                     <button onClick={() => setPolicyForm({ isOpen: true, isEdit: true, id: policy.id, name: policy.name, description: policy.description })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-brand-green hover:text-white transition-colors">
                       <Edit size={14} />
                     </button>
-                    <button onClick={() => window.confirm(`Delete ${policy.name}?`) && deletePolicyMutation.mutate(policy.id)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-red-500 hover:text-white transition-colors">
+                    <button onClick={() => setDeletePolicyModal({ isOpen: true, id: policy.id, name: policy.name })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-red-500 hover:text-white transition-colors">
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -169,74 +185,63 @@ const PoliciesTab: React.FC<PoliciesTabProps> = ({ propertyId, checkInOutRules =
         </div>
       </div>
 
-      {/* --- MODAL: CHECK-IN / OUT TIMES (Teleported to document.body) --- */}
-      {ruleForm.isOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in" onMouseDown={() => setRuleForm({ ...ruleForm, isOpen: false })}>
-          <div className="bg-white w-full max-w-md relative rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 animate-slide-up" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 rounded-t-[2rem]">
-              <h3 className="text-lg font-black text-brand-dark tracking-tight">Set Property Times</h3>
-              <button onClick={() => setRuleForm({ ...ruleForm, isOpen: false })} className="text-gray-400 hover:text-brand-dark transition-colors"><X size={20} strokeWidth={3} /></button>
-            </div>
-            <div className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <TimePicker 
-                  label="Check-in Time" 
-                  value={ruleForm.check_in} 
-                  onChange={(newTime) => setRuleForm({ ...ruleForm, check_in: newTime })} 
-                  required 
-                />
-                <TimePicker 
-                  label="Check-out Time" 
-                  value={ruleForm.check_out} 
-                  onChange={(newTime) => setRuleForm({ ...ruleForm, check_out: newTime })} 
-                  required 
-                />
-              </div>
-              <Button onClick={() => saveRuleMutation.mutate(ruleForm)} disabled={!ruleForm.check_in || !ruleForm.check_out || saveRuleMutation.isPending} className="w-full py-3 bg-amber-500 hover:bg-amber-600 shadow-amber-500/30 text-white border-none">
-                {saveRuleMutation.isPending ? 'Saving...' : 'Save Times'}
-              </Button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* --- REUSABLE FORM MODALS --- */}
+      <FormModal 
+        isOpen={ruleForm.isOpen} 
+        onClose={() => setRuleForm({ ...ruleForm, isOpen: false })} 
+        title="Set Property Times"
+      >
+        <div className="grid grid-cols-2 gap-4">
+          <TimePicker label="Check-in Time" value={ruleForm.check_in} onChange={(newTime) => setRuleForm({ ...ruleForm, check_in: newTime })} required />
+          <TimePicker label="Check-out Time" value={ruleForm.check_out} onChange={(newTime) => setRuleForm({ ...ruleForm, check_out: newTime })} required />
+        </div>
+        <Button onClick={() => saveRuleMutation.mutate(ruleForm)} disabled={!ruleForm.check_in || !ruleForm.check_out || saveRuleMutation.isPending} className="w-full py-3 bg-amber-500 hover:bg-amber-600 shadow-amber-500/30 text-white border-none">
+          {saveRuleMutation.isPending ? 'Saving...' : 'Save Times'}
+        </Button>
+      </FormModal>
 
-      {/* --- MODAL: POLICIES (Teleported to document.body) --- */}
-      {policyForm.isOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in" onMouseDown={() => setPolicyForm({ ...policyForm, isOpen: false })}>
-          <div className="bg-white w-full max-w-md relative rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 animate-slide-up" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 rounded-t-[2rem]">
-              <h3 className="text-lg font-black text-brand-dark tracking-tight">{policyForm.isEdit ? 'Edit Policy' : 'Add Policy'}</h3>
-              <button onClick={() => setPolicyForm({ ...policyForm, isOpen: false })} className="text-gray-400 hover:text-brand-dark transition-colors"><X size={20} strokeWidth={3} /></button>
+      <FormModal 
+        isOpen={policyForm.isOpen} 
+        onClose={() => setPolicyForm({ ...policyForm, isOpen: false })} 
+        title={policyForm.isEdit ? 'Edit Policy' : 'Add Policy'}
+      >
+        <Input label="Policy Name" name="name" value={policyForm.name} onChange={(e) => setPolicyForm({ ...policyForm, name: e.target.value })} placeholder="e.g., Cancellation Policy..." maxLength={150} required />
+        <div className="space-y-1.5 relative group pb-4">
+          <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Policy Details</label>
+          <textarea value={policyForm.description} onChange={(e) => setPolicyForm({ ...policyForm, description: e.target.value })} placeholder="Explain the rules..." maxLength={500} rows={4} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-brand-dark outline-none focus:border-brand-green resize-none" />
+          {!isViewMode && (
+            <div className="absolute bottom-0 right-2 text-[10px] font-bold text-gray-400">
+              <span>{policyForm.description?.length || 0}</span> / 500
             </div>
-            <div className="p-6 space-y-5">
-              <Input label="Policy Name" name="name" value={policyForm.name} onChange={(e) => setPolicyForm({ ...policyForm, name: e.target.value })} placeholder="e.g., Cancellation Policy, Smoking..." maxLength={150} required />
-              <div className="space-y-1.5 relative group pb-4">
-                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Policy Details</label>
-                <textarea 
-                  value={policyForm.description} 
-                  onChange={(e) => setPolicyForm({ ...policyForm, description: e.target.value })} 
-                  placeholder="Explain the rules clearly to your guests..." 
-                  maxLength={500} 
-                  rows={4}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-brand-dark outline-none focus:border-brand-green resize-none"
-                />
-                {!isViewMode && (
-                  <div className="absolute bottom-0 right-2 text-[10px] font-bold text-gray-400">
-                    <span className={policyForm.description?.length >= 500 ? 'text-red-500' : ''}>
-                      {policyForm.description?.length || 0}
-                    </span> / 500
-                  </div>
-                )}
-              </div>
-              <Button onClick={() => savePolicyMutation.mutate(policyForm)} disabled={!policyForm.name || !policyForm.description || savePolicyMutation.isPending} className="w-full py-3">
-                {savePolicyMutation.isPending ? 'Saving...' : 'Save Policy'}
-              </Button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          )}
+        </div>
+        <Button onClick={() => savePolicyMutation.mutate(policyForm)} disabled={!policyForm.name || !policyForm.description || savePolicyMutation.isPending} className="w-full py-3">
+          {savePolicyMutation.isPending ? 'Saving...' : 'Save Policy'}
+        </Button>
+      </FormModal>
+
+      {/* --- REUSABLE ALERT MODALS --- */}
+      <Modal 
+        isOpen={deleteRuleModal.isOpen}
+        onClose={() => setDeleteRuleModal({ isOpen: false, id: null })}
+        onConfirm={() => { if (deleteRuleModal.id) deleteRuleMutation.mutate(deleteRuleModal.id); }}
+        title="Remove Times"
+        message="Are you sure you want to remove the arrival and departure times for this property?"
+        confirmText="Remove Now"
+        variant="danger"
+        loading={deleteRuleMutation.isPending}
+      />
+
+      <Modal 
+        isOpen={deletePolicyModal.isOpen}
+        onClose={() => setDeletePolicyModal({ isOpen: false, id: null, name: "" })}
+        onConfirm={() => { if (deletePolicyModal.id) deletePolicyMutation.mutate(deletePolicyModal.id); }}
+        title="Delete Policy"
+        message={`Are you sure you want to delete "${deletePolicyModal.name}"? This action cannot be undone.`}
+        confirmText="Delete Now"
+        variant="danger"
+        loading={deletePolicyMutation.isPending}
+      />
 
     </div>
   );

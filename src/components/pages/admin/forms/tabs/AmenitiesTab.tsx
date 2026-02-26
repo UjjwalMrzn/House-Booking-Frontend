@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom'; // <--- ADDED PORTAL
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../../../api/propertyService';
 import { useToast } from '../../../../ui/Toaster';
-import { ListChecks, Plus, Edit, Trash2, X, ChevronDown, Check } from 'lucide-react';
+import { ListChecks, Plus, Edit, Trash2, ChevronDown, Check } from 'lucide-react';
 import Button from '../../../../ui/Button';
 import DynamicIcon from '../../../../ui/DynamicIcon';
+import FormModal from '../../../../ui/FormModal';
+import Modal from '../../../../ui/Modal'; 
 
 interface AmenitiesTabProps {
   propertyId: string;
@@ -30,11 +31,15 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
     description: '' 
   });
 
-  // State to control our custom dropdown
+  const [deleteAmenityModal, setDeleteAmenityModal] = useState<{ isOpen: boolean; id: number | null; name: string }>({ 
+    isOpen: false, 
+    id: null, 
+    name: "" 
+  });
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close custom dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -45,6 +50,7 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // CLEANED OF HACKS
   const saveAmenityMutation = useMutation({
     mutationFn: async (data: typeof amenityForm) => {
       if (data.isEdit && data.assignmentId) {
@@ -65,11 +71,11 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property', propertyId] });
       toast.success("Amenity removed successfully!");
+      setDeleteAmenityModal({ isOpen: false, id: null, name: "" }); 
     },
     onError: () => toast.error("Failed to remove amenity.")
   });
 
-  // Helper to find the selected amenity name
   const selectedAmenityName = availableAmenities.find((a: any) => String(a.id) === amenityForm.amenityId)?.name || 'Select an amenity...';
 
   return (
@@ -113,9 +119,8 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
                   <div className="flex gap-2">
                    <button 
                       onClick={() => {
-                        const assignmentId = amenity.property_amenity_id || amenity.id;
-                        const masterAmenityId = amenity.amenity_id || amenity.amenity; 
-                        setAmenityForm({ isOpen: true, isEdit: true, assignmentId, amenityId: String(masterAmenityId), description: amenity.description });
+                        // STRICTLY using backend standard fields
+                        setAmenityForm({ isOpen: true, isEdit: true, assignmentId: amenity.id, amenityId: String(amenity.amenity), description: amenity.description });
                       }}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-brand-green hover:text-white transition-colors"
                     >
@@ -123,8 +128,7 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
                     </button>
                     <button 
                       onClick={() => {
-                        const assignmentId = amenity.property_amenity_id || amenity.id;
-                        if (window.confirm(`Remove ${amenity.name} from this property?`)) deleteAmenityMutation.mutate(assignmentId);
+                        setDeleteAmenityModal({ isOpen: true, id: amenity.id, name: amenity.name });
                       }} 
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-red-500 hover:text-white transition-colors"
                     >
@@ -139,112 +143,96 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
         </div>
       </div>
 
-      {/* MODAL: Teleported to document.body */}
-      {amenityForm.isOpen && createPortal(
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in"
-          onMouseDown={() => {
-            // Closes everything if you click the dark background
-            setAmenityForm({ ...amenityForm, isOpen: false });
-            setIsDropdownOpen(false); 
-          }}
-        >
-          <div 
-            className="bg-white w-full max-w-md rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden animate-slide-up"
-            onMouseDown={(e) => e.stopPropagation()} // Prevents the background click from triggering if you click inside the white box
+      {/* --- REUSABLE FORM MODAL --- */}
+      <FormModal
+        isOpen={amenityForm.isOpen}
+        onClose={() => {
+          setAmenityForm({ ...amenityForm, isOpen: false });
+          setIsDropdownOpen(false);
+        }}
+        title={amenityForm.isEdit ? 'Edit Description' : 'Assign Amenity'}
+      >
+        <div className="space-y-1.5 relative" ref={dropdownRef}>
+          <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Select Feature</label>
+          
+          <button
+            type="button"
+            disabled={amenityForm.isEdit}
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className={`w-full px-4 py-3 flex items-center justify-between bg-white border rounded-xl text-sm font-bold outline-none transition-all ${
+              isDropdownOpen ? 'border-brand-green ring-2 ring-brand-green/10' : 'border-gray-200 hover:border-gray-300'
+            } ${amenityForm.isEdit ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
           >
-            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-lg font-black text-brand-dark tracking-tight">
-                {amenityForm.isEdit ? 'Edit Description' : 'Assign Amenity'}
-              </h3>
-              <button 
-                onClick={() => {
-                  setAmenityForm({ ...amenityForm, isOpen: false });
-                  setIsDropdownOpen(false);
-                }} 
-                className="text-gray-400 hover:text-brand-dark transition-colors"
-              >
-                <X size={20} strokeWidth={3} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-5 overflow-visible">
-              
-              {/* THE CUSTOM DROPDOWN */}
-              <div className="space-y-1.5 relative" ref={dropdownRef}>
-                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Select Feature</label>
-                
+            <span className={amenityForm.amenityId ? 'text-brand-dark' : 'text-gray-400'}>
+              {selectedAmenityName}
+            </span>
+            <ChevronDown size={16} className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute z-50 top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-2 max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
+              {availableAmenities.map((a: any) => (
                 <button
+                  key={a.id}
                   type="button"
-                  disabled={amenityForm.isEdit}
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={`w-full px-4 py-3 flex items-center justify-between bg-white border rounded-xl text-sm font-bold outline-none transition-all ${
-                    isDropdownOpen ? 'border-brand-green ring-2 ring-brand-green/10' : 'border-gray-200 hover:border-gray-300'
-                  } ${amenityForm.isEdit ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+                  onClick={() => {
+                    setAmenityForm({ ...amenityForm, amenityId: String(a.id) });
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm font-bold flex items-center justify-between transition-colors hover:bg-brand-green/5 hover:text-brand-green"
                 >
-                  <span className={amenityForm.amenityId ? 'text-brand-dark' : 'text-gray-400'}>
-                    {selectedAmenityName}
+                  <span className={amenityForm.amenityId === String(a.id) ? 'text-brand-green' : 'text-gray-600'}>
+                    {a.name}
                   </span>
-                  <ChevronDown size={16} className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  {amenityForm.amenityId === String(a.id) && <Check size={16} className="text-brand-green" />}
                 </button>
-
-                {/* Dropdown Options Box */}
-                {isDropdownOpen && (
-                  <div className="absolute z-50 top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-2 max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
-                    {availableAmenities.map((a: any) => (
-                      <button
-                        key={a.id}
-                        type="button"
-                        onClick={() => {
-                          setAmenityForm({ ...amenityForm, amenityId: String(a.id) });
-                          setIsDropdownOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm font-bold flex items-center justify-between transition-colors hover:bg-brand-green/5 hover:text-brand-green"
-                      >
-                        <span className={amenityForm.amenityId === String(a.id) ? 'text-brand-green' : 'text-gray-600'}>
-                          {a.name}
-                        </span>
-                        {amenityForm.amenityId === String(a.id) && <Check size={16} className="text-brand-green" />}
-                      </button>
-                    ))}
-                    {availableAmenities.length === 0 && (
-                      <div className="px-4 py-3 text-xs text-gray-400 font-bold text-center">No master amenities available.</div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1.5 relative group pb-4">
-                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Custom Description</label>
-                <textarea 
-                  value={amenityForm.description} 
-                  onChange={(e) => setAmenityForm({ ...amenityForm, description: e.target.value })} 
-                  placeholder="e.g., Fast 500Mbps WiFi, Pets welcome..." 
-                  maxLength={150} 
-                  rows={3}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-brand-dark outline-none focus:border-brand-green resize-none"
-                />
-                {!isViewMode && (
-                  <div className="absolute bottom-0 right-2 text-[10px] font-bold text-gray-400">
-                    <span className={amenityForm.description?.length >= 150 ? 'text-red-500' : ''}>
-                      {amenityForm.description?.length || 0}
-                    </span> / 150
-                  </div>
-                )}
-              </div>
-
-              <Button 
-                onClick={() => saveAmenityMutation.mutate(amenityForm)} 
-                disabled={!amenityForm.amenityId || !amenityForm.description || saveAmenityMutation.isPending} 
-                className="w-full py-3"
-              >
-                {saveAmenityMutation.isPending ? 'Saving...' : 'Save Amenity'}
-              </Button>
+              ))}
+              {availableAmenities.length === 0 && (
+                <div className="px-4 py-3 text-xs text-gray-400 font-bold text-center">No master amenities available.</div>
+              )}
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          )}
+        </div>
+
+        <div className="space-y-1.5 relative group pb-4">
+          <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Custom Description</label>
+          <textarea 
+            value={amenityForm.description} 
+            onChange={(e) => setAmenityForm({ ...amenityForm, description: e.target.value })} 
+            placeholder="e.g., Fast 500Mbps WiFi, Pets welcome..." 
+            maxLength={150} 
+            rows={3}
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-brand-dark outline-none focus:border-brand-green resize-none"
+          />
+          {!isViewMode && (
+            <div className="absolute bottom-0 right-2 text-[10px] font-bold text-gray-400">
+              <span className={amenityForm.description?.length >= 150 ? 'text-red-500' : ''}>
+                {amenityForm.description?.length || 0}
+              </span> / 150
+            </div>
+          )}
+        </div>
+
+        <Button 
+          onClick={() => saveAmenityMutation.mutate(amenityForm)} 
+          disabled={!amenityForm.amenityId || !amenityForm.description || saveAmenityMutation.isPending} 
+          className="w-full py-3"
+        >
+          {saveAmenityMutation.isPending ? 'Saving...' : 'Save Amenity'}
+        </Button>
+      </FormModal>
+
+      {/* --- ADDED REUSABLE ALERT MODAL --- */}
+      <Modal 
+        isOpen={deleteAmenityModal.isOpen}
+        onClose={() => setDeleteAmenityModal({ isOpen: false, id: null, name: "" })}
+        onConfirm={() => { if (deleteAmenityModal.id) deleteAmenityMutation.mutate(deleteAmenityModal.id); }}
+        title="Remove Amenity"
+        message={`Are you sure you want to remove "${deleteAmenityModal.name}" from this property?`}
+        confirmText="Remove Now"
+        variant="danger"
+        loading={deleteAmenityMutation.isPending}
+      />
     </>
   );
 };

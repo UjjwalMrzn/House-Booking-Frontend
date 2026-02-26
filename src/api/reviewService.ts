@@ -2,7 +2,7 @@ import api from './axiosInstance';
 
 export const reviewService = {
   getReviewsByProperty: async (propertyId: string) => {
-    const response = await api.get(`/reviews/?property=${propertyId}`);
+    const response = await api.get(`/reviews/?property__id=${propertyId}`);
     return response.data.results || response.data;
   },
  

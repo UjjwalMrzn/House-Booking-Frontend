@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom'; // FIXED: Added createPortal
 import { X, AlertTriangle } from 'lucide-react';
 import Button from './Button';
 
@@ -18,7 +19,8 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  return (
+  // FIXED: Wrapped the entire return in createPortal attached to document.body
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in">
       <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden animate-slide-up">
         
@@ -51,7 +53,8 @@ const Modal: React.FC<ModalProps> = ({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

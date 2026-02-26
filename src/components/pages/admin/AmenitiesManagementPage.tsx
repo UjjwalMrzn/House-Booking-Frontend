@@ -5,8 +5,9 @@ import { useToast } from '../../ui/Toaster';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 import Modal from '../../ui/Modal';
+import FormModal from '../../ui/FormModal'; // ADDED REUSABLE FORM MODAL
 import DynamicIcon from '../../ui/DynamicIcon';
-import { Plus, Edit, Trash2, X, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 
 // MASSIVE Property & Lifestyle Icon Library (120+ Icons)
 const ICON_LIBRARY = [
@@ -35,7 +36,7 @@ const AmenitiesManagementPage = () => {
   const [formModal, setFormModal] = useState({ isOpen: false, isEdit: false, id: '', name: '', icon: 'ListChecks' });
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: '', name: '' });
   
-  // NEW: Search state for the icon picker
+  // Search state for the icon picker
   const [iconSearch, setIconSearch] = useState('');
 
   // Fetch Master List
@@ -68,7 +69,7 @@ const AmenitiesManagementPage = () => {
     onError: () => toast.error("Failed to delete amenity. It might be in use.")
   });
 
-  // NEW: Filter the icons based on search
+  // Filter the icons based on search
   const filteredIcons = ICON_LIBRARY.filter(icon => 
     icon.toLowerCase().includes(iconSearch.toLowerCase())
   );
@@ -134,82 +135,73 @@ const AmenitiesManagementPage = () => {
         </div>
       </div>
 
-      {/* CREATE / EDIT MODAL */}
-      {formModal.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white w-full max-w-md rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden animate-slide-up">
-            <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-lg font-black text-brand-dark tracking-tight">{formModal.isEdit ? 'Edit Master Amenity' : 'Create Master Amenity'}</h3>
-              <button onClick={() => setFormModal({ ...formModal, isOpen: false })} className="text-gray-400 hover:text-brand-dark transition-colors"><X size={20} strokeWidth={3} /></button>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              <Input 
-                label="Amenity Name" 
-                name="name" 
-                value={formModal.name} 
-                onChange={(e) => setFormModal({ ...formModal, name: e.target.value })} 
-                placeholder="e.g., Fast WiFi, Pet Friendly..." 
-                required 
-              />
+      {/* --- REUSABLE CREATE / EDIT MODAL --- */}
+      <FormModal
+        isOpen={formModal.isOpen}
+        onClose={() => setFormModal({ ...formModal, isOpen: false })}
+        title={formModal.isEdit ? 'Edit Master Amenity' : 'Create Master Amenity'}
+      >
+        <Input 
+          label="Amenity Name" 
+          name="name" 
+          value={formModal.name} 
+          onChange={(e) => setFormModal({ ...formModal, name: e.target.value })} 
+          placeholder="e.g., Fast WiFi, Pet Friendly..." 
+          required 
+        />
 
-              <div className="space-y-3 border border-gray-100 rounded-xl p-4 bg-gray-50/50">
-                <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 flex justify-between items-center">
-                  <span>Choose Icon</span>
-                  <span className="text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-md">{formModal.icon}</span>
-                </label>
-                
-                {/* NEW: Search Input for Icons */}
-                <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input 
-                    type="text"
-                    value={iconSearch}
-                    onChange={(e) => setIconSearch(e.target.value)}
-                    placeholder="Search icons (e.g., wifi, bed)..."
-                    className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-brand-dark outline-none focus:border-brand-green"
-                  />
-                </div>
-                
-                {/* Visual Icon Library Grid */}
-                <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto p-1 pr-2 custom-scrollbar bg-white rounded-lg border border-gray-100">
-                  {filteredIcons.length > 0 ? (
-                    filteredIcons.map((iconName) => (
-                      <button
-                        key={iconName}
-                        type="button"
-                        onClick={() => setFormModal({ ...formModal, icon: iconName })}
-                        className={`aspect-square rounded-xl flex items-center justify-center transition-all ${
-                          formModal.icon === iconName 
-                            ? 'bg-brand-dark text-white shadow-md scale-110 z-10' 
-                            : 'bg-gray-50 text-gray-400 border border-gray-100 hover:bg-brand-green/10 hover:text-brand-green hover:border-brand-green/20'
-                        }`}
-                        title={iconName}
-                      >
-                        <DynamicIcon name={iconName} size={18} />
-                      </button>
-                    ))
-                  ) : (
-                    <div className="col-span-6 py-4 text-center text-xs font-bold text-gray-400">
-                      No icons found.
-                    </div>
-                  )}
-                </div>
+        <div className="space-y-3 border border-gray-100 rounded-xl p-4 bg-gray-50/50">
+          <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 flex justify-between items-center">
+            <span>Choose Icon</span>
+            <span className="text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-md">{formModal.icon}</span>
+          </label>
+          
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text"
+              value={iconSearch}
+              onChange={(e) => setIconSearch(e.target.value)}
+              placeholder="Search icons (e.g., wifi, bed)..."
+              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-brand-dark outline-none focus:border-brand-green"
+            />
+          </div>
+          
+          <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto p-1 pr-2 custom-scrollbar bg-white rounded-lg border border-gray-100">
+            {filteredIcons.length > 0 ? (
+              filteredIcons.map((iconName) => (
+                <button
+                  key={iconName}
+                  type="button"
+                  onClick={() => setFormModal({ ...formModal, icon: iconName })}
+                  className={`aspect-square rounded-xl flex items-center justify-center transition-all ${
+                    formModal.icon === iconName 
+                      ? 'bg-brand-dark text-white shadow-md scale-110 z-10' 
+                      : 'bg-gray-50 text-gray-400 border border-gray-100 hover:bg-brand-green/10 hover:text-brand-green hover:border-brand-green/20'
+                  }`}
+                  title={iconName}
+                >
+                  <DynamicIcon name={iconName} size={18} />
+                </button>
+              ))
+            ) : (
+              <div className="col-span-6 py-4 text-center text-xs font-bold text-gray-400">
+                No icons found.
               </div>
-
-              <Button 
-                onClick={() => saveMutation.mutate(formModal)} 
-                disabled={!formModal.name || !formModal.icon || saveMutation.isPending} 
-                className="w-full py-3"
-              >
-                {saveMutation.isPending ? 'Saving...' : 'Save to Global List'}
-              </Button>
-            </div>
+            )}
           </div>
         </div>
-      )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+        <Button 
+          onClick={() => saveMutation.mutate(formModal)} 
+          disabled={!formModal.name || !formModal.icon || saveMutation.isPending} 
+          className="w-full py-3"
+        >
+          {saveMutation.isPending ? 'Saving...' : 'Save to Global List'}
+        </Button>
+      </FormModal>
+
+      {/* --- DELETE CONFIRMATION MODAL --- */}
       <Modal 
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, id: '', name: '' })}
