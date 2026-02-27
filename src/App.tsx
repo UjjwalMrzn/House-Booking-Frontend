@@ -25,7 +25,7 @@ import PropertyFormPage from './components/pages/admin/forms/PropertyFormPage';
 import AmenitiesManagementPage from './components/pages/admin/AmenitiesManagementPage';
 import AdminBookingsPage from './components/pages/admin/AdminBookingPage';
 import AdminReviewsPage from './components/pages/admin/AdminReviewPage';
-import AdminHomeSection from './components/pages/admin/AdminHomeSection';
+// import AdminHomeSection from './components/pages/admin/AdminHomeSection';
 // import PaymentProcessingPage from './components/pages/PayementProcessingPage';
 
 const Home = () => (
@@ -91,7 +91,7 @@ function App() {
               <Route path="amenities" element={<AmenitiesManagementPage />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
               <Route path="reviews" element={<AdminReviewsPage />} />
-              <Route path="homesection" element={<AdminHomeSection />} />
+              {/* <Route path="homesection" element={<AdminHomeSection />} /> */}
             </Route>
           </Route>
           
