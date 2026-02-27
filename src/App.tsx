@@ -6,7 +6,7 @@ import OverviewPage from './components/pages/OverviewPage';
 import Footer from './components/sections/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import ReservationPage from './components/pages/ReservationPage';
-// import SuccessPage from './components/pages/SuccessPage';
+import SuccessPage from './components/pages/SuccessPage';
 import { ToastProvider } from './components/ui/Toaster'; 
 import GalleryPage from './components/pages/GalleryPage';
 import MapPage from './components/pages/MapPage';
@@ -25,6 +25,7 @@ import PropertyFormPage from './components/pages/admin/forms/PropertyFormPage';
 import AmenitiesManagementPage from './components/pages/admin/AmenitiesManagementPage';
 import AdminBookingsPage from './components/pages/admin/AdminBookingPage';
 import AdminReviewsPage from './components/pages/admin/AdminReviewPage';
+import AdminHomeSection from './components/pages/admin/AdminHomeSection';
 // import PaymentProcessingPage from './components/pages/PayementProcessingPage';
 
 const Home = () => (
@@ -67,7 +68,7 @@ function App() {
             <Route path="/overview" element={<Navigate to={`/overview/${DEFAULT_PROPERTY_ID}`} replace />} />
             <Route path="/overview/:id" element={<OverviewPage />} />
             <Route path="/book/:id" element={<ReservationPage />} />
-            {/* <Route path="/success" element={<SuccessPage />} /> */}
+            <Route path="/success" element={<SuccessPage />} />
             <Route path="/gallery/:id" element={<GalleryPage />} />
             <Route path="/map/:id" element={<MapPage />} />
             <Route path="/reviews/:id" element={<ReviewsPage />} />
@@ -90,6 +91,7 @@ function App() {
               <Route path="amenities" element={<AmenitiesManagementPage />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
               <Route path="reviews" element={<AdminReviewsPage />} />
+              <Route path="homesection" element={<AdminHomeSection />} />
             </Route>
           </Route>
           
