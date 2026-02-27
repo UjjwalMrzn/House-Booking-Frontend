@@ -332,7 +332,7 @@ const scrollToSection = (sectionId: string) => {
                     );
                   }}
                 />
-                <GuestSelector value={guests} onChange={setGuests} />
+                <GuestSelector value={guests} onChange={setGuests} max={property?.max_guests} />
                 
                 {/* FIXED: Query parameters added so data carries over to ReservationPage */}
                 <Button 

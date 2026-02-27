@@ -7,8 +7,10 @@ import Select from '../ui/Select';
 import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
 import { format } from 'date-fns';
+import { useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { propertyService } from '../../api/propertyService';
 
-// FIXED: Dynamic country list using Intl API for a professional, universal list
 const COUNTRY_OPTIONS = new Intl.DisplayNames(['en'], { type: 'region' });
 const ALL_COUNTRIES = Array.from({ length: 250 }, (_, i) => {
   try {
@@ -27,7 +29,19 @@ const ReservationPage = () => {
     bookedRanges
   } = useReservation();
 
-  // RULE: Implementation Phase - Universal Skeleton Parity
+  // THE ID FIX
+  const params = useParams();
+  const routeId = params.id || params.propertyId || property?.id || window.location.pathname.split('/')[2];
+
+  // Fetch true limit
+  const { data: realProperty } = useQuery({
+    queryKey: ['property-strict-reserve', routeId],
+    queryFn: () => propertyService.getPropertyDetails(routeId),
+    enabled: !!routeId,
+  });
+
+  const maxLimit = realProperty?.max_guests || property?.max_guests || 10;
+
   if (isLoading) return (
     <main className="min-h-screen bg-[#FCFBF9] pt-24 pb-20 font-sans">
       <div className="max-w-[1200px] mx-auto px-6">
@@ -80,7 +94,6 @@ const ReservationPage = () => {
     <main className="min-h-screen bg-[#FCFBF9] font-sans text-brand-dark pb-20 pt-24 animate-fade-in">
       <div className="max-w-[1200px] mx-auto px-6">
         
-        {/* Navigation & Steps */}
         <div className="flex items-center justify-between mb-16">
           <button onClick={() => window.history.back()} className="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-brand-dark uppercase tracking-[0.2em]">
             <ChevronLeft size={14}/> Back
@@ -107,7 +120,6 @@ const ReservationPage = () => {
 
         <div className="grid lg:grid-cols-[1.6fr_1fr] gap-20 items-start">
           
-          {/* Main Form Area */}
           <div className="space-y-12">
             {currentStep === 1 && (
               <div className="animate-fade-in space-y-8">
@@ -158,7 +170,7 @@ const ReservationPage = () => {
                        checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : ''
                      })}
                     />
-                    <GuestSelector value={guests} onChange={setGuests} />
+                    <GuestSelector value={guests} onChange={setGuests} max={maxLimit} />
                     <Button 
                       disabled={!isDatesValid} 
                       onClick={() => setCurrentStep(3)}
@@ -194,7 +206,6 @@ const ReservationPage = () => {
             )}
           </div>
 
-          {/* Sidebar Summary Area */}
           <aside className="sticky top-32">
             <div className="bg-white p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-100 animate-slide-up">
               <div className="mb-8 flex items-center justify-between">
@@ -206,12 +217,13 @@ const ReservationPage = () => {
               </div>
 
               <div className="flex gap-5 mb-8 pb-8 border-b border-gray-50">
-<img 
-  src={property?.images?.find((img: any) => img.is_main)?.image || property?.images?.[0]?.image} 
-  alt="Property" 
-  className="w-16 h-16 object-cover rounded-xl" 
-/>                <div>
-                  <h4 className="font-bold text-brand-dark text-sm">{property?.title}</h4>
+                <img 
+                  src={realProperty?.images?.find((img: any) => img.is_main)?.image || property?.images?.find((img: any) => img.is_main)?.image || property?.images?.[0]?.image} 
+                  alt="Property" 
+                  className="w-16 h-16 object-cover rounded-xl" 
+                />                
+                <div>
+                  <h4 className="font-bold text-brand-dark text-sm">{realProperty?.title || property?.title}</h4>
                   <div className="flex items-center gap-1 text-[10px] text-brand-green font-bold uppercase mt-1">
                     <Star size={10} fill="currentColor"/> Superhost
                   </div>

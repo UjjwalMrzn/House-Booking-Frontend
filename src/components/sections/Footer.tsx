@@ -1,7 +1,6 @@
 import { Globe, ChevronRight } from 'lucide-react';
 
 const Footer = () => {
-  // RULE: Design CSS Once. Spacing and tracking matched to SectionHeader/Toast styles.
   const linkStyles = "flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-brand-green cursor-pointer transition-colors";
   const legalStyles = "text-[10px] uppercase tracking-[0.2em] text-gray-600 font-black";
 
@@ -9,7 +8,6 @@ const Footer = () => {
     <footer className="bg-[#1A1A1A] text-white py-16 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-6">
         
-        {/* Localization Controls */}
         <div className="flex items-center gap-8 mb-12">
           <div className={linkStyles}>
             <Globe size={14} /> 
@@ -22,10 +20,10 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className={legalStyles}>
-            <p>© 2026 Hinsley Cottage — Powered by Podamibe Nepal</p>
+            {/* FIXED: Brand Copyright */}
+            <p>© 2026 Jervis Bay Retreats — Powered by Podamibe Nepal</p>
           </div>
           
           <div className="flex gap-8">
