@@ -23,7 +23,8 @@ const ReservationPage = () => {
     property, isLoading, currentStep, setCurrentStep, 
     dates, setDates, guests, setGuests, 
     contact, setContact, pricing, isSubmitting, 
-    saveCustomerAndContinue, confirmBooking 
+    saveCustomerAndContinue, confirmBooking,
+    bookedRanges
   } = useReservation();
 
   // RULE: Implementation Phase - Universal Skeleton Parity
@@ -150,6 +151,7 @@ const ReservationPage = () => {
                 <div className="bg-white p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-gray-100 space-y-10">
                     <DatePicker 
                      value={{ checkIn: dates.checkIn, checkOut: dates.checkOut }}
+                     disabledDates={bookedRanges}
                      onChange={(range: any) => setDates({
                        ...dates, 
                        checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '',

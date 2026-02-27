@@ -4,9 +4,11 @@ import Button from '../ui/Button';
 import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
 // FIXED: Standardizing date format with the rest of the squad
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 // FIXED: Integrated the Single Source of Truth
 import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
+import { useQuery } from '@tanstack/react-query';
+import { bookingService } from '../../api/bookingApi';
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -23,6 +25,16 @@ const Hero = () => {
     // FIXED: No more hardcoded ID
     navigate(`/overview/${DEFAULT_PROPERTY_ID}?${params.toString()}`);
   };
+
+  const { data: bookedRanges = [] } = useQuery({
+  queryKey: ["booked-dates-hero"],
+  queryFn: async () => {
+    const bookings = await bookingService.getConfirmedBookings();
+    return bookings
+      .filter((b: any) => String(b.property) === String(DEFAULT_PROPERTY_ID))
+      .map((b: any) => ({ from: parseISO(b.check_in), to: parseISO(b.check_out) }));
+  },
+});
 
   return (
     <div className="w-full bg-[#fafafa] pb-24 overflow-visible">
@@ -46,6 +58,7 @@ const Hero = () => {
           <div className="flex-[1.5]">
             <DatePicker 
               value={dates} 
+              disabledDates={bookedRanges}
               onChange={(range: any) => setDates({ 
                 // FIXED: Using 'yyyy-MM-dd' to match Overview and Reservation parsing
                 checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '', 

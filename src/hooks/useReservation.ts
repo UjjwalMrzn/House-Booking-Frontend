@@ -26,6 +26,16 @@ export const useReservation = () => {
     enabled: true,
   });
 
+  const { data: bookedRanges = [] } = useQuery({
+    queryKey: ["booked-dates", id],
+    queryFn: async () => {
+      const bookings = await bookingService.getConfirmedBookings();
+      return bookings
+        .filter((b: any) => String(b.property) === String(id || DEFAULT_PROPERTY_ID))
+        .map((b: any) => ({ from: parseISO(b.check_in), to: parseISO(b.check_out) }));
+    },
+  });
+
   const [guests, setGuests] = useState(
     parseInt(searchParams.get("guests") || "1"),
   );
@@ -152,5 +162,6 @@ export const useReservation = () => {
     isSubmitting,
     saveCustomerAndContinue,
     confirmBooking,
+    bookedRanges
   };
 };

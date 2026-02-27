@@ -4,7 +4,7 @@ import { DayPicker } from 'react-day-picker';
 import { format, parseISO } from 'date-fns';
 import 'react-day-picker/dist/style.css';
 
-const DatePicker = ({ value, onChange, className }: any) => {
+const DatePicker = ({ value, onChange, className, disabledDates = [] }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropDirection, setDropDirection] = useState<'down' | 'up'>('down');
   
@@ -75,8 +75,19 @@ const DatePicker = ({ value, onChange, className }: any) => {
 
       {isOpen && (
         <div 
-          className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} left-1/2 -translate-x-1/2 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.2)] rounded-[2rem] border border-gray-100 p-6 z-[99999] min-w-[320px] md:min-w-[600px] animate-entrance`}
+          className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} left-1/2 -translate-x-1/2 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-gray-100 p-8 z-[99999] min-w-[320px] md:min-w-[620px] animate-entrance`}
         >
+          {/* THE FIX: Pure red text, zero background circle */}
+          <style>{`
+            .rdp-day_booked { 
+              color: #ef4444 !important; 
+              background-color: transparent !important; 
+              opacity: 1 !important;
+              font-weight: 900 !important;
+              cursor: not-allowed !important;
+            }
+          `}</style>
+
           <DayPicker 
             mode="range" 
             selected={range} 
@@ -89,7 +100,7 @@ const DatePicker = ({ value, onChange, className }: any) => {
             }} 
             numberOfMonths={window.innerWidth > 768 ? 2 : 1} 
             fromDate={new Date()}
-            // FIXED: Hover logic to trigger design-locked selection gap classes
+            disabled={[{ before: new Date() }, ...disabledDates]}
             onDayMouseEnter={(date) => {
               if (range?.from && !range?.to) setHoveredDate(date);
             }}
@@ -103,13 +114,39 @@ const DatePicker = ({ value, onChange, className }: any) => {
               hoverEnd: (date) => {
                 if (!range?.from || range?.to || !hoveredDate) return false;
                 return normalizeDate(date) === normalizeDate(hoveredDate);
-              }
+              },
+              booked: disabledDates
             }}
             modifiersClassNames={{
-              hoverRange: "rdp-day_range_middle", // Triggers existing light green middle CSS
-              hoverEnd: "rdp-day_selected"       // Triggers existing solid green circle CSS
+              hoverRange: "rdp-day_range_middle", 
+              hoverEnd: "rdp-day_selected",
+              booked: "rdp-day_booked"
+            }}
+            components={{
+              DayContent: (props) => {
+                const isBooked = disabledDates.some((dRange: any) => 
+                  props.date >= dRange.from && props.date <= dRange.to
+                );
+                return (
+                  <span title={isBooked ? "Date already reserved" : undefined}>
+                    {props.date.getDate()}
+                  </span>
+                );
+              }
             }}
           />
+
+          {/* CLEANER LEGEND: High clarity labels */}
+          <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-center gap-10">
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-brand-green shadow-sm ring-4 ring-brand-green/10"></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark opacity-70">Pick Dates</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm ring-4 ring-red-50"></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-red-500">Reserved</span>
+            </div>
+          </div>
         </div>
       )}
     </div>

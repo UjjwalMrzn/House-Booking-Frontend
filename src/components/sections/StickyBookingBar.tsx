@@ -5,9 +5,11 @@ import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
 import Button from '../ui/Button';
 import { Skeleton } from '../ui/Skeleton';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 // FIXED: Integrated the Single Source of Truth constant
 import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
+import { useQuery } from '@tanstack/react-query';
+import { bookingService } from '../../api/bookingApi';
 
 interface StickyBookingBarProps {
   property: any;
@@ -23,6 +25,16 @@ const StickyBookingBar = ({ property, isLoading }: StickyBookingBarProps) => {
 
   const [guests, setGuests] = useState(1);
   const [dates, setDates] = useState({ checkIn: '', checkOut: '' });
+
+  const { data: bookedRanges = [] } = useQuery({
+  queryKey: ["booked-dates", id],
+  queryFn: async () => {
+    const bookings = await bookingService.getConfirmedBookings();
+    return bookings
+      .filter((b: any) => String(b.property) === String(id || DEFAULT_PROPERTY_ID))
+      .map((b: any) => ({ from: parseISO(b.check_in), to: parseISO(b.check_out) }));
+  },
+});
 
   // FIXED: Logic to keep sticky bar state in sync with URL choices
   useEffect(() => {
@@ -66,6 +78,7 @@ const StickyBookingBar = ({ property, isLoading }: StickyBookingBarProps) => {
              ) : (
                <DatePicker 
                 value={dates}
+                disabledDates={bookedRanges}
                 onChange={(range: any) => setDates({
                   checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '',
                   checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : ''
