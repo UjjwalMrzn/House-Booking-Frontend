@@ -24,6 +24,7 @@ import PropertyManagementPage from './components/pages/admin/PropertyManagementP
 import PropertyFormPage from './components/pages/admin/forms/PropertyFormPage';
 import AmenitiesManagementPage from './components/pages/admin/AmenitiesManagementPage';
 import AdminBookingsPage from './components/pages/admin/AdminBookingPage';
+import AdminReviewsPage from './components/pages/admin/AdminReviewPage';
 
 const Home = () => (
   <div className="animate-entrance">
@@ -86,6 +87,7 @@ function App() {
               <Route path="/admin/properties/view/:id" element={<PropertyFormPage />} />
               <Route path="amenities" element={<AmenitiesManagementPage />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
+              <Route path="reviews" element={<AdminReviewsPage />} />
             </Route>
           </Route>
           

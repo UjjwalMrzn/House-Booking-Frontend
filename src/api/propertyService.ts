@@ -122,4 +122,10 @@ getAllBookings: async () => {
     const response = await api.patch(`/bookings/${id}/`, { status });
     return response.data;
   },
+
+  // Dynamically fetch a customer by ID
+  getCustomerById: async (id: number) => {
+    const response = await api.get(`/customers/${id}/`);
+    return response.data;
+  },
 };

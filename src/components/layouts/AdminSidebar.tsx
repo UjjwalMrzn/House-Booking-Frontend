@@ -4,7 +4,7 @@ import {
   Home, 
   CalendarCheck, 
   Star, 
-  Users, 
+  // Users, 
   LogOut, 
   Hexagon, 
   ListChecks // Added this for Amenities
@@ -64,9 +64,9 @@ const AdminSidebar = () => {
             <Star size={20} /> Reviews
           </NavLink>
           
-          <NavLink to="/admin/customers" className={navStyles}>
+          {/* <NavLink to="/admin/customers" className={navStyles}>
             <Users size={20} /> Customers
-          </NavLink>
+          </NavLink> */}
         </nav>
 
         {/* Footer Action */}

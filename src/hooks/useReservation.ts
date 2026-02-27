@@ -111,6 +111,9 @@ export const useReservation = () => {
         check_in: dates.checkIn,
         check_out: dates.checkOut,
         customer: customerId,
+        guests: guests,
+        total_price: pricing.total.toString(),
+        status: 'pending'
       };
 
       const response = await bookingService.createBooking(bookingPayload);

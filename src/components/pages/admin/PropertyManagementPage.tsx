@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../api/propertyService';
 import { useToast } from '../../ui/Toaster';
-import { Plus, Home, MapPin, Edit, Trash2, Users, BedDouble, Star, Search, Eye } from 'lucide-react';
+// FIXED: Added 'X' to the imports
+import { Plus, Home, MapPin, Edit, Trash2, Users, BedDouble, Star, Search, Eye, X } from 'lucide-react';
 import { Skeleton } from '../../ui/Skeleton';
 import { Link } from 'react-router-dom';
 import Modal from '../../ui/Modal';
@@ -79,8 +80,19 @@ const PropertyManagementPage = () => {
               placeholder="Search properties..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-brand-dark outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green focus:bg-white transition-all placeholder:text-gray-400"
+              // FIXED: Changed pr-4 to pr-10 so text doesn't overlap the X button
+              className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-brand-dark outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green focus:bg-white transition-all placeholder:text-gray-400"
             />
+            {/* FIXED: Added 'X' clear button conditionally */}
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark hover:bg-gray-200 p-1 rounded-full transition-colors flex items-center justify-center"
+                title="Clear search"
+              >
+                <X size={14} strokeWidth={3} />
+              </button>
+            )}
           </div>
         </div>
         
