@@ -34,10 +34,17 @@ const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'status', direct
   }, []);
 
   // 1. Fetch all bookings
-  const { data: bookings = [], isLoading } = useQuery({
+  const { data: bookingsData, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
     queryFn: propertyService.getAllBookings,
   });
+
+  // FIXED: Safely extract the array to prevent the "not iterable" white screen crash
+  const bookings = useMemo(() => {
+    if (bookingsData?.results && Array.isArray(bookingsData.results)) return bookingsData.results;
+    if (Array.isArray(bookingsData)) return bookingsData;
+    return [];
+  }, [bookingsData]);
 
   // 2. NEW: Dynamically fetch Customer Details when the View Modal opens
   const { data: customerData, isLoading: isLoadingCustomer } = useQuery({
@@ -354,6 +361,7 @@ const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'status', direct
         isOpen={viewModal.isOpen}
         onClose={() => setViewModal({ isOpen: false, booking: null })}
         title="Booking Details"
+        maxWidth="max-w-2xl"
       >
         {viewModal.booking && (
           <div className="space-y-6">

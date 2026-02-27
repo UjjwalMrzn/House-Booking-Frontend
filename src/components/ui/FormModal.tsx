@@ -11,7 +11,7 @@ interface FormModalProps {
 }
 
 const FormModal: React.FC<FormModalProps> = ({ 
-  isOpen, onClose, title, children, maxWidth = 'max-w-md' 
+  isOpen, onClose, title, children, maxWidth = 'max-w-2xl' 
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
