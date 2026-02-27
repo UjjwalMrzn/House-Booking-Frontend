@@ -106,7 +106,7 @@ export const useReservation = () => {
     }
   };
 
-  const confirmBooking = async () => {
+ const confirmBooking = async () => {
     if (!customerId) {
       toast.error("Session expired. Please re-enter contact info.");
       setCurrentStep(1);
@@ -116,7 +116,6 @@ export const useReservation = () => {
     setIsSubmitting(true);
     try {
       const bookingPayload = {
-        // FIXED: Uses global fallback constant
         property: parseInt(id || DEFAULT_PROPERTY_ID),
         check_in: dates.checkIn,
         check_out: dates.checkOut,
@@ -130,6 +129,7 @@ export const useReservation = () => {
 
       toast.success("Booking Confirmed! Redirecting...");
 
+      // FIXED: Ensuring state keys match exactly what SuccessPage.tsx expects
       navigate("/success", {
         state: {
           bookingId: response.data.id,
@@ -146,7 +146,7 @@ export const useReservation = () => {
       setIsSubmitting(false);
     }
   };
-
+  
   return {
     property,
     isLoading,
