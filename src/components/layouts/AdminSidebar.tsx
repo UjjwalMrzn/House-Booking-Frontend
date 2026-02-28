@@ -7,7 +7,8 @@ import {
   LogOut, 
   Hexagon, 
   ListChecks,
-  LayoutTemplate // FIXED: Imported icon for the Home Visuals link
+  LayoutTemplate, // FIXED: Imported icon for the Home Visuals link
+  CreditCard
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -62,6 +63,10 @@ const AdminSidebar = () => {
 
           <NavLink to="/admin/bookings" className={navStyles}>
             <CalendarCheck size={20} /> Bookings
+          </NavLink>
+
+          <NavLink to="/admin/payments" className={navStyles}>
+            <CreditCard size={20} /> Payments
           </NavLink>
           
           <NavLink to="/admin/reviews" className={navStyles}>

@@ -101,5 +101,12 @@ export const useReservation = () => {
     }
   };
   
-  return { property, isLoading, currentStep, setCurrentStep, dates, setDates, guests, setGuests, contact, setContact, pricing, isSubmitting, saveCustomerAndContinue, confirmBooking, bookedRanges };
+  // FIXED: Exporting setIsSubmitting and customerId for the PayPal block
+  return { 
+    property, isLoading, currentStep, setCurrentStep, 
+    dates, setDates, guests, setGuests, 
+    contact, setContact, pricing, isSubmitting, setIsSubmitting, 
+    saveCustomerAndContinue, confirmBooking, bookedRanges,
+    customerId 
+  };
 };
