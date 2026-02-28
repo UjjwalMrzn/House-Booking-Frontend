@@ -4,10 +4,10 @@ import {
   Home, 
   CalendarCheck, 
   Star, 
-  // Users, 
   LogOut, 
   Hexagon, 
-  ListChecks // Added this for Amenities
+  ListChecks,
+  LayoutTemplate // FIXED: Imported icon for the Home Visuals link
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -51,9 +51,13 @@ const AdminSidebar = () => {
             <Home size={20} /> Properties
           </NavLink>
 
-          {/* NEW: Master Amenities Link */}
           <NavLink to="/admin/amenities" className={navStyles}>
             <ListChecks size={20} /> Master Amenities
+          </NavLink>
+
+          {/* FIXED: The missing link added right here */}
+          <NavLink to="/admin/homesection" className={navStyles}>
+            <LayoutTemplate size={20} /> Home Visuals
           </NavLink>
 
           <NavLink to="/admin/bookings" className={navStyles}>
@@ -63,10 +67,6 @@ const AdminSidebar = () => {
           <NavLink to="/admin/reviews" className={navStyles}>
             <Star size={20} /> Reviews
           </NavLink>
-          
-          {/* <NavLink to="/admin/customers" className={navStyles}>
-            <Users size={20} /> Customers
-          </NavLink> */}
         </nav>
 
         {/* Footer Action */}

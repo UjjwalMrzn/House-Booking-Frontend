@@ -19,14 +19,13 @@ import BackToTop from './components/BackToTop';
 import AdminLayout from './components/layouts/AdminLayout';
 import DashboardPage from './components/pages/admin/DashboardPage';
 import LoginPage from './components/pages/admin/LoginPage';
-// PropertyManagementPage
 import PropertyManagementPage from './components/pages/admin/PropertyManagementPage';
 import PropertyFormPage from './components/pages/admin/forms/PropertyFormPage';
 import AmenitiesManagementPage from './components/pages/admin/AmenitiesManagementPage';
 import AdminBookingsPage from './components/pages/admin/AdminBookingPage';
 import AdminReviewsPage from './components/pages/admin/AdminReviewPage';
-// import AdminHomeSection from './components/pages/admin/AdminHomeSection';
-// import PaymentProcessingPage from './components/pages/PayementProcessingPage';
+// FIXED: Uncommented this import
+import AdminHomeSection from './components/pages/admin/AdminHomeSection';
 
 const Home = () => (
   <div className="animate-entrance">
@@ -35,7 +34,6 @@ const Home = () => (
   </div>
 );
 
-// LOCKED PUBLIC SHELL
 const PublicLayout = () => (
   <div className="min-h-screen bg-white flex flex-col">
     <Navbar />
@@ -46,12 +44,9 @@ const PublicLayout = () => (
   </div>
 );
 
-// FIXED: Authentication Guard now checks for a real token instead of a dummy string
 const ProtectedAdminRoute = () => {
-  // We check if the token exists (is not null or empty)
   const token = localStorage.getItem('token');
   const isAuthenticated = !!token; 
-  
   return isAuthenticated ? <Outlet /> : <Navigate to="/admin/login" replace />;
 };
 
@@ -62,7 +57,6 @@ function App() {
         <ScrollToTop />
         <BackToTop />
         <Routes>
-          {/* ----- PUBLIC SQUAD ----- */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/overview" element={<Navigate to={`/overview/${DEFAULT_PROPERTY_ID}`} replace />} />
@@ -73,14 +67,10 @@ function App() {
             <Route path="/map/:id" element={<MapPage />} />
             <Route path="/reviews/:id" element={<ReviewsPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            {/* <Route path="/payment-processing" element={<PaymentProcessingPage />} /> */}
           </Route>
 
-          {/* ----- ADMIN AUTH ----- */}
           <Route path="/admin/login" element={<LoginPage />} />
 
-          {/* ----- ADMIN SQUAD (PROTECTED) ----- */}
-          {/* FIXED: Wrapped the Admin Layout in the Protected Route Guard */}
           <Route element={<ProtectedAdminRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<DashboardPage />} />
@@ -91,7 +81,8 @@ function App() {
               <Route path="amenities" element={<AmenitiesManagementPage />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
               <Route path="reviews" element={<AdminReviewsPage />} />
-              {/* <Route path="homesection" element={<AdminHomeSection />} /> */}
+              {/* FIXED: Uncommented this route */}
+              <Route path="homesection" element={<AdminHomeSection />} />
             </Route>
           </Route>
           

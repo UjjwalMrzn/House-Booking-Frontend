@@ -8,6 +8,7 @@ import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
 import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../api/bookingApi';
 import { propertyService } from '../../api/propertyService';
+import { homeService } from '../../api/homeService';
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -38,10 +39,25 @@ const Hero = () => {
     queryFn: () => propertyService.getPropertyDetails(DEFAULT_PROPERTY_ID),
   });
 
-  // THE FIX: Finds the image marked as "is_main" by the Admin. Fallback to first image, then Unsplash.
-  const heroBackgroundImage = property?.images?.find((img: any) => img.is_main)?.image 
-    || property?.images?.[0]?.image 
-    || "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=80&w=2080&auto=format&fit=crop";
+  const { data: homeImagesData } = useQuery({
+    queryKey: ['home-page-images'],
+    queryFn: homeService.getHomePageImages,
+  });
+
+  const { data: titlesData } = useQuery({
+    queryKey: ['home-page-titles'],
+    queryFn: homeService.getTitles,
+  });
+
+  // FIXED: Explicitly cast to any[] to destroy all TypeScript 'unknown' errors
+  const homeImages: any[] = (homeImagesData as any[]) || [];
+  const titles: any[] = (titlesData as any[]) || [];
+
+  const activeImageObj = homeImages.find((img: any) => img.is_main) || homeImages[0];
+  const activeTitleObj = titles.find((t: any) => t.isMain) || titles[0];
+  
+  const heroBackgroundImage = activeImageObj?.image || "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=80&w=2080&auto=format&fit=crop";
+  const heroTitleText = activeTitleObj?.title || "Find your sanctuary.";
 
   return (
     <div className="w-full bg-[#fafafa] pb-24 overflow-visible">
@@ -54,7 +70,7 @@ const Hero = () => {
         </div>
         <div className="absolute bottom-40 left-0 w-full text-center z-10 px-4">
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight animate-slide-up">
-            Find your sanctuary.
+            {heroTitleText}
           </h1>
         </div>
       </div>
