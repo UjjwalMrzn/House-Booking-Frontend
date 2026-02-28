@@ -12,10 +12,8 @@ import GalleryPage from './components/pages/GalleryPage';
 import MapPage from './components/pages/MapPage';
 import ReviewsPage from './components/pages/ReviewsPage';
 import ContactPage from './components/pages/ContactPage';
-import { DEFAULT_PROPERTY_ID } from './utils/constants';
 import BackToTop from './components/BackToTop';
 
-// ADMIN
 import AdminLayout from './components/layouts/AdminLayout';
 import DashboardPage from './components/pages/admin/DashboardPage';
 import LoginPage from './components/pages/admin/LoginPage';
@@ -24,7 +22,6 @@ import PropertyFormPage from './components/pages/admin/forms/PropertyFormPage';
 import AmenitiesManagementPage from './components/pages/admin/AmenitiesManagementPage';
 import AdminBookingsPage from './components/pages/admin/AdminBookingPage';
 import AdminReviewsPage from './components/pages/admin/AdminReviewPage';
-// FIXED: Uncommented this import
 import AdminHomeSection from './components/pages/admin/AdminHomeSection';
 
 const Home = () => (
@@ -59,13 +56,13 @@ function App() {
         <Routes>
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/overview" element={<Navigate to={`/overview/${DEFAULT_PROPERTY_ID}`} replace />} />
-            <Route path="/overview/:id" element={<OverviewPage />} />
-            <Route path="/book/:id" element={<ReservationPage />} />
+            {/* CLEAN ROUTES - NO IDs */}
+            <Route path="/overview" element={<OverviewPage />} />
+            <Route path="/book" element={<ReservationPage />} />
             <Route path="/success" element={<SuccessPage />} />
-            <Route path="/gallery/:id" element={<GalleryPage />} />
-            <Route path="/map/:id" element={<MapPage />} />
-            <Route path="/reviews/:id" element={<ReviewsPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/reviews" element={<ReviewsPage />} />
             <Route path="/contact" element={<ContactPage />} />
           </Route>
 
@@ -76,12 +73,12 @@ function App() {
               <Route index element={<DashboardPage />} />
               <Route path="properties" element={<PropertyManagementPage />} />
               <Route path="properties/new" element={<PropertyFormPage />} />
+              {/* Admin still requires ID to target specific edits */}
               <Route path="properties/edit/:id" element={<PropertyFormPage />} />
               <Route path="/admin/properties/view/:id" element={<PropertyFormPage />} />
               <Route path="amenities" element={<AmenitiesManagementPage />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
               <Route path="reviews" element={<AdminReviewsPage />} />
-              {/* FIXED: Uncommented this route */}
               <Route path="homesection" element={<AdminHomeSection />} />
             </Route>
           </Route>

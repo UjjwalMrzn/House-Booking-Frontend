@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../api/propertyService';
 import { useToast } from '../../ui/Toaster';
-// FIXED: Added 'X' to the imports
-import { Plus, Home, MapPin, Edit, Trash2, Users, BedDouble, Star, Search, Eye, X } from 'lucide-react';
+import { Plus, Home, MapPin, Edit, Trash2, Users, BedDouble, Star, Search, Eye, X, CheckCircle } from 'lucide-react';
 import { Skeleton } from '../../ui/Skeleton';
 import { Link } from 'react-router-dom';
 import Modal from '../../ui/Modal';
@@ -14,8 +13,8 @@ const PropertyManagementPage = () => {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number | null; title: string }>({
-  isOpen: false, id: null, title: ""
-});
+    isOpen: false, id: null, title: ""
+  });
 
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['admin-properties'],
@@ -28,9 +27,19 @@ const PropertyManagementPage = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-properties'] });
       toast.success("Property deleted successfully");
     },
-    onError: () => {
-      toast.error("Failed to delete property");
-    }
+    onError: () => toast.error("Failed to delete property")
+  });
+
+  // NEW: Triggers the new API logic to set the active listing
+  const setMainMutation = useMutation({
+    mutationFn: propertyService.setMainProperty,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-properties'] });
+      // Also invalidate the public cache so it updates instantly
+      queryClient.invalidateQueries({ queryKey: ['main-property'] });
+      toast.success("Active listing updated!");
+    },
+    onError: () => toast.error("Failed to update active listing")
   });
 
   const filteredProperties = properties.filter((property: any) => 
@@ -51,21 +60,17 @@ const PropertyManagementPage = () => {
           to="/admin/properties/new" 
           className="bg-brand-green text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-emerald-600 hover:shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] transition-all"
         >
-          <Plus size={16} strokeWidth={3} />
-          Add New Property
+          <Plus size={16} strokeWidth={3} /> Add New Property
         </Link>
       </div>
 
-      {/* FIXED: Compacted card container to match form (rounded-[2rem], softer shadow) */}
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
-        
-        {/* FIXED: Reduced padding to p-6 */}
         <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white/50">
           <h3 className="text-lg font-black text-brand-dark tracking-tight flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center shadow-inner">
               <Home size={16} strokeWidth={2.5} />
             </div>
-            Active Listings
+            All Listings
             <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
               {filteredProperties.length} Total
             </span>
@@ -80,16 +85,10 @@ const PropertyManagementPage = () => {
               placeholder="Search properties..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              // FIXED: Changed pr-4 to pr-10 so text doesn't overlap the X button
               className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-brand-dark outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green focus:bg-white transition-all placeholder:text-gray-400"
             />
-            {/* FIXED: Added 'X' clear button conditionally */}
             {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark hover:bg-gray-200 p-1 rounded-full transition-colors flex items-center justify-center"
-                title="Clear search"
-              >
+              <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark hover:bg-gray-200 p-1 rounded-full transition-colors flex items-center justify-center">
                 <X size={14} strokeWidth={3} />
               </button>
             )}
@@ -109,11 +108,6 @@ const PropertyManagementPage = () => {
               <h4 className="text-base font-black text-brand-dark mb-1 tracking-tight">
                 {searchTerm ? "No results found" : "No properties found"}
               </h4>
-              <p className="text-xs font-bold text-gray-400 max-w-sm mx-auto">
-                {searchTerm 
-                  ? `We couldn't find any properties matching "${searchTerm}".`
-                  : "You haven't added any properties yet. Click the 'Add New Property' button to get started."}
-              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -137,10 +131,9 @@ const PropertyManagementPage = () => {
                     return (
                       <tr key={property.id} className="group transition-colors hover:bg-gray-50/80 cursor-default">
                         
-                        {/* FIXED: Reduced vertical padding (py-3) and thumbnail size (w-12 h-12) */}
                         <td className="py-3 px-5 rounded-l-2xl">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100">
+                            <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100 relative">
                               {mainImage ? (
                                 <img src={mainImage} alt={property.title} className="w-full h-full object-cover" />
                               ) : (
@@ -149,8 +142,15 @@ const PropertyManagementPage = () => {
                                 </div>
                               )}
                             </div>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-black tracking-tight text-brand-dark">{property.title}</span>
+                            <div className="flex flex-col items-start">
+                              <span className="text-sm font-black tracking-tight text-brand-dark flex items-center gap-2">
+                                {property.title}
+                                {property.isMain && (
+                                  <span className="bg-brand-green/10 text-brand-green border border-brand-green/20 text-[8px] px-2 py-0.5 rounded-md uppercase tracking-widest font-black flex items-center gap-1">
+                                    <Star size={10} fill="currentColor" /> Active
+                                  </span>
+                                )}
+                              </span>
                               <span className="text-[9px] text-gray-400 uppercase tracking-wider font-bold flex items-center gap-1 mt-0.5">
                                 <MapPin size={9} /> {property.address}
                               </span>
@@ -183,14 +183,21 @@ const PropertyManagementPage = () => {
                         </td>
 
                         <td className="py-3 px-5 text-right rounded-r-2xl">
-                          {/* FIXED: Removed opacity-0 and group-hover classes so buttons are always visible */}
                           <div className="flex items-center justify-end gap-1.5">
                             
-                            {/* NEW: View Public Listing Button */}
+                            {!property.isMain && (
+                              <button 
+                                onClick={() => setMainMutation.mutate(property.id)}
+                                className="mr-2 h-8 px-3 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-200 text-gray-500 hover:bg-brand-green hover:border-brand-green hover:text-white transition-all shadow-sm text-[9px] font-black uppercase tracking-widest"
+                                title="Set as public active listing"
+                              >
+                                <CheckCircle size={12} className="mr-1" /> Set Active
+                              </button>
+                            )}
+
                             <Link 
                               to={`/admin/properties/view/${property.id}`} 
                               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-500 transition-all shadow-sm"
-                              title="View Property Details"
                             >
                               <Eye size={14} />
                             </Link>
@@ -198,7 +205,6 @@ const PropertyManagementPage = () => {
                             <Link 
                               to={`/admin/properties/edit/${property.id}`}
                               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-brand-green hover:border-brand-green hover:text-white transition-all shadow-sm"
-                              title="Edit Property"
                             >
                               <Edit size={14} />
                             </Link>
@@ -206,7 +212,6 @@ const PropertyManagementPage = () => {
                             <button 
                               onClick={() => setDeleteModal({ isOpen: true, id: property.id, title: property.title })}
                               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm"
-                              title="Delete Property"
                             >
                               <Trash2 size={14} />
                             </button>

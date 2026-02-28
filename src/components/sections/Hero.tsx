@@ -4,11 +4,17 @@ import Button from '../ui/Button';
 import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
 import { format, parseISO } from 'date-fns';
-import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
 import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../api/bookingApi';
 import { propertyService } from '../../api/propertyService';
 import { homeService } from '../../api/homeService';
+
+const getImageUrl = (url: string) => {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/api\/?$/, '');
+  return `${baseUrl}${url}`;
+};
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -21,22 +27,23 @@ const Hero = () => {
       checkOut: dates.checkOut,
       guests: guests.toString()
     });
-    navigate(`/overview/${DEFAULT_PROPERTY_ID}?${params.toString()}`);
+    navigate(`/overview?${params.toString()}`);
   };
 
+  const { data: property } = useQuery({
+    queryKey: ['main-property-hero'],
+    queryFn: propertyService.getMainProperty,
+  });
+
   const { data: bookedRanges = [] } = useQuery({
-    queryKey: ["booked-dates-hero"],
+    queryKey: ["booked-dates-hero", property?.id],
     queryFn: async () => {
       const bookings = await bookingService.getConfirmedBookings();
       return bookings
-        .filter((b: any) => String(b.property) === String(DEFAULT_PROPERTY_ID))
+        .filter((b: any) => String(b.property) === String(property?.id))
         .map((b: any) => ({ from: parseISO(b.check_in), to: parseISO(b.check_out) }));
     },
-  });
-
-  const { data: property } = useQuery({
-    queryKey: ['property-strict-hero', DEFAULT_PROPERTY_ID],
-    queryFn: () => propertyService.getPropertyDetails(DEFAULT_PROPERTY_ID),
+    enabled: !!property?.id
   });
 
   const { data: homeImagesData } = useQuery({
@@ -49,14 +56,16 @@ const Hero = () => {
     queryFn: homeService.getTitles,
   });
 
-  // FIXED: Explicitly cast to any[] to destroy all TypeScript 'unknown' errors
   const homeImages: any[] = (homeImagesData as any[]) || [];
   const titles: any[] = (titlesData as any[]) || [];
 
   const activeImageObj = homeImages.find((img: any) => img.is_main) || homeImages[0];
   const activeTitleObj = titles.find((t: any) => t.isMain) || titles[0];
   
-  const heroBackgroundImage = activeImageObj?.image || "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=80&w=2080&auto=format&fit=crop";
+  const heroBackgroundImage = activeImageObj?.image 
+    ? getImageUrl(activeImageObj.image) 
+    : "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=80&w=2080&auto=format&fit=crop";
+    
   const heroTitleText = activeTitleObj?.title || "Find your sanctuary.";
 
   return (

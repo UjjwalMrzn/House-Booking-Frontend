@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
 import { ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
-// FIXED: Integrated the Single Source of Truth constant
-import { DEFAULT_PROPERTY_ID } from "../../utils/constants";
 
 const GalleryPage = () => {
-  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -16,9 +13,8 @@ const GalleryPage = () => {
   ); 
     
   const { data: property, isLoading } = useQuery({
-    queryKey: ["property", id],
-    // FIXED: Uses global fallback constant instead of hardcoded "1"
-    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_PROPERTY_ID),
+    queryKey: ["main-property"],
+    queryFn: propertyService.getMainProperty,
   });
 
   const images = property?.images || [];
@@ -31,9 +27,6 @@ const GalleryPage = () => {
     setSelectedIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : images.length - 1));
   }, [images.length]);
 
-  // FIXED: Smart close logic maintained. 
-  // If user came from overview image click -> go back to overview.
-  // If user is just browsing gallery -> close viewer, stay in gallery.
   const handleClose = useCallback(() => {
     if (location.state?.imageIndex !== undefined) {
       navigate(-1);
@@ -78,72 +71,35 @@ const GalleryPage = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {images.map((img: any, index: number) => (
-          <div 
-            key={img.id} 
-            className="cursor-pointer group space-y-3"
-            onClick={() => setSelectedIndex(index)}
-          >
+          <div key={img.id} className="cursor-pointer group space-y-3" onClick={() => setSelectedIndex(index)}>
             <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 shadow-sm aspect-[4/3]">
-              <img 
-                src={img.image} 
-                alt="" 
-                className="w-full h-full object-cover transition-all duration-500 group-hover:brightness-90"
-              />
+              <img src={img.image} alt="" className="w-full h-full object-cover transition-all duration-500 group-hover:brightness-90" />
             </div>
-            {img.caption && (
-              <p className="text-[11px] font-bold text-gray-400 px-2 truncate">{img.caption}</p>
-            )}
+            {img.caption && <p className="text-[11px] font-bold text-gray-400 px-2 truncate">{img.caption}</p>}
           </div>
         ))}
       </div>
 
-      {/* IMAGE VIEWER */}
       {selectedIndex !== null && (
         <div className="fixed inset-0 z-[100000] flex items-center justify-center">
-          {/* FIXED: Uses smart close on backdrop click */}
           <div className="absolute inset-0 bg-black/95 backdrop-blur-sm" onClick={handleClose}></div>
-
-          {/* FIXED: Uses smart close on X button */}
-          <button 
-            onClick={handleClose} 
-            className="absolute top-8 right-8 z-[100001] text-white/50 hover:text-white transition-colors"
-          >
+          <button onClick={handleClose} className="absolute top-8 right-8 z-[100001] text-white/50 hover:text-white transition-colors">
             <X size={32} />
           </button>
-
-          <button 
-            onClick={(e) => { e.stopPropagation(); showPrev(); }} 
-            className="absolute left-6 z-[100001] p-3 text-white/30 hover:text-white transition-all bg-white/5 hover:bg-white/10 rounded-full"
-          >
+          <button onClick={(e) => { e.stopPropagation(); showPrev(); }} className="absolute left-6 z-[100001] p-3 text-white/30 hover:text-white transition-all bg-white/5 hover:bg-white/10 rounded-full">
             <ChevronLeft size={36} />
           </button>
-          
-          <button 
-            onClick={(e) => { e.stopPropagation(); showNext(); }} 
-            className="absolute right-6 z-[100001] p-3 text-white/30 hover:text-white transition-all bg-white/5 hover:bg-white/10 rounded-full"
-          >
+          <button onClick={(e) => { e.stopPropagation(); showNext(); }} className="absolute right-6 z-[100001] p-3 text-white/30 hover:text-white transition-all bg-white/5 hover:bg-white/10 rounded-full">
             <ChevronRight size={36} />
           </button>
-
-          {/* Image Container */}
           <div className="relative z-[100001] w-full max-w-5xl h-full max-h-[70vh] px-10 flex items-center justify-center pointer-events-none">
-            <img 
-              src={images[selectedIndex].image} 
-              alt="" 
-              className="max-w-full max-h-full object-contain pointer-events-auto select-none rounded-lg shadow-2xl animate-scale-up"
-            />
+            <img src={images[selectedIndex].image} alt="" className="max-w-full max-h-full object-contain pointer-events-auto select-none rounded-lg shadow-2xl animate-scale-up" />
           </div>
-
-          {/* Caption and Counter */}
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[100001] flex flex-col items-center gap-4 pointer-events-auto text-center w-full px-8">
               {images[selectedIndex].caption && (
-                <h3 className="text-white text-xl font-bold tracking-wide">
-                  {images[selectedIndex].caption}
-                </h3>
+                <h3 className="text-white text-xl font-bold tracking-wide">{images[selectedIndex].caption}</h3>
               )}
-              <div className="text-white/60 font-black text-sm uppercase tracking-[0.3em]">
-                {selectedIndex + 1} / {images.length}
-              </div>
+              <div className="text-white/60 font-black text-sm uppercase tracking-[0.3em]">{selectedIndex + 1} / {images.length}</div>
             </div>
         </div>
       )}

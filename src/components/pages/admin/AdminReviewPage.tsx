@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reviewService } from '../../../api/reviewService'; 
+import { propertyService } from '../../../api/propertyService'; // IMPORTED TO GET TITLES
 import { useToast } from '../../ui/Toaster';
 import { MessageSquare, Star, Trash2, Eye, ArrowUpDown, ChevronUp, ChevronDown, Filter, User, MapPin, Calendar, Check } from 'lucide-react';
 import Modal from '../../ui/Modal';
@@ -28,7 +29,6 @@ const AdminReviewsPage = () => {
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number | null; title: string }>({ isOpen: false, id: null, title: "" });
   const [viewModal, setViewModal] = useState<{ isOpen: boolean, review: any | null }>({ isOpen: false, review: null });
 
-  // Close custom filter dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
@@ -39,11 +39,32 @@ const AdminReviewsPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch all reviews
-  const { data: reviews = [], isLoading } = useQuery({
+  // 1. Fetch all reviews
+  const { data: reviewsData, isLoading: isReviewsLoading } = useQuery({
     queryKey: ['admin-reviews'],
     queryFn: reviewService.getAllReviews,
   });
+
+  // 2. Fetch all properties to map IDs to Titles
+  const { data: propertiesData, isLoading: isPropertiesLoading } = useQuery({
+    queryKey: ['admin-properties'],
+    queryFn: propertyService.getAllProperties,
+  });
+
+  const isLoading = isReviewsLoading || isPropertiesLoading;
+
+  // BULLETPROOF MAPPING: Create a safe map of Property ID -> Title
+  const propertyMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    const propsArray = Array.isArray(propertiesData) ? propertiesData : (propertiesData?.results || []);
+    
+    propsArray.forEach((p: any) => {
+      if (p?.id) {
+        map[String(p.id)] = p.title;
+      }
+    });
+    return map;
+  }, [propertiesData]);
 
   // Mutation to delete review
   const deleteMutation = useMutation({
@@ -56,33 +77,37 @@ const AdminReviewsPage = () => {
     onError: () => toast.error("Failed to delete review.")
   });
 
-  // Data Processing Pipeline: Filter -> Search -> Sort
+  // Data Processing Pipeline: Map Titles -> Filter -> Search -> Sort
   const processedReviews = useMemo(() => {
-    let result = [...reviews];
+    const revsArray = Array.isArray(reviewsData) ? reviewsData : (reviewsData?.results || []);
 
-    // 1. Filter by Rating
+    // INJECT THE PROPERTY TITLE BEFORE SEARCHING OR SORTING
+    let result = revsArray.map((review: any) => ({
+      ...review,
+      property_title: propertyMap[String(review.property)] || `Property #${review.property}`
+    }));
+
     if (ratingFilter !== 'all') {
-      result = result.filter(review => String(review.rating) === ratingFilter);
+      result = result.filter((review: any) => String(review.rating) === ratingFilter);
     }
 
-    // 2. Filter by Search
+    // SEARCH INCLUDES THE PROPERTY TITLE NOW
     if (searchTerm) {
       const lowerSearch = searchTerm.toLowerCase();
       result = result.filter((review: any) => 
-        review.customer_name?.toLowerCase().includes(lowerSearch) ||
-        review.title?.toLowerCase().includes(lowerSearch) ||
-        review.comment?.toLowerCase().includes(lowerSearch)
+        (review.customer_name || '').toLowerCase().includes(lowerSearch) ||
+        (review.title || '').toLowerCase().includes(lowerSearch) ||
+        (review.comment || '').toLowerCase().includes(lowerSearch) ||
+        (review.property_title || '').toLowerCase().includes(lowerSearch) 
       );
     }
 
-    // 3. Sort
     if (sortConfig !== null) {
-      result.sort((a, b) => {
+      result.sort((a: any, b: any) => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-        // Numeric sorting for ratings and property IDs
-        if (sortConfig.key === 'rating' || sortConfig.key === 'property') {
+        if (sortConfig.key === 'rating') {
           aValue = Number(aValue);
           bValue = Number(bValue);
         } else {
@@ -97,9 +122,8 @@ const AdminReviewsPage = () => {
     }
 
     return result;
-  }, [reviews, searchTerm, ratingFilter, sortConfig]);
+  }, [reviewsData, propertyMap, searchTerm, ratingFilter, sortConfig]);
 
-  // Handle Sort Click
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -108,7 +132,6 @@ const AdminReviewsPage = () => {
     setSortConfig({ key, direction });
   };
 
-  // Render Sort Icon
   const renderSortIcon = (key: string) => {
     if (sortConfig?.key !== key) return <ArrowUpDown size={12} className="opacity-40" />;
     return sortConfig.direction === 'asc' ? <ChevronUp size={12} className="text-brand-green" /> : <ChevronDown size={12} className="text-brand-green" />;
@@ -126,7 +149,6 @@ const AdminReviewsPage = () => {
   return (
     <div className="max-w-7xl mx-auto w-full animate-fade-in">
       
-      {/* Page Header & Search */}
       <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-brand-dark tracking-tight flex items-center gap-3">
@@ -137,8 +159,6 @@ const AdminReviewsPage = () => {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          
-          {/* CUSTOM Rating Filter Dropdown */}
           <div className="relative w-full sm:w-40" ref={filterRef}>
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -177,13 +197,12 @@ const AdminReviewsPage = () => {
           <SearchInput 
             value={searchTerm} 
             onChange={setSearchTerm} 
-            placeholder="Search reviews..." 
-            className="w-full sm:w-60" 
+            placeholder="Search by review or property..." 
+            className="w-full sm:w-72" 
           />
         </div>
       </div>
 
-      {/* Reviews Table Card */}
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse min-w-[800px]">
@@ -204,9 +223,10 @@ const AdminReviewsPage = () => {
                     Guest {renderSortIcon('customer_name')}
                   </button>
                 </th>
+                {/* SORTABLE BY PROPERTY TITLE NOW */}
                 <th className="py-5 px-6">
-                  <button onClick={() => handleSort('property')} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">
-                    Property {renderSortIcon('property')}
+                  <button onClick={() => handleSort('property_title')} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">
+                    Property {renderSortIcon('property_title')}
                   </button>
                 </th>
                 <th className="py-5 px-6">
@@ -237,13 +257,11 @@ const AdminReviewsPage = () => {
                 processedReviews.map((review: any) => (
                   <tr key={review.id} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors group">
                     
-                    {/* REVIEW CONTENT */}
                     <td className="py-4 px-6">
                       <div className="font-black text-brand-dark text-sm line-clamp-1">{review.title}</div>
                       <div className="text-xs font-medium text-gray-500 mt-1 line-clamp-1">{review.comment}</div>
                     </td>
 
-                    {/* RATING BADGE */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-1.5 bg-amber-50 text-amber-500 w-fit px-2.5 py-1.5 rounded-lg border border-amber-100">
                         <Star size={12} fill="currentColor" />
@@ -251,7 +269,6 @@ const AdminReviewsPage = () => {
                       </div>
                     </td>
 
-                    {/* GUEST INFO */}
                     <td className="py-4 px-6">
                       <div className="font-bold text-brand-dark text-sm flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0">
@@ -261,21 +278,19 @@ const AdminReviewsPage = () => {
                       </div>
                     </td>
 
-                    {/* PROPERTY INFO */}
+                    {/* PRINTS PROPERTY TITLE INSTEAD OF ID */}
                     <td className="py-4 px-6">
-                      <div className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                        <MapPin size={11} className="text-indigo-400" /> Property #{review.property}
+                      <div className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5 truncate max-w-[150px]" title={review.property_title}>
+                        <MapPin size={11} className="text-indigo-400 shrink-0" /> {review.property_title}
                       </div>
                     </td>
 
-                    {/* DATE */}
                     <td className="py-4 px-6 whitespace-nowrap">
                       <div className="font-bold text-brand-dark text-sm">
                         {review.createdAt ? review.createdAt.split('T')[0] : 'N/A'}
                       </div>
                     </td>
 
-                    {/* ACTIONS */}
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
@@ -303,7 +318,6 @@ const AdminReviewsPage = () => {
         </div>
       </div>
 
-      {/* --- DELETE CONFIRMATION MODAL --- */}
       <Modal 
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, id: null, title: "" })}
@@ -315,7 +329,6 @@ const AdminReviewsPage = () => {
         loading={deleteMutation.isPending}
       />
 
-      {/* --- VIEW FULL REVIEW MODAL --- */}
       <FormModal
         isOpen={viewModal.isOpen}
         onClose={() => setViewModal({ isOpen: false, review: null })}
@@ -323,8 +336,6 @@ const AdminReviewsPage = () => {
       >
         {viewModal.review && (
           <div className="space-y-6">
-            
-            {/* Header: Title & Stars */}
             <div>
               <div className="flex items-start justify-between gap-4 mb-3">
                 <h3 className="text-xl font-black text-brand-dark leading-tight">{viewModal.review.title}</h3>
@@ -342,15 +353,14 @@ const AdminReviewsPage = () => {
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-500">
                   <Calendar size={10} /> {viewModal.review.createdAt ? viewModal.review.createdAt.split('T')[0] : 'N/A'}
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-black uppercase tracking-widest text-indigo-500">
-                  <MapPin size={10} /> Property #{viewModal.review.property}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-black uppercase tracking-widest text-indigo-500 max-w-full">
+                  <MapPin size={10} className="shrink-0" /> <span className="truncate">{viewModal.review.property_title}</span>
                 </span>
               </div>
             </div>
 
             <hr className="border-gray-50" />
 
-            {/* The Actual Comment */}
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Guest Feedback</p>
               <div className="p-5 bg-gray-50/80 rounded-2xl border border-gray-100">

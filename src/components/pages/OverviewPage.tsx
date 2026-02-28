@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-// FIXED: Added useSearchParams to grab data from the Hero redirect
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
 import FeatureCard from "../ui/FeatureCard";
@@ -14,17 +13,10 @@ import { Users, Bed, Bath, MapPin } from "lucide-react";
 import DynamicIcon from "../ui/DynamicIcon";
 
 const OverviewPage = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
-  
-  // FIXED: Access search parameters (?checkIn=...&guests=...)
   const [searchParams] = useSearchParams();
 
-  // SINGLE SOURCE OF TRUTH ID Logic
-  const DEFAULT_ID = import.meta.env.VITE_DEFAULT_PROPERTY_ID || "1";
-
-  // FIXED: Initialize state with URL data if it exists, otherwise use defaults
   const [checkIn, setCheckIn] = useState(searchParams.get('checkIn') || "");
   const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') || "");
   const [guests, setGuests] = useState(() => {
@@ -35,18 +27,12 @@ const OverviewPage = () => {
   const [activeTab, setActiveTab] = useState("description");
   const [hasShownError, setHasShownError] = useState(false);
 
-  const {
-    data: property,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["property", id],
-    // FIXED: Uses the dynamic environment fallback instead of hardcoded "1"
-    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_ID),
-    enabled: !!id || !!DEFAULT_ID,
+  // FETCH DIRECTLY FROM /mainProperty/
+  const { data: property, isLoading, error } = useQuery({
+    queryKey: ["main-property"],
+    queryFn: propertyService.getMainProperty,
   });
 
-  // FIXED: Loop-guarded error notification
   useEffect(() => {
     if (error && !hasShownError) {
       toast.error("Connection Error: Property not found");
@@ -67,63 +53,44 @@ const OverviewPage = () => {
     return baseTabs;
   }, [property]);
 
- // src/components/pages/OverviewPage.tsx
-
-// src/components/pages/OverviewPage.tsx
-
-useEffect(() => {
-  const handleScroll = () => {
-    // 1. Check if we are at the very bottom of the page to force the last tab
-    const isBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
-    if (isBottom && tabs.length > 0) {
-      setActiveTab(tabs[tabs.length - 1].id);
-      return;
-    }
-
-    // 2. Optimized trigger point
-    // Using a dynamic trigger point (1/3 of the screen height) is more reliable than a static 150px
-    const triggerPoint = window.innerHeight / 3;
-    
-    // Iterate backwards to find the section currently "occupying" the top area
-    for (let i = tabs.length - 1; i >= 0; i--) {
-      const section = document.getElementById(tabs[i].id);
-      if (section) {
-        const rect = section.getBoundingClientRect();
-        // If the top of the section has reached the upper third of the screen
-        if (rect.top <= triggerPoint) {
-          setActiveTab(tabs[i].id);
-          break;
+  useEffect(() => {
+    const handleScroll = () => {
+      const isBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
+      if (isBottom && tabs.length > 0) {
+        setActiveTab(tabs[tabs.length - 1].id);
+        return;
+      }
+      const triggerPoint = window.innerHeight / 3;
+      for (let i = tabs.length - 1; i >= 0; i--) {
+        const section = document.getElementById(tabs[i].id);
+        if (section) {
+          const rect = section.getBoundingClientRect();
+          if (rect.top <= triggerPoint) {
+            setActiveTab(tabs[i].id);
+            break;
+          }
         }
       }
+    };
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); 
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [tabs]);
+
+  const scrollToSection = (sectionId: string) => {
+    setActiveTab(sectionId); 
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const yOffset = -140; 
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
-  
-  window.addEventListener("scroll", handleScroll);
-  // Initial check in case user refreshed the page while scrolled down
-  handleScroll(); 
-  
-  return () => window.removeEventListener("scroll", handleScroll);
-}, [tabs]);
-
-const scrollToSection = (sectionId: string) => {
-  setActiveTab(sectionId); 
-  const element = document.getElementById(sectionId);
-  if (element) {
-    // Standardized offset to clear the sticky navbar (80px) and tab bar (approx 60px)
-    const yOffset = -140; 
-    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: "smooth" });
-  }
-};
 
   return (
     <main className="pt-24 bg-white min-h-screen font-sans text-brand-dark animate-fade-in px-6 max-w-7xl mx-auto pb-20">
       <div className="grid lg:grid-cols-3 gap-16 items-start">
-        
-        {/* LEFT CONTENT */}
         <div className="lg:col-span-2 space-y-16">
-          
-          {/* THE DYNAMIC STICKY BAR */}
           {!isLoading && (
             <div className="flex items-center gap-8 border-b border-gray-200 sticky top-[80px] bg-white z-40 pt-4 mb-12">
               {tabs.map((tab) => (
@@ -142,12 +109,9 @@ const scrollToSection = (sectionId: string) => {
             </div>
           )}
 
-          {/* DESCRIPTION SECTION */}
           <section id="description">
             <div className="flex items-center gap-2 mb-4">
-              {isLoading ? (
-                <Skeleton variant="text" className="w-32" />
-              ) : (
+              {isLoading ? <Skeleton variant="text" className="w-32" /> : (
                 <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                   <MapPin size={14} /> {property?.address}
                 </div>
@@ -155,11 +119,7 @@ const scrollToSection = (sectionId: string) => {
             </div>
 
             <h1 className="text-4xl font-extrabold mb-6 tracking-tight">
-              {isLoading ? (
-                <Skeleton variant="text" className="h-12 w-3/4" />
-              ) : (
-                property?.title
-              )}
+              {isLoading ? <Skeleton variant="text" className="h-12 w-3/4" /> : property?.title}
             </h1>
 
             <div className="flex flex-wrap gap-6 mb-8 pb-8 border-b border-gray-100">
@@ -172,16 +132,13 @@ const scrollToSection = (sectionId: string) => {
               ) : (
                 <>
                   <span className="flex items-center gap-2 font-bold text-gray-500 text-sm">
-                    <Users size={18} className="text-brand-green" />{" "}
-                    {property?.max_guests} Guests
+                    <Users size={18} className="text-brand-green" /> {property?.max_guests} Guests
                   </span>
                   <span className="flex items-center gap-2 font-bold text-gray-500 text-sm">
-                    <Bed size={18} className="text-brand-green" />{" "}
-                    {property?.bedrooms} Bedrooms
+                    <Bed size={18} className="text-brand-green" /> {property?.bedrooms} Bedrooms
                   </span>
                   <span className="flex items-center gap-2 font-bold text-gray-500 text-sm">
-                    <Bath size={18} className="text-brand-green" />{" "}
-                    {property?.bathroom} Bathrooms
+                    <Bath size={18} className="text-brand-green" /> {property?.bathroom} Bathrooms
                   </span>
                 </>
               )}
@@ -194,13 +151,10 @@ const scrollToSection = (sectionId: string) => {
                   <Skeleton variant="text" />
                   <Skeleton variant="text" className="w-2/3" />
                 </div>
-              ) : (
-                property?.description
-              )}
+              ) : property?.description}
             </div>
           </section>
 
-          {/* PICTURES SECTION */}
           <section id="pictures">
             <h2 className="text-2xl font-bold mb-8 tracking-tight">
               {isLoading ? <Skeleton variant="text" className="w-32" /> : "Pictures"}
@@ -208,34 +162,30 @@ const scrollToSection = (sectionId: string) => {
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {isLoading
-                ? [1, 2, 3, 4, 5, 6].map((i) => (
-                    <Skeleton key={i} variant="card" className="aspect-square" />
-                  ))
+                ? [1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} variant="card" className="aspect-square" />)
                 : property?.images?.slice(0, 6).map((img: any, index: number) => (
                     <FeatureCard 
                       key={img.id} 
                       image={img.image} 
                       noZoom={true} 
                       className="cursor-pointer"
-                      onClick={() => navigate(`/gallery/${id || DEFAULT_ID}`, { state: { imageIndex: index } })}
+                      onClick={() => navigate(`/gallery`, { state: { imageIndex: index } })}
                     />
                   ))}
             </div>
 
-           {/* FIXED: The "Explore all pictures" button is now always visible for a better user experience */}
-{!isLoading && (
-  <div className="mt-8">
-    <button 
-      onClick={() => navigate(`/gallery/${id || DEFAULT_ID}`)}
-      className="text-brand-green font-black text-xs uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1"
-    >
-      Explore all pictures
-    </button>
-  </div>
-)}
+            {!isLoading && (
+              <div className="mt-8">
+                <button 
+                  onClick={() => navigate(`/gallery`)}
+                  className="text-brand-green font-black text-xs uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1"
+                >
+                  Explore all pictures
+                </button>
+              </div>
+            )}
           </section>
 
-          {/* AMENITIES SECTION */}
           <section id="amenities" className="pt-12 border-t border-gray-100">
             <h2 className="text-2xl font-bold mb-8 tracking-tight">
               {isLoading ? <Skeleton variant="text" className="w-32" /> : "Amenities"}
@@ -246,7 +196,7 @@ const scrollToSection = (sectionId: string) => {
                 : property?.amenities?.map((amenity: any, index: number) => (
               <FeatureCard
                 key={index}
-                icon={<DynamicIcon name={amenity.icon || 'Info'} size={20} />} // <--- NEW LINE
+                icon={<DynamicIcon name={amenity.icon || 'Info'} size={20} />} 
                 title={amenity.name}
                 description={amenity.description}
               />
@@ -254,7 +204,6 @@ const scrollToSection = (sectionId: string) => {
             </div>
           </section>
 
-          {/* POLICIES SECTION */}
           {(isLoading || property?.policies?.length > 0 || property?.checkInOutRules?.length > 0) && (
             <section id="policies" className="pt-12 border-t border-gray-100">
               <h2 className="text-2xl font-bold mb-8 tracking-tight">
@@ -282,15 +231,9 @@ const scrollToSection = (sectionId: string) => {
                       <div key={`policy-${index}`} className="space-y-2">
                         <h4 className="font-bold text-gray-900">{policy.name}</h4>
                         <div className="text-sm text-gray-500 leading-relaxed">
-                          {policy.description
-                            ?.split('.')
-                            .filter((sentence: string) => sentence.trim().length > 0)
-                            .map((sentence: string, i: number) => (
-                              <span key={i} className="block mb-2">
-                                {sentence.trim()}.
-                              </span>
-                            ))
-                          }
+                          {policy.description?.split('.').filter((s: string) => s.trim().length > 0).map((s: string, i: number) => (
+                              <span key={i} className="block mb-2">{s.trim()}.</span>
+                          ))}
                         </div>
                       </div>
                     ))}
@@ -301,7 +244,6 @@ const scrollToSection = (sectionId: string) => {
           )}
         </div>
 
-        {/* RIGHT SIDEBAR */}
         <aside className="lg:col-span-1 sticky top-32">
           <div className="bg-white border border-gray-200 rounded-[2.5rem] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.08)] space-y-6">
             {isLoading ? (
@@ -314,29 +256,20 @@ const scrollToSection = (sectionId: string) => {
             ) : (
               <>
                 <div className="flex items-end gap-1">
-                  <span className="text-3xl font-black text-brand-dark">
-                    ${property?.base_price_per_night}
-                  </span>
-                  <span className="text-gray-400 font-bold text-sm mb-1">
-                    / night
-                  </span>
+                  <span className="text-3xl font-black text-brand-dark">${property?.base_price_per_night}</span>
+                  <span className="text-gray-400 font-bold text-sm mb-1">/ night</span>
                 </div>
                 <DatePicker
                   value={{ checkIn, checkOut }}
                   onChange={(range: any) => {
-                    setCheckIn(
-                      range?.from ? format(range.from, "yyyy-MM-dd") : "",
-                    );
-                    setCheckOut(
-                      range?.to ? format(range.to, "yyyy-MM-dd") : "",
-                    );
+                    setCheckIn(range?.from ? format(range.from, "yyyy-MM-dd") : "");
+                    setCheckOut(range?.to ? format(range.to, "yyyy-MM-dd") : "");
                   }}
                 />
                 <GuestSelector value={guests} onChange={setGuests} max={property?.max_guests} />
                 
-                {/* FIXED: Query parameters added so data carries over to ReservationPage */}
                 <Button 
-                  onClick={() => navigate(`/book/${id || DEFAULT_ID}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`)} 
+                  onClick={() => navigate(`/book?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`)} 
                   fullWidth
                 >
                   Book Now

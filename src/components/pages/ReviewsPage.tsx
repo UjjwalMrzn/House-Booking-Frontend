@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
 import { reviewService } from "../../api/reviewService";
@@ -8,27 +8,20 @@ import Button from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import StarRating from "../ui/StarRating";
 import ReviewModal from "../ui/ReviewModal";
-// FIXED: Integrated the Single Source of Truth constant
-import { DEFAULT_PROPERTY_ID } from "../../utils/constants";
 
 const ReviewsPage = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: property, isLoading: isPropLoading } = useQuery({
-    queryKey: ["property", id],
-    // FIXED: Uses global fallback constant instead of hardcoded "1"
-    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_PROPERTY_ID),
-    enabled: true,
+    queryKey: ["main-property"],
+    queryFn: propertyService.getMainProperty,
   });
 
+  // FETCH DIRECTLY FROM /mainReview/
   const { data: reviews, isLoading: isRevLoading } = useQuery({
-    queryKey: ["reviews", id],
-    // FIXED: Uses global fallback constant instead of hardcoded "1"
-    queryFn: () => reviewService.getReviewsByProperty(id || DEFAULT_PROPERTY_ID),
-    enabled: true,
+    queryKey: ["main-reviews"],
+    queryFn: reviewService.getMainReviews,
   });
 
   const isLoading = isPropLoading || isRevLoading;
@@ -39,8 +32,7 @@ const ReviewsPage = () => {
         onClick={() => navigate(-1)} 
         className="group flex items-center gap-2 text-gray-400 hover:text-brand-dark font-black text-[10px] uppercase tracking-widest mb-12 transition-all"
       >
-        <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" /> 
-        Back to Overview
+        <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" /> Back to Overview
       </button>
 
       <div className="mb-12">
@@ -63,9 +55,7 @@ const ReviewsPage = () => {
           reviews?.map((review: any) => (
             <div key={review.id} className="bg-white rounded-3xl p-8 md:p-10 border border-gray-200 shadow-[0_20px_60px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-shadow">
               <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  {review.customer_name || "Guest"}
-                </span>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{review.customer_name || "Guest"}</span>
                 <StarRating rating={review.rating} size={12} />
               </div>
               <h3 className="text-xl font-black text-brand-dark mb-3">{review.title}</h3>
@@ -81,8 +71,7 @@ const ReviewsPage = () => {
       <ReviewModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        // FIXED: Uses global fallback constant
-        propertyId={id || DEFAULT_PROPERTY_ID} 
+        propertyId={property?.id} 
       />
     </main>
   );

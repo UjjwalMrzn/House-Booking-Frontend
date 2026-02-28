@@ -1,30 +1,22 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
 import { mapService } from "../../api/mapService";
 import { ArrowLeft, MapPin, Map as MapIcon } from "lucide-react";
 import { Skeleton } from "../ui/Skeleton";
-// FIXED: Integrated the Single Source of Truth constant
-import { DEFAULT_PROPERTY_ID } from "../../utils/constants";
 
 const MapPage = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // Fetch Property Details (for Title & Address)
   const { data: property, isLoading: isPropertyLoading } = useQuery({
-    queryKey: ["property", id],
-    // FIXED: Uses global fallback constant instead of hardcoded "1"
-    queryFn: () => propertyService.getPropertyDetails(id || DEFAULT_PROPERTY_ID),
-    enabled: true,
+    queryKey: ["main-property"],
+    queryFn: propertyService.getMainProperty,
   });
 
-  // Fetch Map Coordinates
+  // FETCH DIRECTLY FROM /mainMaps/
   const { data: mapData, isLoading: isMapLoading } = useQuery({
-    queryKey: ["map", id],
-    // FIXED: Uses global fallback constant instead of hardcoded "1"
-    queryFn: () => mapService.getMapByPropertyId(id || DEFAULT_PROPERTY_ID),
-    enabled: true,
+    queryKey: ["main-map"],
+    queryFn: mapService.getMainMap,
   });
 
   const isLoading = isPropertyLoading || isMapLoading;
@@ -36,8 +28,7 @@ const MapPage = () => {
         onClick={() => navigate(-1)} 
         className="group flex items-center gap-2 text-gray-400 hover:text-brand-dark font-black text-[10px] uppercase tracking-widest mb-8 transition-all"
       >
-        <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" /> 
-        Back to Overview
+        <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" /> Back to Overview
       </button>
 
       <div className="mb-12">
@@ -51,29 +42,20 @@ const MapPage = () => {
             <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4">
               <MapPin size={14} /> {property?.address || "Location"}
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-brand-dark">
-              Map view of {property?.title}
-            </h1>
+            <h1 className="text-3xl font-black tracking-tight text-brand-dark">Map view of {property?.title}</h1>
           </>
         )}
       </div>
 
-      {/* Map Container - Locked Design System */}
       <div className="bg-white border border-gray-200 rounded-[2.5rem] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
         <div className="w-full h-[60vh] min-h-[500px] rounded-[2rem] overflow-hidden bg-[#F9F9F7] relative flex items-center justify-center">
-          
           {isLoading ? (
             <Skeleton variant="card" className="w-full h-full rounded-[2rem]" />
           ) : hasValidCoordinates ? (
             <iframe 
-              width="100%" 
-              height="100%" 
-              className="absolute inset-0" 
-              style={{ border: 0 }}
+              width="100%" height="100%" className="absolute inset-0" style={{ border: 0 }}
               src={`https://maps.google.com/maps?q=${mapData.latitude},${mapData.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`} 
-              allowFullScreen 
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-gray-400 space-y-4">
@@ -83,7 +65,6 @@ const MapPage = () => {
               <p className="text-sm font-bold uppercase tracking-widest">Map coordinates not available</p>
             </div>
           )}
-
         </div>
       </div>
     </main>
