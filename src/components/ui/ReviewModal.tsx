@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { reviewService } from "../../api/reviewService";
-// FIXED: Using the new universal customerService
 import { customerService } from "../../api/customerService"; 
 import { X } from "lucide-react";
 import Button from "./Button";
@@ -58,7 +57,6 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(" ") || "Guest";
 
-      // FIXED: Switched to centralized customerService
       const customerResponse = await customerService.createCustomer({
         firstName,
         lastName,
@@ -67,7 +65,6 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
         phoneNumber: formData.phoneNumber || "0000000000"
       });
 
-      // FIXED: Using ID from axios response data
       await reviewService.createReview({
         property: Number(propertyId),
         rating: formData.rating,
@@ -76,7 +73,11 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
         customer: customerResponse.data.id
       });
 
+      // FIXED: Tell React Query to refresh both the public and admin review lists instantly
+      queryClient.invalidateQueries({ queryKey: ["main-reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
       queryClient.invalidateQueries({ queryKey: ["reviews", propertyId] });
+
       toast.success("Review posted successfully!");
       onClose();
       
