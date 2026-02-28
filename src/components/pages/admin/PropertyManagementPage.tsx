@@ -27,15 +27,15 @@ const PropertyManagementPage = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-properties'] });
       toast.success("Property deleted successfully");
     },
-    onError: () => toast.error("Failed to delete property")
+    onError: () => {
+      toast.error("Failed to delete property");
+    }
   });
 
-  // NEW: Triggers the new API logic to set the active listing
   const setMainMutation = useMutation({
     mutationFn: propertyService.setMainProperty,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-properties'] });
-      // Also invalidate the public cache so it updates instantly
       queryClient.invalidateQueries({ queryKey: ['main-property'] });
       toast.success("Active listing updated!");
     },
@@ -60,17 +60,19 @@ const PropertyManagementPage = () => {
           to="/admin/properties/new" 
           className="bg-brand-green text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-emerald-600 hover:shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] transition-all"
         >
-          <Plus size={16} strokeWidth={3} /> Add New Property
+          <Plus size={16} strokeWidth={3} />
+          Add New Property
         </Link>
       </div>
 
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+        
         <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white/50">
           <h3 className="text-lg font-black text-brand-dark tracking-tight flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center shadow-inner">
               <Home size={16} strokeWidth={2.5} />
             </div>
-            All Listings
+            Active Listings
             <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
               {filteredProperties.length} Total
             </span>
@@ -88,7 +90,11 @@ const PropertyManagementPage = () => {
               className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-brand-dark outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green focus:bg-white transition-all placeholder:text-gray-400"
             />
             {searchTerm && (
-              <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark hover:bg-gray-200 p-1 rounded-full transition-colors flex items-center justify-center">
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-dark hover:bg-gray-200 p-1 rounded-full transition-colors flex items-center justify-center"
+                title="Clear search"
+              >
                 <X size={14} strokeWidth={3} />
               </button>
             )}
@@ -108,6 +114,11 @@ const PropertyManagementPage = () => {
               <h4 className="text-base font-black text-brand-dark mb-1 tracking-tight">
                 {searchTerm ? "No results found" : "No properties found"}
               </h4>
+              <p className="text-xs font-bold text-gray-400 max-w-sm mx-auto">
+                {searchTerm 
+                  ? `We couldn't find any properties matching "${searchTerm}".`
+                  : "You haven't added any properties yet. Click the 'Add New Property' button to get started."}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -133,7 +144,7 @@ const PropertyManagementPage = () => {
                         
                         <td className="py-3 px-5 rounded-l-2xl">
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100 relative">
+                            <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100">
                               {mainImage ? (
                                 <img src={mainImage} alt={property.title} className="w-full h-full object-cover" />
                               ) : (
@@ -185,7 +196,12 @@ const PropertyManagementPage = () => {
                         <td className="py-3 px-5 text-right rounded-r-2xl">
                           <div className="flex items-center justify-end gap-1.5">
                             
-                            {!property.isMain && (
+                            {/* THE FIX: Show a disabled 'Active' block instead of empty space */}
+                            {property.isMain ? (
+                              <div className="mr-2 h-8 px-3 flex items-center justify-center rounded-lg bg-brand-green/10 border border-brand-green/20 text-brand-green text-[9px] font-black uppercase tracking-widest select-none cursor-default" title="This is the active public listing">
+                                <CheckCircle size={12} className="mr-1" /> Active
+                              </div>
+                            ) : (
                               <button 
                                 onClick={() => setMainMutation.mutate(property.id)}
                                 className="mr-2 h-8 px-3 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-200 text-gray-500 hover:bg-brand-green hover:border-brand-green hover:text-white transition-all shadow-sm text-[9px] font-black uppercase tracking-widest"
@@ -198,6 +214,7 @@ const PropertyManagementPage = () => {
                             <Link 
                               to={`/admin/properties/view/${property.id}`} 
                               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-500 transition-all shadow-sm"
+                              title="View Property Details"
                             >
                               <Eye size={14} />
                             </Link>
@@ -205,6 +222,7 @@ const PropertyManagementPage = () => {
                             <Link 
                               to={`/admin/properties/edit/${property.id}`}
                               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-brand-green hover:border-brand-green hover:text-white transition-all shadow-sm"
+                              title="Edit Property"
                             >
                               <Edit size={14} />
                             </Link>
@@ -212,6 +230,7 @@ const PropertyManagementPage = () => {
                             <button 
                               onClick={() => setDeleteModal({ isOpen: true, id: property.id, title: property.title })}
                               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm"
+                              title="Delete Property"
                             >
                               <Trash2 size={14} />
                             </button>

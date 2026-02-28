@@ -8,7 +8,8 @@ import {
   Hexagon, 
   ListChecks,
   LayoutTemplate, // FIXED: Imported icon for the Home Visuals link
-  CreditCard
+  CreditCard,
+  Settings
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -71,6 +72,10 @@ const AdminSidebar = () => {
           
           <NavLink to="/admin/reviews" className={navStyles}>
             <Star size={20} /> Reviews
+          </NavLink>
+
+          <NavLink to="/admin/settings" className={navStyles}>
+            <Settings size={20} /> Settings
           </NavLink>
         </nav>
 

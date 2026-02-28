@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../../api/bookingApi';
 import { DollarSign, CalendarCheck, Clock, User, ArrowRight, TrendingUp, Plus, Settings, Activity } from 'lucide-react';
@@ -10,7 +11,17 @@ const DashboardPage = () => {
     queryFn: bookingService.getAllBookings,
   });
 
-const bookings = Array.isArray(bookingsData) 
+  // NEW: State for the dynamic revenue target
+  const [targetGoal, setTargetGoal] = useState(300000);
+  
+  useEffect(() => {
+    const savedGoal = localStorage.getItem('admin_revenue_goal');
+    if (savedGoal) {
+      setTargetGoal(Number(savedGoal));
+    }
+  }, []);
+
+  const bookings = Array.isArray(bookingsData) 
     ? bookingsData 
     : (bookingsData?.results || []);
 
@@ -21,7 +32,6 @@ const bookings = Array.isArray(bookingsData)
   const pendingCount = bookings.filter((b: any) => b.status === 'pending').length;
   const confirmedCount = bookings.filter((b: any) => b.status === 'confirmed').length;
 
-  // ENHANCED: Added a trend badge to make metrics look like a real SaaS product
   const StatCard = ({ title, value, icon: Icon, colorClass, trend }: any) => (
     <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] flex flex-col gap-4 transition-transform duration-300 hover:-translate-y-1">
       <div className="flex justify-between items-start">
@@ -46,7 +56,7 @@ const bookings = Array.isArray(bookingsData)
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto w-full">
+    <div className="max-w-[1400px] mx-auto w-full animate-fade-in">
       {/* Header */}
       <div className="mb-10 flex justify-between items-end">
         <div>
@@ -90,7 +100,6 @@ const bookings = Array.isArray(bookingsData)
         />
       </div>
 
-     {/* FIXED: Split-Pane Layout with Locked Heights */}
       <div className="grid lg:grid-cols-3 gap-8">
         
         {/* Main Column: Recent Bookings Table */}
@@ -128,7 +137,6 @@ const bookings = Array.isArray(bookingsData)
                       </tr>
                     </thead>
                     <tbody className="text-sm font-bold text-brand-dark">
-                      {/* FIXED: Reverted to 5 items which perfectly balances the height of the two right-side widgets */}
                       {bookings.slice(0, 5).map((booking: any) => (
                         <tr key={booking.id} className="group transition-colors hover:bg-gray-50/80 cursor-default">
                           <td className="p-4 px-6 rounded-l-2xl">
@@ -198,9 +206,8 @@ const bookings = Array.isArray(bookingsData)
             </div>
           </div>
 
-         {/* Premium "Monthly Target" Widget */}
+          {/* Premium "Monthly Target" Widget */}
           <div className="bg-brand-dark rounded-[2.5rem] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)] relative overflow-hidden group h-fit">
-            {/* Glowing green orb matching the brand lock */}
             <div className="absolute -top-20 -right-20 w-48 h-48 bg-brand-green/20 rounded-full blur-[50px] group-hover:bg-brand-green/30 transition-colors duration-700 pointer-events-none"></div>
             
             <div className="relative z-10">
@@ -212,21 +219,20 @@ const bookings = Array.isArray(bookingsData)
                   ${totalRevenue.toLocaleString()}
                 </span>
                 <span className="text-xs font-bold text-gray-500 mb-1">
-                  / $300k
+                  / ${targetGoal.toLocaleString()}
                 </span>
               </div>
 
-              {/* Progress Bar Container */}
               <div className="w-full bg-white/10 rounded-full h-3 mb-2 overflow-hidden border border-white/5 relative">
                 <div 
                   className="bg-brand-green h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(74,222,128,0.5)]"
-                  style={{ width: `${Math.min((totalRevenue / 300000) * 100, 100)}%` }}
+                  style={{ width: `${Math.min((totalRevenue / targetGoal) * 100, 100)}%` }}
                 ></div>
               </div>
 
               <div className="flex justify-end mt-2">
                 <span className="text-brand-green text-[10px] font-black uppercase tracking-widest">
-                  {((totalRevenue / 300000) * 100).toFixed(1)}% Achieved
+                  {((totalRevenue / targetGoal) * 100).toFixed(1)}% Achieved
                 </span>
               </div>
             </div>

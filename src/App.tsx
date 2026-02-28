@@ -23,7 +23,8 @@ import AmenitiesManagementPage from './components/pages/admin/AmenitiesManagemen
 import AdminBookingsPage from './components/pages/admin/AdminBookingPage';
 import AdminReviewsPage from './components/pages/admin/AdminReviewPage';
 import AdminHomeSection from './components/pages/admin/AdminHomeSection';
-import AdminPaymentsPage from './components/pages/admin/AdminPaymentPage';
+import AdminPaymentPage from './components/pages/admin/AdminPaymentPage';
+import AdminSettingsPage from './components/pages/admin/AdminSettingsPage';
 
 const Home = () => (
   <div className="animate-entrance">
@@ -42,10 +43,18 @@ const PublicLayout = () => (
   </div>
 );
 
+// Keeps logged-out users OUT of the Admin Panel
 const ProtectedAdminRoute = () => {
   const token = localStorage.getItem('token');
   const isAuthenticated = !!token; 
   return isAuthenticated ? <Outlet /> : <Navigate to="/admin/login" replace />;
+};
+
+// NEW FIX: Keeps logged-in users AWAY from the Login Page
+const RedirectIfAuthenticated = () => {
+  const token = localStorage.getItem('token');
+  const isAuthenticated = !!token;
+  return isAuthenticated ? <Navigate to="/admin" replace /> : <Outlet />;
 };
 
 function App() {
@@ -55,9 +64,9 @@ function App() {
         <ScrollToTop />
         <BackToTop />
         <Routes>
+          {/* ----- PUBLIC SQUAD ----- */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
-            {/* CLEAN ROUTES - NO IDs */}
             <Route path="/overview" element={<OverviewPage />} />
             <Route path="/book" element={<ReservationPage />} />
             <Route path="/success" element={<SuccessPage />} />
@@ -67,21 +76,26 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
           </Route>
 
-          <Route path="/admin/login" element={<LoginPage />} />
+          {/* ----- ADMIN AUTH ----- */}
+          {/* Wrapped the login page in the new redirect guard */}
+          <Route element={<RedirectIfAuthenticated />}>
+            <Route path="/admin/login" element={<LoginPage />} />
+          </Route>
 
+          {/* ----- ADMIN SQUAD (PROTECTED) ----- */}
           <Route element={<ProtectedAdminRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="properties" element={<PropertyManagementPage />} />
               <Route path="properties/new" element={<PropertyFormPage />} />
-              {/* Admin still requires ID to target specific edits */}
               <Route path="properties/edit/:id" element={<PropertyFormPage />} />
               <Route path="/admin/properties/view/:id" element={<PropertyFormPage />} />
               <Route path="amenities" element={<AmenitiesManagementPage />} />
-              <Route path="payments" element={<AdminPaymentsPage />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
+              <Route path="payments" element={<AdminPaymentPage />} />
               <Route path="reviews" element={<AdminReviewsPage />} />
               <Route path="homesection" element={<AdminHomeSection />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
           </Route>
           
