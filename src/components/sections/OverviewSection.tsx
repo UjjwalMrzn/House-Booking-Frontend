@@ -2,19 +2,26 @@ import SectionHeader from '../ui/SectionHeader';
 import FeatureCard from '../ui/FeatureCard';
 import { useQuery } from '@tanstack/react-query';
 import { propertyService } from '../../api/propertyService';
-import { DEFAULT_PROPERTY_ID } from '../../utils/constants';
+import { Link } from 'react-router-dom'; // IMPORTED FOR ROUTING
 
 const OverviewSection = () => {
-  // Uses the actual Property's gallery, keeping it strictly separated from the Hero Banners
+  // FIXED: Now queries the dynamically active main property to sync with the rest of the site
   const { data: property } = useQuery({
-    queryKey: ['property-strict-overview', DEFAULT_PROPERTY_ID],
-    queryFn: () => propertyService.getPropertyDetails(DEFAULT_PROPERTY_ID),
+    queryKey: ['main-property'],
+    queryFn: propertyService.getMainProperty,
   });
 
   const propertyImages = property?.images?.filter((img: any) => !img.is_main) || [];
   
   const img1 = propertyImages[0]?.image || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop";
   const img2 = propertyImages[1]?.image || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop";
+
+  // FIXED: Safely slice the description so it's a short preview
+  const shortDescription = property?.description 
+    ? property.description.length > 200 
+      ? property.description.substring(0, 200) + "..." 
+      : property.description
+    : "Experience the ultimate coastal getaway. Designed for comfort and style, this elegant residence offers a private sanctuary for families, professionals, and discerning travellers.";
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-32">
@@ -29,18 +36,19 @@ const OverviewSection = () => {
                 <span className="italic text-slate-400 font-serif font-medium">{property?.title || "Jervis Bay Retreats"}</span>
               </>
             }
-            description={property?.description || "Experience the ultimate coastal getaway. Designed for comfort and style, this elegant residence offers a private sanctuary for families, professionals, and discerning travellers."}
+            description={shortDescription}
           />
           
           <div className="pt-4">
-            <button className="group flex items-center gap-3 font-bold text-brand-dark hover:text-brand-green transition-all">
+            {/* FIXED: Changed to a Link component for fast, client-side routing */}
+            <Link to="/overview" className="group flex items-center gap-3 font-bold text-brand-dark hover:text-brand-green transition-all w-fit">
               <span className="border-b-2 border-brand-green/20 group-hover:border-brand-green pb-1 transition-all">
                 Explore the Property
               </span>
               <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:bg-brand-green group-hover:text-white transition-all group-hover:translate-x-1 border border-gray-50">
                 →
               </div>
-            </button>
+            </Link>
           </div>
         </div>
 

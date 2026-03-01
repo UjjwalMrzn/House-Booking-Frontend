@@ -144,7 +144,7 @@ const OverviewPage = () => {
               )}
             </div>
 
-            <div className="text-lg text-gray-600 leading-relaxed">
+            <div className="text-lg text-gray-600 leading-relaxed whitespace-pre-wrap">
               {isLoading ? (
                 <div className="space-y-4">
                   <Skeleton variant="text" />
