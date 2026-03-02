@@ -2,13 +2,14 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
+import { bookingService } from "../../api/bookingApi"; // NEW IMPORT
 import FeatureCard from "../ui/FeatureCard";
 import DatePicker from "../ui/DatePicker";
 import GuestSelector from "../ui/GuestSelector";
 import Button from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toaster";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns"; // ADDED parseISO
 import { Users, Bed, Bath, MapPin } from "lucide-react";
 import DynamicIcon from "../ui/DynamicIcon";
 
@@ -19,18 +20,37 @@ const OverviewPage = () => {
 
   const [checkIn, setCheckIn] = useState(searchParams.get('checkIn') || "");
   const [checkOut, setCheckOut] = useState(searchParams.get('checkOut') || "");
-  const [guests, setGuests] = useState(() => {
-    const guestsFromUrl = searchParams.get('guests');
-    return guestsFromUrl ? parseInt(guestsFromUrl) : 1;
+  
+  const [adults, setAdults] = useState(() => {
+    const adultsParam = searchParams.get('adults');
+    if (adultsParam) return parseInt(adultsParam);
+    const guestsParam = searchParams.get('guests');
+    return guestsParam ? parseInt(guestsParam) : 1;
   });
   
+  const [kids, setKids] = useState(() => {
+    const kidsParam = searchParams.get('kids');
+    return kidsParam ? parseInt(kidsParam) : 0;
+  });
+
   const [activeTab, setActiveTab] = useState("description");
   const [hasShownError, setHasShownError] = useState(false);
 
-  // FETCH DIRECTLY FROM /mainProperty/
   const { data: property, isLoading, error } = useQuery({
     queryKey: ["main-property"],
     queryFn: propertyService.getMainProperty,
+  });
+
+  // NEW: Fetch confirmed bookings to block out red dates
+  const { data: bookedRanges = [] } = useQuery({
+    queryKey: ["booked-dates", property?.id],
+    queryFn: async () => {
+      const bookings = await bookingService.getConfirmedBookings();
+      return bookings
+        .filter((b: any) => String(b.property) === String(property?.id))
+        .map((b: any) => ({ from: parseISO(b.check_in), to: parseISO(b.check_out) }));
+    },
+    enabled: !!property?.id,
   });
 
   useEffect(() => {
@@ -259,17 +279,27 @@ const OverviewPage = () => {
                   <span className="text-3xl font-black text-brand-dark">${property?.base_price_per_night}</span>
                   <span className="text-gray-400 font-bold text-sm mb-1">/ night</span>
                 </div>
+                
+                {/* FIXED: Now explicitly passing the bookedRanges to disable the red dates */}
                 <DatePicker
                   value={{ checkIn, checkOut }}
+                  disabledDates={bookedRanges}
                   onChange={(range: any) => {
                     setCheckIn(range?.from ? format(range.from, "yyyy-MM-dd") : "");
                     setCheckOut(range?.to ? format(range.to, "yyyy-MM-dd") : "");
                   }}
                 />
-                <GuestSelector value={guests} onChange={setGuests} max={property?.max_guests} />
+                
+                <GuestSelector 
+                  adults={adults} 
+                  kids={kids} 
+                  onAdultsChange={setAdults} 
+                  onKidsChange={setKids} 
+                  max={property?.max_guests} 
+                />
                 
                 <Button 
-                  onClick={() => navigate(`/book?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`)} 
+                  onClick={() => navigate(`/book?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&kids=${kids}`)} 
                   fullWidth
                 >
                   Book Now

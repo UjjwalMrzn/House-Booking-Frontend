@@ -13,7 +13,9 @@ const StickyBookingBar = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [guests, setGuests] = useState(1);
+  // FIXED: Split guests into adults and kids
+  const [adults, setAdults] = useState(1);
+  const [kids, setKids] = useState(0);
   const [dates, setDates] = useState({ checkIn: '', checkOut: '' });
 
   const { data: realProperty, isLoading } = useQuery({
@@ -35,8 +37,15 @@ const StickyBookingBar = () => {
   });
 
   useEffect(() => {
-    const g = searchParams.get('guests');
-    if (g) setGuests(parseInt(g));
+    // FIXED: Hydrate adults and kids from URL parameters
+    const a = searchParams.get('adults');
+    const k = searchParams.get('kids');
+    const g = searchParams.get('guests'); // Fallback for older links
+
+    if (a) setAdults(parseInt(a));
+    else if (g) setAdults(parseInt(g)); // If only 'guests' is in URL, treat as adults
+
+    if (k) setKids(parseInt(k));
     
     setDates({
       checkIn: searchParams.get('checkIn') || '',
@@ -75,15 +84,23 @@ const StickyBookingBar = () => {
              )}
            </div>
            
-           <div className="w-40 hidden md:block">
+           <div className="w-48 hidden md:block">
              {isLoading ? <Skeleton className="h-14 w-full rounded-xl" /> : (
-               <GuestSelector value={guests} onChange={setGuests} max={maxLimit} />
+               // FIXED: Wired up the updated GuestSelector props
+               <GuestSelector 
+                 adults={adults} 
+                 kids={kids} 
+                 onAdultsChange={setAdults} 
+                 onKidsChange={setKids} 
+                 max={maxLimit} 
+               />
              )}
            </div>
 
            {isLoading ? <Skeleton className="h-14 w-32 rounded-xl" /> : (
+             // FIXED: Passing adults and kids parameters to the URL
              <Button 
-                onClick={() => navigate(`/book?checkIn=${dates.checkIn}&checkOut=${dates.checkOut}&guests=${guests}`)}
+                onClick={() => navigate(`/book?checkIn=${dates.checkIn}&checkOut=${dates.checkOut}&adults=${adults}&kids=${kids}`)}
                 className="whitespace-nowrap px-10"
              >
                Book Now
