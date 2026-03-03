@@ -16,6 +16,9 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
   const MAX_DESC_LENGTH = 2000;
   const currentDescLength = formData.description?.length || 0;
 
+  const MAX_OVERVIEW_LENGTH = 300;
+  const currentOverviewLength = formData.overView?.length || 0;
+
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden animate-entrance">
       <div className="p-6 border-b border-gray-50 bg-white/50 flex items-center gap-3">
@@ -88,6 +91,7 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
               value={formData.overView}
               onChange={handleChange}
               disabled={isViewMode}
+              maxLength={MAX_OVERVIEW_LENGTH}
               placeholder=" "
               rows={4}
               className="peer block w-full px-4 pt-6 pb-2 text-[14px] font-normal text-gray-900 bg-white border border-gray-200 rounded-xl appearance-none transition-all outline-none focus:ring-0 focus:border-brand-green resize-y"
@@ -95,6 +99,14 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
             <label className="absolute text-[12px] text-gray-400 duration-150 transform top-4 z-10 origin-[0] left-4 font-medium pointer-events-none scale-75 -translate-y-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
               Property Overview (Summary)
             </label>
+            {/* NEW: Character Counter */}
+            {!isViewMode && (
+              <div className="absolute -bottom-6 right-2 text-[10px] font-bold text-gray-400">
+                <span className={currentOverviewLength >= MAX_OVERVIEW_LENGTH ? 'text-red-500' : ''}>
+                  {currentOverviewLength}
+                </span> / {MAX_OVERVIEW_LENGTH}
+              </div>
+            )}
           </div>
 
           {/* Main Description Field */}

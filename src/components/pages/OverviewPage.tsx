@@ -10,7 +10,7 @@ import Button from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toaster";
 import { format, parseISO } from "date-fns"; // ADDED parseISO
-import { Users, Bed, Bath, MapPin } from "lucide-react";
+import { Users, Bed, Bath, MapPin, BedSingle } from "lucide-react";
 import DynamicIcon from "../ui/DynamicIcon";
 
 const OverviewPage = () => {
@@ -142,9 +142,10 @@ const OverviewPage = () => {
               {isLoading ? <Skeleton variant="text" className="h-12 w-3/4" /> : property?.title}
             </h1>
 
-            <div className="flex flex-wrap gap-6 mb-8 pb-8 border-b border-gray-100">
+           <div className="flex flex-wrap gap-6 mb-8 pb-8 border-b border-gray-100">
               {isLoading ? (
                 <>
+                  <Skeleton variant="text" className="w-24" />
                   <Skeleton variant="text" className="w-24" />
                   <Skeleton variant="text" className="w-24" />
                   <Skeleton variant="text" className="w-24" />
@@ -156,6 +157,9 @@ const OverviewPage = () => {
                   </span>
                   <span className="flex items-center gap-2 font-bold text-gray-500 text-sm">
                     <Bed size={18} className="text-brand-green" /> {property?.bedrooms} Bedrooms
+                  </span>
+                  <span className="flex items-center gap-2 font-bold text-gray-500 text-sm">
+                    <BedSingle size={18} className="text-brand-green" /> {property?.beds} Beds
                   </span>
                   <span className="flex items-center gap-2 font-bold text-gray-500 text-sm">
                     <Bath size={18} className="text-brand-green" /> {property?.bathroom} Bathrooms

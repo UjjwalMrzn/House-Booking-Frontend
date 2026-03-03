@@ -2,10 +2,9 @@ import SectionHeader from '../ui/SectionHeader';
 import FeatureCard from '../ui/FeatureCard';
 import { useQuery } from '@tanstack/react-query';
 import { propertyService } from '../../api/propertyService';
-import { Link } from 'react-router-dom'; // IMPORTED FOR ROUTING
+import { Link } from 'react-router-dom';
 
 const OverviewSection = () => {
-  // FIXED: Now queries the dynamically active main property to sync with the rest of the site
   const { data: property } = useQuery({
     queryKey: ['main-property'],
     queryFn: propertyService.getMainProperty,
@@ -16,12 +15,12 @@ const OverviewSection = () => {
   const img1 = propertyImages[0]?.image || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop";
   const img2 = propertyImages[1]?.image || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop";
 
-  // FIXED: Safely slice the description so it's a short preview
-  const shortDescription = property?.description 
+  // FIXED: Now uses your dedicated overView field! Falls back to slicing the main description only if overView is empty.
+  const shortDescription = property?.overView || (property?.description 
     ? property.description.length > 200 
       ? property.description.substring(0, 200) + "..." 
       : property.description
-    : "Experience the ultimate coastal getaway. Designed for comfort and style, this elegant residence offers a private sanctuary for families, professionals, and discerning travellers.";
+    : "Experience the ultimate coastal getaway. Designed for comfort and style, this elegant residence offers a private sanctuary for families, professionals, and discerning travellers.");
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-32">
@@ -40,7 +39,6 @@ const OverviewSection = () => {
           />
           
           <div className="pt-4">
-            {/* FIXED: Changed to a Link component for fast, client-side routing */}
             <Link to="/overview" className="group flex items-center gap-3 font-bold text-brand-dark hover:text-brand-green transition-all w-fit">
               <span className="border-b-2 border-brand-green/20 group-hover:border-brand-green pb-1 transition-all">
                 Explore the Property
