@@ -6,7 +6,7 @@ const BackToTop = () => {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      // Show button after scrolling down 400px
+      // Show button after scrolling down 100px
       if (window.scrollY > 100) {
         setIsVisible(true);
       } else {
@@ -27,7 +27,8 @@ const BackToTop = () => {
 
   return (
     <div 
-      className={`fixed bottom-8 right-8 z-[90] transition-all duration-500 transform ${
+      // CHANGED: bottom-8 is now bottom-28 so it clears the chat widget!
+      className={`fixed bottom-28 right-8 z-[90] transition-all duration-500 transform ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
       }`}
     >

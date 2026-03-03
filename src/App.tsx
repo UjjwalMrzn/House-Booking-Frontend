@@ -25,6 +25,7 @@ import AdminReviewsPage from './components/pages/admin/AdminReviewPage';
 import AdminHomeSection from './components/pages/admin/AdminHomeSection';
 import AdminPaymentPage from './components/pages/admin/AdminPaymentPage';
 import AdminSettingsPage from './components/pages/admin/AdminSettingsPage';
+import TawkChat from './components/ui/TawkChat';
 
 const Home = () => (
   <div className="animate-entrance">
@@ -63,6 +64,7 @@ function App() {
       <Router>
         <ScrollToTop />
         <BackToTop />
+        <TawkChat />
         <Routes>
           {/* ----- PUBLIC SQUAD ----- */}
           <Route element={<PublicLayout />}>
