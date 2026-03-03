@@ -84,7 +84,8 @@ const ReservationPage = () => {
 
             // FIXED: Prefixed unused parameters with '_' to clear TS warnings
             createOrder: async (_data: any, _actions: any) => {
-              setIsSubmitting(true);
+              // Only set submitting to true if you are doing a pre-check.
+              // Otherwise, let PayPal handle the initial click.
               try {
                 const bookingPayload = {
                   property: property.id,
@@ -95,6 +96,8 @@ const ReservationPage = () => {
                   total_price: pricing.total.toString(),
                   status: "pending",
                 };
+
+                // This is where the delay happens
                 const bookingRes =
                   await bookingService.createBooking(bookingPayload);
                 bookingIdRef.current = bookingRes.data.id;
@@ -121,20 +124,16 @@ const ReservationPage = () => {
                   },
                 );
 
-                if (!res.ok) {
-                  const errorData = await res.text();
-                  throw new Error(`Backend Error: ${errorData}`);
-                }
+                if (!res.ok) throw new Error("Backend Error");
 
                 const orderData = await res.json();
-                if (!orderData.id)
-                  throw new Error("No Order ID returned from PayPal");
 
+                // DO NOT set setIsSubmitting(false) here,
+                // because the PayPal popup is now open.
                 return orderData.id;
               } catch (err) {
-                console.error("PayPal Create Order Error:", err);
-                toast.error("Failed to initialize PayPal transaction.");
-                setIsSubmitting(false);
+                setIsSubmitting(false); // Reset only on error
+                toast.error("Failed to initialize transaction.");
                 throw err;
               }
             },
@@ -198,8 +197,9 @@ const ReservationPage = () => {
 
       if (!window.paypal) {
         const script = document.createElement("script");
+        // Removed card-fields and ensured no funding is disabled
         script.src =
-          "https://www.paypal.com/sdk/js?client-id=AZcJEtHWBYSDnLG52BnG6eVwCwupqQWl492s5feeDvrCAiZuTx-fPSpPR-jatA6G1r2reMNC0hukw8aw&currency=AUD";
+          "https://www.paypal.com/sdk/js?client-id=AZcJEtHWBYSDnLG52BnG6eVwCwupqQWl492s5feeDvrCAiZuTx-fPSpPR-jatA6G1r2reMNC0hukw8aw&currency=AUD&intent=capture";
         script.async = true;
         script.onload = renderPayPal;
         document.body.appendChild(script);
