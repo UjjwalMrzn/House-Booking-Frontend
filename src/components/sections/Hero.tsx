@@ -18,14 +18,16 @@ const getImageUrl = (url: string) => {
 
 const Hero = () => {
   const navigate = useNavigate();
-  const [guests, setGuests] = useState(1);
+  const [adults, setAdults] = useState(1);
+  const [kids, setKids] = useState(0);
   const [dates, setDates] = useState({ checkIn: '', checkOut: '' });
 
   const handleBookingRedirect = () => {
     const params = new URLSearchParams({
       checkIn: dates.checkIn,
       checkOut: dates.checkOut,
-      guests: guests.toString()
+      adults: adults.toString(),
+      kids: kids.toString()
     });
     navigate(`/overview?${params.toString()}`);
   };
@@ -101,7 +103,14 @@ const Hero = () => {
           <div className="hidden md:block w-px h-8 bg-gray-100 self-center"></div>
           
           <div className="flex-1">
-            <GuestSelector value={guests} onChange={setGuests} max={property?.max_guests || 10} />
+            {/* FIXED: Uses Adults and Kids specifically */}
+            <GuestSelector 
+              adults={adults} 
+              kids={kids} 
+              onAdultsChange={setAdults} 
+              onKidsChange={setKids} 
+              max={property?.max_guests || 10} 
+            />
           </div>
           
           <div className="flex items-center">

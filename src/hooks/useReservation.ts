@@ -32,7 +32,11 @@ export const useReservation = () => {
     enabled: !!property?.id,
   });
 
-  const [guests, setGuests] = useState(parseInt(searchParams.get("guests") || "1"));
+  // UPDATED: Replaced single 'guests' with adults and kids
+  const [adults, setAdults] = useState(parseInt(searchParams.get("adults") || searchParams.get("guests") || "1"));
+  const [kids, setKids] = useState(parseInt(searchParams.get("kids") || "0"));
+  const guests = adults + kids;
+
   const [dates, setDates] = useState({
     checkIn: searchParams.get("checkIn") || "",
     checkOut: searchParams.get("checkOut") || "",
@@ -41,17 +45,37 @@ export const useReservation = () => {
   const [contact, setContact] = useState({ firstName: "", lastName: "", email: "", phoneNumber: "", country: "" });
   const [pricing, setPricing] = useState({ nights: 0, rental: 0, total: 0, dueNow: 0 });
 
+  // UPDATED: Now fetches exact price from backend API instead of multiplying on the frontend
   useEffect(() => {
-    if (dates.checkIn && dates.checkOut && property) {
-      const start = parseISO(dates.checkIn);
-      const end = parseISO(dates.checkOut);
-      const nights = differenceInDays(end, start);
-      if (nights > 0) {
-        const rental = nights * Number(property.base_price_per_night);
-        setPricing({ nights, rental, total: rental, dueNow: rental * 0.5 });
+    const fetchPrice = async () => {
+      if (dates.checkIn && dates.checkOut && property?.id) {
+        const start = parseISO(dates.checkIn);
+        const end = parseISO(dates.checkOut);
+        const nights = differenceInDays(end, start);
+        
+        if (nights > 0) {
+          try {
+            const res = await bookingService.calculatePrice({
+              property: property.id,
+              check_in: dates.checkIn,
+              check_out: dates.checkOut,
+              guests: guests,
+              adults: adults,
+              kids: kids
+            });
+            
+            // Backend returns exact price factoring in weekends/holidays
+            const exactPrice = Number(res.total_price);
+            setPricing({ nights, rental: exactPrice, total: exactPrice, dueNow: exactPrice * 0.5 });
+          } catch (error) {
+            console.error("Failed to calculate price:", error);
+            toast.error("Error calculating exact price for these dates.");
+          }
+        }
       }
-    }
-  }, [dates, property]);
+    };
+    fetchPrice();
+  }, [dates, property, adults, kids, guests]); // Re-runs whenever dates or guest count changes
 
   const saveCustomerAndContinue = async () => {
     if (!contact.firstName || !contact.lastName || !contact.email || !contact.phoneNumber || !contact.country) {
@@ -85,6 +109,8 @@ export const useReservation = () => {
         check_out: dates.checkOut,
         customer: customerId,
         guests: guests,
+        adults: adults, // Added new field
+        kids: kids,     // Added new field
         total_price: pricing.total.toString(),
         status: 'pending'
       };
@@ -101,10 +127,9 @@ export const useReservation = () => {
     }
   };
   
-  // FIXED: Exporting setIsSubmitting and customerId for the PayPal block
   return { 
     property, isLoading, currentStep, setCurrentStep, 
-    dates, setDates, guests, setGuests, 
+    dates, setDates, guests, adults, setAdults, kids, setKids, 
     contact, setContact, pricing, isSubmitting, setIsSubmitting, 
     saveCustomerAndContinue, confirmBooking, bookedRanges,
     customerId 

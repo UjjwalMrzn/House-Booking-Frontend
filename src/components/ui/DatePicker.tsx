@@ -50,12 +50,12 @@ const DatePicker = ({ value, onChange, className, disabledDates = [] }: any) => 
       <div className="relative">
         <div onClick={toggleOpen} className={`${boxBaseStyles} ${boxActiveStyles}`} tabIndex={0}>
           <span className={range?.from ? 'text-gray-900' : 'text-gray-400'}>
-            {range?.from ? format(range.from, 'd MMM yyyy') : "Arrival"}
+            {range?.from ? format(range.from, 'd MMM yyyy') : "Check-In"}
           </span>
           <ArrowRight size={14} className="text-gray-300 mx-1" />
           <div className="flex items-center gap-2">
             <span className={range?.to ? 'text-gray-900' : 'text-gray-400'}>
-              {range?.to ? format(range.to, 'd MMM yyyy') : "Departure"}
+              {range?.to ? format(range.to, 'd MMM yyyy') : "Check-Out"}
             </span>
             {range && (range.from || range.to) && (
               <button className="ml-1 p-1 hover:bg-gray-100 rounded-full text-gray-400" onClick={(e) => { 

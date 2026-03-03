@@ -33,8 +33,10 @@ const PropertyFormPage = () => {
     if (currentIndex > 0) setActiveTab(TABS[currentIndex - 1]);
   };
 
+  // UPDATED: Added new backend fields to state
   const [formData, setFormData] = useState({
-    title: '', description: '', address: '', base_price_per_night: '',
+    title: '', description: '', highlight: '', overView: '', address: '', 
+    base_price_per_night: '', weekend_price_per_night: '', holiday_price_per_night: '',
     max_guests: '', beds: '', bedrooms: '', bathroom: ''
   });
 
@@ -47,10 +49,18 @@ const PropertyFormPage = () => {
   useEffect(() => {
     if (existingProperty) {
       setFormData({
-        title: existingProperty.title || '', description: existingProperty.description || '',
-        address: existingProperty.address || '', base_price_per_night: existingProperty.base_price_per_night || '',
-        max_guests: existingProperty.max_guests || '', beds: existingProperty.beds || '',
-        bedrooms: existingProperty.bedrooms || '', bathroom: existingProperty.bathroom || ''
+        title: existingProperty.title || '', 
+        description: existingProperty.description || '',
+        highlight: existingProperty.highlight || '',
+        overView: existingProperty.overView || '',
+        address: existingProperty.address || '', 
+        base_price_per_night: existingProperty.base_price_per_night || '',
+        weekend_price_per_night: existingProperty.weekend_price_per_night || '',
+        holiday_price_per_night: existingProperty.holiday_price_per_night || '',
+        max_guests: existingProperty.max_guests || '', 
+        beds: existingProperty.beds || '',
+        bedrooms: existingProperty.bedrooms || '', 
+        bathroom: existingProperty.bathroom || ''
       });
     }
   }, [existingProperty]);
@@ -94,7 +104,6 @@ const PropertyFormPage = () => {
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-
         <div className="flex flex-wrap gap-2.5">
           <button onClick={() => setActiveTab('basic')} className={getTabClass('basic')}><Home size={14} /> Basic Info</button>
           <button onClick={() => isEditMode && setActiveTab('images')} className={getTabClass('images')} disabled={!isEditMode}>{isEditMode ? <ImageIcon size={14} /> : <Lock size={12} />} Photos</button>
@@ -103,39 +112,22 @@ const PropertyFormPage = () => {
           <button onClick={() => isEditMode && setActiveTab('policies')} className={getTabClass('policies')} disabled={!isEditMode}>{isEditMode ? <FileText size={14} /> : <Lock size={12} />} Policies</button>
         </div>
 
-        {/* FIXED: Always rendered to prevent layout jump, but becomes invisible on Basic tab */}
         {isEditMode && (
           <div className={`flex items-center gap-2 shrink-0 transition-opacity duration-200 ${(!isViewMode && activeTab === 'basic') ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-
             {currentIndex > 0 && (
-              <button
-                onClick={handlePrev}
-                className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-brand-dark hover:bg-gray-50 transition-all shadow-sm"
-                title="Previous Tab"
-              >
+              <button onClick={handlePrev} className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-brand-dark hover:bg-gray-50 transition-all shadow-sm" title="Previous Tab">
                 <ChevronLeft size={18} strokeWidth={2.5} />
               </button>
             )}
-
             {currentIndex < TABS.length - 1 && (
-              <button
-                onClick={handleNext}
-                className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-brand-dark hover:bg-gray-50 transition-all shadow-sm"
-                title="Next Tab"
-              >
+              <button onClick={handleNext} className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-brand-dark hover:bg-gray-50 transition-all shadow-sm" title="Next Tab">
                 <ChevronRight size={18} strokeWidth={2.5} />
               </button>
             )}
-
-            <Link
-              to="/admin/properties"
-              className="px-6 h-10 flex items-center justify-center gap-2 text-[13px] font-black tracking-wide bg-brand-green text-white rounded-xl hover:bg-emerald-600 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] transition-all ml-1"
-              title={isViewMode ? 'Done Viewing' : 'Done Editing'}
-            >
+            <Link to="/admin/properties" className="px-6 h-10 flex items-center justify-center gap-2 text-[13px] font-black tracking-wide bg-brand-green text-white rounded-xl hover:bg-emerald-600 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] transition-all ml-1">
               <CheckCircle size={16} strokeWidth={2.5} />
               {isViewMode ? 'Done Viewing' : 'Done Editing'}
             </Link>
-
           </div>
         )}
       </div>
@@ -144,7 +136,20 @@ const PropertyFormPage = () => {
         <BasicTab
           formData={formData}
           handleChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })}
-          handleSubmit={(e) => { e.preventDefault(); basicMutation.mutate({ ...formData, base_price_per_night: Number(formData.base_price_per_night), max_guests: Number(formData.max_guests), beds: Number(formData.beds), bedrooms: Number(formData.bedrooms), bathroom: Number(formData.bathroom) }); }}
+          handleSubmit={(e) => { 
+            e.preventDefault(); 
+            // UPDATED: Convert all numeric fields safely before sending to backend
+            basicMutation.mutate({ 
+              ...formData, 
+              base_price_per_night: Number(formData.base_price_per_night),
+              weekend_price_per_night: formData.weekend_price_per_night ? Number(formData.weekend_price_per_night) : undefined,
+              holiday_price_per_night: formData.holiday_price_per_night ? Number(formData.holiday_price_per_night) : undefined,
+              max_guests: Number(formData.max_guests), 
+              beds: Number(formData.beds), 
+              bedrooms: Number(formData.bedrooms), 
+              bathroom: Number(formData.bathroom) 
+            }); 
+          }}
           isPending={basicMutation.isPending}
           isViewMode={isViewMode}
         />

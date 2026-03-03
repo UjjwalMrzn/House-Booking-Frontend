@@ -25,8 +25,10 @@ declare global {
   }
 }
 
+// FIXED: Back to the Auto-Generator! 
+// 26 letters * 26 letters = 676 combinations. Now it gets ALL countries from A to Z!
 const COUNTRY_OPTIONS = new Intl.DisplayNames(["en"], { type: "region" });
-const ALL_COUNTRIES = Array.from({ length: 250 }, (_, i) => {
+const DYNAMIC_COUNTRIES = Array.from({ length: 676 }, (_, i) => {
   try {
     const code = String.fromCharCode(65 + Math.floor(i / 26), 65 + (i % 26));
     const name = COUNTRY_OPTIONS.of(code);
@@ -36,6 +38,8 @@ const ALL_COUNTRIES = Array.from({ length: 250 }, (_, i) => {
   }
 })
   .filter(Boolean)
+  // Clean up duplicates (some codes map to the same name)
+  .filter((value, index, self) => self.indexOf(value) === index)
   .sort() as string[];
 
 const ReservationPage = () => {
@@ -47,7 +51,10 @@ const ReservationPage = () => {
     dates,
     setDates,
     guests,
-    setGuests,
+    adults,
+    setAdults,
+    kids,
+    setKids,
     contact,
     setContact,
     pricing,
@@ -61,7 +68,6 @@ const ReservationPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // PAYPAL REFS
   const paypalContainerRef = useRef<HTMLDivElement>(null);
   const bookingIdRef = useRef<string | null>(null);
 
@@ -82,7 +88,6 @@ const ReservationPage = () => {
               height: 45,
             },
 
-            // FIXED: Prefixed unused parameters with '_' to clear TS warnings
             createOrder: async (_data: any, _actions: any) => {
               // Only set submitting to true if you are doing a pre-check.
               // Otherwise, let PayPal handle the initial click.
@@ -93,6 +98,8 @@ const ReservationPage = () => {
                   check_out: dates.checkOut,
                   customer: customerId,
                   guests: guests,
+                  adults: adults,
+                  kids: kids,
                   total_price: pricing.total.toString(),
                   status: "pending",
                 };
@@ -138,7 +145,6 @@ const ReservationPage = () => {
               }
             },
 
-            // FIXED: Prefixed '_actions' as unused, 'data' is kept since it's used for orderID
             onApprove: async (data: any, _actions: any) => {
               try {
                 const rawBase =
@@ -207,7 +213,7 @@ const ReservationPage = () => {
         renderPayPal();
       }
     }
-  }, [currentStep, property]);
+  }, [currentStep, property, pricing]);
 
   if (isLoading)
     return (
@@ -318,7 +324,7 @@ const ReservationPage = () => {
                       onChange={(val) =>
                         setContact({ ...contact, country: val })
                       }
-                      options={ALL_COUNTRIES}
+                      options={DYNAMIC_COUNTRIES}
                       required
                     />
                   </div>
@@ -355,8 +361,10 @@ const ReservationPage = () => {
                     }
                   />
                   <GuestSelector
-                    value={guests}
-                    onChange={setGuests}
+                    adults={adults}
+                    kids={kids}
+                    onAdultsChange={setAdults}
+                    onKidsChange={setKids}
                     max={maxLimit}
                   />
                   <Button
@@ -438,8 +446,8 @@ const ReservationPage = () => {
                     {property?.title}
                   </h4>
                   <div className="flex items-center gap-1 text-[10px] text-brand-green font-bold uppercase mt-1">
-                    <Star size={10} fill="currentColor" /> Superhost
-                  </div>
+  <Star size={10} fill="currentColor" /> Premium Property
+</div>
                 </div>
               </div>
 
