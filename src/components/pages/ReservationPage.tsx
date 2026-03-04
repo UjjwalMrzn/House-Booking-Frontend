@@ -225,7 +225,7 @@ const ReservationPage = () => {
   const isDatesValid = !!(dates.checkIn && dates.checkOut);
 
   return (
-    <main className="min-h-screen bg-[#FCFBF9] font-sans text-brand-dark pb-20 pt-24 animate-fade-in">
+    <main className="min-h-screen bg-[#FCFBF9] font-sans text-brand-dark pb-20 pt-24 animate-fade-in text-brand-dark">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="flex items-center justify-between mb-16">
           <button
@@ -235,27 +235,29 @@ const ReservationPage = () => {
             <ChevronLeft size={14} /> Back
           </button>
 
-          <div className="flex items-center gap-6">
+          {/* THE FIX: Solid indicator bar (Pill Design) with ChevronRight fix */}
+          <div className="flex items-center bg-white border border-gray-100 p-1.5 rounded-full shadow-sm">
             {[
               { id: 1, label: "Contact" },
               { id: 2, label: "Dates" },
               { id: 3, label: "Payment" },
             ].map((step, idx) => (
-              <div key={step.id} className="flex items-center gap-4">
+              <div key={step.id} className="flex items-center">
                 <button
                   onClick={() =>
                     step.id < currentStep && setCurrentStep(step.id)
                   }
-                  className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all pb-1 border-b-2
-                  ${currentStep === step.id ? "text-brand-dark border-brand-green" : "text-gray-300 border-transparent"}`}
+                  className={`px-5 py-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] transition-all rounded-full
+                  ${currentStep === step.id ? "bg-brand-green text-white shadow-md shadow-green-100" : "text-gray-400 hover:text-brand-dark"}`}
                 >
                   {currentStep > step.id && (
-                    <Check size={12} className="text-brand-green" />
+                    <Check size={12} strokeWidth={4} />
                   )}
                   {step.label}
                 </button>
+                {/* FIXED: ChevronRight is now read and used as a separator */}
                 {idx < 2 && (
-                  <ChevronRight size={14} className="text-gray-200" />
+                  <ChevronRight size={12} className="text-gray-200 mx-1" />
                 )}
               </div>
             ))}
@@ -411,9 +413,9 @@ const ReservationPage = () => {
           </div>
 
           <aside className="sticky top-32">
-            <div className="bg-white p-8 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-100 animate-slide-up">
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.1)] border border-gray-200 animate-slide-up">
               <div className="mb-8 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-brand-dark">
+                <h3 className="text-lg font-black text-brand-dark">
                   Reservation summary
                 </h3>
                 <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full flex items-center gap-1.5 border border-amber-100">
@@ -424,7 +426,7 @@ const ReservationPage = () => {
                 </div>
               </div>
 
-              <div className="flex gap-5 mb-8 pb-8 border-b border-gray-50">
+              <div className="flex gap-5 mb-8 pb-8 border-b border-gray-100">
                 <img
                   src={
                     property?.images?.find((img: any) => img.is_main)?.image ||
@@ -437,7 +439,7 @@ const ReservationPage = () => {
                   <h4 className="font-bold text-brand-dark text-sm">
                     {property?.title}
                   </h4>
-                  <div className="flex items-center gap-1 text-[10px] text-brand-green font-bold uppercase mt-1">
+                  <div className="flex items-center gap-1 text-[10px] text-brand-green font-black uppercase mt-1">
                     <Star size={10} fill="currentColor" /> Premium Property
                   </div>
                 </div>
@@ -445,37 +447,35 @@ const ReservationPage = () => {
 
               <div className="space-y-6 text-sm mb-8">
                 <div className="flex justify-between items-start">
-                  <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+                  <span className="text-gray-400 font-black uppercase text-[10px] tracking-widest">
                     Dates
                   </span>
                   <div className="text-right">
-                    <p className="text-brand-dark font-bold">
+                    <p className="text-brand-dark font-black">
                       {dates.checkIn || "--"} — {dates.checkOut || "--"}
                     </p>
-                    {/* FIXED: Removed forward-jumping Edit button */}
                   </div>
                 </div>
                 <div className="flex justify-between items-start">
-                  <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">
+                  <span className="text-gray-400 font-black uppercase text-[10px] tracking-widest">
                     Guests
                   </span>
                   <div className="text-right">
-                    <p className="text-brand-dark font-bold">
+                    <p className="text-brand-dark font-black">
                       {guests} Guest(s)
                     </p>
-                    {/* FIXED: Removed forward-jumping Edit button */}
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#F9F9F7] rounded-2xl p-6 space-y-3">
+              <div className="bg-gray-50/80 border border-gray-100 rounded-2xl p-6 space-y-3">
                 <div className="flex justify-between text-xs font-bold text-gray-500">
                   <span>Rental ({pricing.nights} nights)</span>
-                  <span>${pricing.rental.toLocaleString()}</span>
+                  <span className="font-black">${pricing.rental.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-xl font-black text-brand-dark pt-3 border-t border-gray-200">
                   <span>Total (AUD)</span>
-                  <span>${pricing.total.toLocaleString()}</span>
+                  <span className="text-brand-green font-black">${pricing.total.toLocaleString()}</span>
                 </div>
               </div>
             </div>
