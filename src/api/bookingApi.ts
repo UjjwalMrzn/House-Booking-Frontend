@@ -8,10 +8,9 @@ export const bookingService = {
     return response.data.results || response.data;
   },
 
-  getAllBookings: async () => {
-    const response = await api.get('/bookings/');
-    // Safely handles both paginated and non-paginated responses
-    return response.data.results || response.data;
+  getAllBookings: async (page: number = 1, pageSize: number = 10) => {
+    const response = await api.get(`/bookings/?page=${page}&page_size=${pageSize}`);
+    return response.data;
   },
 
   // NEW: Backend Price Calculation Endpoint

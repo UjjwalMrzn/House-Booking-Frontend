@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
@@ -8,6 +8,7 @@ import { format, parseISO } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../api/bookingApi';
 import { propertyService } from '../../api/propertyService';
+import { holidayService } from "../../api/holidayService";
 
 const StickyBookingBar = () => {
   const navigate = useNavigate();
@@ -35,6 +36,17 @@ const StickyBookingBar = () => {
     },
     enabled: !!realProperty?.id
   });
+
+  const { data: allHolidaysData } = useQuery({
+  queryKey: ['admin-holidays', 'all'],
+  queryFn: () => holidayService.getAllHolidays(1, 500),
+});
+
+const holidayDates = useMemo(() => {
+  if (!allHolidaysData) return [];
+  const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
+  return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+}, [allHolidaysData]);
 
   useEffect(() => {
     // FIXED: Hydrate adults and kids from URL parameters
@@ -76,6 +88,7 @@ const StickyBookingBar = () => {
              {isLoading ? <Skeleton className="h-14 w-full rounded-xl" /> : (
                <DatePicker 
                 value={dates} disabledDates={bookedRanges}
+                holidayDates={holidayDates}
                 onChange={(range: any) => setDates({
                   checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '',
                   checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : ''

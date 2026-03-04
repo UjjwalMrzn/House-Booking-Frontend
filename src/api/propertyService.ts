@@ -8,9 +8,9 @@ export const propertyService = {
     return Array.isArray(response.data) ? response.data[0] : response.data;
   },
 
-  getAllProperties: async () => {
-    const response = await api.get('/property/');
-    return Array.isArray(response.data) ? response.data : (response.data.results || []);
+  getAllProperties: async (page: number = 1, pageSize: number = 10) => {
+    const response = await api.get(`/property/?page=${page}&page_size=${pageSize}`);
+    return response.data;
   },
   
   // NEW: Admin action to set a property as Active

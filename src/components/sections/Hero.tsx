@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import DatePicker from '../ui/DatePicker';
@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../api/bookingApi';
 import { propertyService } from '../../api/propertyService';
 import { homeService } from '../../api/homeService';
+import { holidayService } from "../../api/holidayService";
 
 const getImageUrl = (url: string) => {
   if (!url) return "";
@@ -47,6 +48,17 @@ const Hero = () => {
     },
     enabled: !!property?.id
   });
+
+  const { data: allHolidaysData } = useQuery({
+  queryKey: ['admin-holidays', 'all'],
+  queryFn: () => holidayService.getAllHolidays(1, 500),
+});
+
+const holidayDates = useMemo(() => {
+  if (!allHolidaysData) return [];
+  const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
+  return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+}, [allHolidaysData]);
 
   const { data: homeImagesData } = useQuery({
     queryKey: ['home-page-images'],
@@ -93,6 +105,7 @@ const Hero = () => {
             <DatePicker 
               value={dates} 
               disabledDates={bookedRanges}
+              holidayDates={holidayDates}
               onChange={(range: any) => setDates({ 
                 checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '', 
                 checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : '' 

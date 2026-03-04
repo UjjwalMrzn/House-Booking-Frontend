@@ -4,11 +4,11 @@ import { DayPicker } from 'react-day-picker';
 import { format, parseISO } from 'date-fns';
 import 'react-day-picker/dist/style.css';
 
-const DatePicker = ({ value, onChange, className, disabledDates = [] }: any) => {
+// FIXED: Added holidayDates to props
+const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDates = [] }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropDirection, setDropDirection] = useState<'down' | 'up'>('down');
   
-  // FIXED LOGIC: Tracking the hovered date to render the selection gap
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,6 @@ const DatePicker = ({ value, onChange, className, disabledDates = [] }: any) => 
   const boxBaseStyles = "peer block w-full h-[56px] px-4 pt-5 pb-1.5 text-[14px] font-normal text-gray-900 bg-white border border-gray-200 rounded-xl transition-all cursor-pointer flex items-center justify-between focus:outline-none focus:ring-0 select-none";
   const boxActiveStyles = isOpen ? "border-brand-green ring-1 ring-brand-green/20" : "hover:border-gray-300";
 
-  // Helper to strip time for accurate day comparison
   const normalizeDate = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
   return (
@@ -77,8 +76,12 @@ const DatePicker = ({ value, onChange, className, disabledDates = [] }: any) => 
         <div 
           className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} left-1/2 -translate-x-1/2 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-gray-100 p-8 z-[99999] min-w-[320px] md:min-w-[620px] animate-entrance`}
         >
-          {/* THE FIX: Pure red text, zero background circle */}
           <style>{`
+            /* FIXED: Holiday style added before Booked so Booked takes priority if they overlap */
+            .rdp-day_holiday { 
+              color: #8b5cf6 !important; 
+              font-weight: 900 !important;
+            }
             .rdp-day_booked { 
               color: #ef4444 !important; 
               background-color: transparent !important; 
@@ -115,12 +118,14 @@ const DatePicker = ({ value, onChange, className, disabledDates = [] }: any) => 
                 if (!range?.from || range?.to || !hoveredDate) return false;
                 return normalizeDate(date) === normalizeDate(hoveredDate);
               },
-              booked: disabledDates
+              booked: disabledDates,
+              holiday: holidayDates /* FIXED: Passed holidays into modifiers */
             }}
             modifiersClassNames={{
               hoverRange: "rdp-day_range_middle", 
               hoverEnd: "rdp-day_selected",
-              booked: "rdp-day_booked"
+              booked: "rdp-day_booked",
+              holiday: "rdp-day_holiday" /* FIXED: Applied the purple CSS class */
             }}
             components={{
               DayContent: (props) => {
@@ -136,13 +141,17 @@ const DatePicker = ({ value, onChange, className, disabledDates = [] }: any) => 
             }}
           />
 
-          {/* CLEANER LEGEND: High clarity labels */}
-          <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-center gap-10">
-            <div className="flex items-center gap-3">
+          <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-center gap-6 md:gap-10">
+            <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-brand-green shadow-sm ring-4 ring-brand-green/10"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark opacity-70">Pick Dates</span>
             </div>
-            <div className="flex items-center gap-3">
+            {/* FIXED: Added Public Holiday Legend */}
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm ring-4 ring-purple-50"></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-purple-500">Holiday</span>
+            </div>
+            <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm ring-4 ring-red-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-red-500">Reserved</span>
             </div>

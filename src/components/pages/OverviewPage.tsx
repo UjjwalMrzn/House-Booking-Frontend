@@ -12,6 +12,7 @@ import { useToast } from "../ui/Toaster";
 import { format, parseISO } from "date-fns"; // ADDED parseISO
 import { Users, Bed, Bath, MapPin, BedSingle } from "lucide-react";
 import DynamicIcon from "../ui/DynamicIcon";
+import { holidayService } from "../../api/holidayService";
 
 const OverviewPage = () => {
   const navigate = useNavigate();
@@ -52,6 +53,17 @@ const OverviewPage = () => {
     },
     enabled: !!property?.id,
   });
+
+  const { data: allHolidaysData } = useQuery({
+  queryKey: ['admin-holidays', 'all'],
+  queryFn: () => holidayService.getAllHolidays(1, 500),
+});
+
+const holidayDates = useMemo(() => {
+  if (!allHolidaysData) return [];
+  const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
+  return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+}, [allHolidaysData]);
 
   useEffect(() => {
     if (error && !hasShownError) {
@@ -288,6 +300,7 @@ const OverviewPage = () => {
                 <DatePicker
                   value={{ checkIn, checkOut }}
                   disabledDates={bookedRanges}
+                  holidayDates={holidayDates}
                   onChange={(range: any) => {
                     setCheckIn(range?.from ? format(range.from, "yyyy-MM-dd") : "");
                     setCheckOut(range?.to ? format(range.to, "yyyy-MM-dd") : "");

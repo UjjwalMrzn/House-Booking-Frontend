@@ -63,6 +63,7 @@ const ReservationPage = () => {
     saveCustomerAndContinue,
     bookedRanges,
     customerId,
+    holidayDates,
   } = useReservation();
 
   const navigate = useNavigate();
@@ -348,6 +349,7 @@ const ReservationPage = () => {
                   <DatePicker
                     value={{ checkIn: dates.checkIn, checkOut: dates.checkOut }}
                     disabledDates={bookedRanges}
+                    holidayDates={holidayDates}
                     onChange={(range: any) =>
                       setDates({
                         ...dates,

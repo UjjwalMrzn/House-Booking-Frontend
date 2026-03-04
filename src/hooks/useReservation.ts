@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { differenceInDays, parseISO } from "date-fns";
@@ -6,6 +6,7 @@ import { propertyService } from "../api/propertyService";
 import { bookingService } from "../api/bookingApi";
 import { customerService } from "../api/customerService";
 import { useToast } from "../components/ui/Toaster";
+import { holidayService } from "../api/holidayService";
 
 export const useReservation = () => {
   const [searchParams] = useSearchParams();
@@ -31,6 +32,17 @@ export const useReservation = () => {
     },
     enabled: !!property?.id,
   });
+
+  const { data: allHolidaysData } = useQuery({
+    queryKey: ['admin-holidays', 'all'],
+    queryFn: () => holidayService.getAllHolidays(1, 500),
+  });
+
+  const holidayDates = useMemo(() => {
+    if (!allHolidaysData) return [];
+    const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
+    return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+  }, [allHolidaysData]);
 
   // UPDATED: Replaced single 'guests' with adults and kids
   const [adults, setAdults] = useState(parseInt(searchParams.get("adults") || searchParams.get("guests") || "1"));
@@ -132,6 +144,6 @@ export const useReservation = () => {
     dates, setDates, guests, adults, setAdults, kids, setKids, 
     contact, setContact, pricing, isSubmitting, setIsSubmitting, 
     saveCustomerAndContinue, confirmBooking, bookedRanges,
-    customerId 
+    customerId, holidayDates
   };
 };

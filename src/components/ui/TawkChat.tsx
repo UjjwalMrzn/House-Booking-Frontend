@@ -20,7 +20,7 @@ const TawkChat = () => {
       const s1 = document.createElement("script");
       s1.async = true;
       // NOTE: Your client will replace this URL with the one from their Tawk dashboard
-      s1.src='https://embed.tawk.to/69a68da7749bcd1c3393704d/1jip9ilvk';
+      s1.src='https://embed.tawk.to/69a6ca9f2f01051c3561112d/1jipof0hr';
       s1.charset = 'UTF-8';
       s1.setAttribute('crossorigin', '*');
       document.head.appendChild(s1);

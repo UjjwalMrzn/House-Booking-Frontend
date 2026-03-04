@@ -9,7 +9,9 @@ import {
   ListChecks,
   LayoutTemplate, // FIXED: Imported icon for the Home Visuals link
   CreditCard,
-  Settings
+  Settings,
+  CalendarDays,
+  Contact
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -72,6 +74,14 @@ const AdminSidebar = () => {
           
           <NavLink to="/admin/reviews" className={navStyles}>
             <Star size={20} /> Reviews
+          </NavLink>
+
+          <NavLink to="/admin/holidays" className={navStyles}>
+            <CalendarDays size={20} /> Holidays
+          </NavLink>
+
+          <NavLink to="/admin/contacts" className={navStyles}>
+            <Contact size={20} /> Contacts
           </NavLink>
 
           <NavLink to="/admin/settings" className={navStyles}>

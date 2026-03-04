@@ -26,6 +26,8 @@ import AdminHomeSection from './components/pages/admin/AdminHomeSection';
 import AdminPaymentPage from './components/pages/admin/AdminPaymentPage';
 import AdminSettingsPage from './components/pages/admin/AdminSettingsPage';
 import TawkChat from './components/ui/TawkChat';
+import AdminHolidayPage from './components/pages/admin/AdminHolidayPage';
+import AdminContactsPage from './components/pages/admin/AdminContactsPage';
 
 const Home = () => (
   <div className="animate-entrance">
@@ -97,6 +99,8 @@ function App() {
               <Route path="payments" element={<AdminPaymentPage />} />
               <Route path="reviews" element={<AdminReviewsPage />} />
               <Route path="homesection" element={<AdminHomeSection />} />
+              <Route path="holidays" element={<AdminHolidayPage />} />
+              <Route path="contacts" element={<AdminContactsPage />} /> {/* NEW: Admin Contacts Management */}
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
           </Route>

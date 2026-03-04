@@ -12,9 +12,9 @@ export const reviewService = {
   // ==========================================
   // ADMIN API (List & Management)
   // ==========================================
-  getAllReviews: async () => {
-    const response = await api.get('/reviews/');
-    return response.data.results || response.data;
+  getAllReviews: async (page: number = 1, pageSize: number = 10) => {
+    const response = await api.get(`/reviews/?page=${page}&page_size=${pageSize}`);
+    return response.data;
   },
 
   getReviewsByProperty: async (propertyId: string | number) => {

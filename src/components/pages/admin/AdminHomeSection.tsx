@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { homeService } from '../../../api/homeService';
-import { Trash2, Star, UploadCloud, CheckCircle, Save } from 'lucide-react';
+import { Trash2, Star, UploadCloud, CheckCircle, Save, Edit2 } from 'lucide-react';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 import { useToast } from '../../ui/Toaster';
@@ -10,6 +10,9 @@ const AdminHomeSection = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // THE LOCK STATE
+  const [isEditingText, setIsEditingText] = useState(false);
 
   const { data: heroImagesData, isLoading: isLoadingImages } = useQuery({
     queryKey: ['home-page-images'],
@@ -21,7 +24,6 @@ const AdminHomeSection = () => {
     queryFn: homeService.getTitles,
   });
 
-  // FIXED: Explicitly cast to any[] to destroy all TypeScript 'unknown' errors
   const heroImages: any[] = (heroImagesData as any[]) || [];
   const titles: any[] = (titlesData as any[]) || [];
 
@@ -31,10 +33,16 @@ const AdminHomeSection = () => {
   const [draftTitle, setDraftTitle] = useState("");
 
   useEffect(() => {
-    if (activeTitleObj) {
+    if (activeTitleObj && !isEditingText) {
       setDraftTitle(activeTitleObj.title || "");
     }
-  }, [activeTitleObj?.id, activeTitleObj?.title]);
+  }, [activeTitleObj?.id, activeTitleObj?.title, isEditingText]);
+
+  // CANCEL FUNCTION: Locks the field and reverts the text
+  const handleCancelText = () => {
+    setIsEditingText(false);
+    setDraftTitle(activeTitleObj?.title || ""); 
+  };
 
   const uploadImageMutation = useMutation({
     mutationFn: (file: File) => homeService.createHomePageImage(file, heroImages.length === 0),
@@ -72,6 +80,7 @@ const AdminHomeSection = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['home-page-titles'] });
       toast.success('Hero text saved successfully!');
+      setIsEditingText(false); // Lock after saving
     },
     onError: () => toast.error('Failed to save text.')
   });
@@ -126,19 +135,34 @@ const AdminHomeSection = () => {
               label="Hero Overlay Text" 
               value={draftTitle} 
               onChange={(e: any) => setDraftTitle(e.target.value)} 
-              className="h-[60px] border-none bg-gray-50/50 hover:bg-gray-50 focus:bg-white text-lg font-black"
+              className={`h-[60px] border-none text-lg font-black ${isEditingText ? 'bg-gray-50/50 hover:bg-gray-50 focus:bg-white' : 'bg-transparent text-gray-500'}`}
               placeholder="e.g. Find your sanctuary."
+              disabled={!isEditingText}
             />
           </div>
           
           <div className="hidden md:block w-px h-10 bg-gray-100 shrink-0"></div>
+
+          {/* THE FIX: Added conditional Cancel button as a direct sibling so it doesn't break the flex layout */}
+          {isEditingText && (
+            <button 
+              onClick={handleCancelText}
+              className="px-4 h-[60px] text-sm font-bold text-gray-400 hover:text-brand-dark transition-colors shrink-0"
+            >
+              Cancel
+            </button>
+          )}
           
           <Button 
-            onClick={handleSaveText}
-            disabled={saveTitleMutation.isPending || draftTitle === activeTitleObj?.title}
+            onClick={isEditingText ? handleSaveText : () => setIsEditingText(true)}
+            disabled={isEditingText && (saveTitleMutation.isPending || draftTitle === activeTitleObj?.title)}
             className="h-[60px] px-10 rounded-[1.25rem] w-full md:w-auto shrink-0"
           >
-            {saveTitleMutation.isPending ? "Saving..." : <><Save size={18} strokeWidth={2.5} /> Save Text</>}
+            {isEditingText ? (
+              saveTitleMutation.isPending ? "Saving..." : <><Save size={18} strokeWidth={2.5} className="mr-2" /> Save Text</>
+            ) : (
+              <><Edit2 size={18} strokeWidth={2.5} className="mr-2" /> Edit Text</>
+            )}
           </Button>
         </div>
       </div>
