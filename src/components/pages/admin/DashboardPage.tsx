@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../../api/bookingApi';
-import { DollarSign, CalendarCheck, Clock, User, ArrowRight, TrendingUp, Plus, Settings, Activity } from 'lucide-react';
+// FIXED: Swapped 'Settings' icon for 'CreditCard'
+import { DollarSign, CalendarCheck, Clock, User, ArrowRight, TrendingUp, Plus, CreditCard, Activity } from 'lucide-react';
 import { Skeleton } from '../../ui/Skeleton';
 import { Link } from 'react-router-dom';
 
 const DashboardPage = () => {
   const { data: bookingsData, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
-    queryFn: bookingService.getAllBookings,
+    // FIXED: Arrow function explicitly prevents React Query from injecting [object Object]
+    queryFn: () => bookingService.getAllBookings(),
   });
 
-  // NEW: State for the dynamic revenue target
   const [targetGoal, setTargetGoal] = useState(300000);
   
   useEffect(() => {
@@ -194,12 +195,13 @@ const DashboardPage = () => {
                 <ArrowRight size={16} className="text-gray-300 group-hover:text-brand-green group-hover:translate-x-1 transition-all" />
               </Link>
               
-              <Link to="/admin/settings" className="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group">
+              {/* FIXED: Changed to Payments link, icon, and text */}
+              <Link to="/admin/payments" className="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-gray-50 text-gray-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Settings size={18} strokeWidth={2.5} />
+                    <CreditCard size={18} strokeWidth={2.5} />
                   </div>
-                  <span className="text-sm font-bold text-brand-dark">Platform Settings</span>
+                  <span className="text-sm font-bold text-brand-dark">View Payments</span>
                 </div>
                 <ArrowRight size={16} className="text-gray-300 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
               </Link>

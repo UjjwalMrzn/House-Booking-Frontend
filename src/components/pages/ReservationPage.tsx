@@ -25,8 +25,6 @@ declare global {
   }
 }
 
-// FIXED: Back to the Auto-Generator! 
-// 26 letters * 26 letters = 676 combinations. Now it gets ALL countries from A to Z!
 const COUNTRY_OPTIONS = new Intl.DisplayNames(["en"], { type: "region" });
 const DYNAMIC_COUNTRIES = Array.from({ length: 676 }, (_, i) => {
   try {
@@ -38,7 +36,6 @@ const DYNAMIC_COUNTRIES = Array.from({ length: 676 }, (_, i) => {
   }
 })
   .filter(Boolean)
-  // Clean up duplicates (some codes map to the same name)
   .filter((value, index, self) => self.indexOf(value) === index)
   .sort() as string[];
 
@@ -90,8 +87,6 @@ const ReservationPage = () => {
             },
 
             createOrder: async (_data: any, _actions: any) => {
-              // Only set submitting to true if you are doing a pre-check.
-              // Otherwise, let PayPal handle the initial click.
               try {
                 const bookingPayload = {
                   property: property.id,
@@ -105,7 +100,6 @@ const ReservationPage = () => {
                   status: "pending",
                 };
 
-                // This is where the delay happens
                 const bookingRes =
                   await bookingService.createBooking(bookingPayload);
                 bookingIdRef.current = bookingRes.data.id;
@@ -135,12 +129,9 @@ const ReservationPage = () => {
                 if (!res.ok) throw new Error("Backend Error");
 
                 const orderData = await res.json();
-
-                // DO NOT set setIsSubmitting(false) here,
-                // because the PayPal popup is now open.
                 return orderData.id;
               } catch (err) {
-                setIsSubmitting(false); // Reset only on error
+                setIsSubmitting(false);
                 toast.error("Failed to initialize transaction.");
                 throw err;
               }
@@ -204,7 +195,6 @@ const ReservationPage = () => {
 
       if (!window.paypal) {
         const script = document.createElement("script");
-        // Removed card-fields and ensured no funding is disabled
         script.src =
           "https://www.paypal.com/sdk/js?client-id=AZcJEtHWBYSDnLG52BnG6eVwCwupqQWl492s5feeDvrCAiZuTx-fPSpPR-jatA6G1r2reMNC0hukw8aw&currency=AUD&intent=capture";
         script.async = true;
@@ -448,8 +438,8 @@ const ReservationPage = () => {
                     {property?.title}
                   </h4>
                   <div className="flex items-center gap-1 text-[10px] text-brand-green font-bold uppercase mt-1">
-  <Star size={10} fill="currentColor" /> Premium Property
-</div>
+                    <Star size={10} fill="currentColor" /> Premium Property
+                  </div>
                 </div>
               </div>
 
@@ -462,12 +452,7 @@ const ReservationPage = () => {
                     <p className="text-brand-dark font-bold">
                       {dates.checkIn || "--"} — {dates.checkOut || "--"}
                     </p>
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="text-[10px] text-brand-green font-bold underline mt-1"
-                    >
-                      Edit
-                    </button>
+                    {/* FIXED: Removed forward-jumping Edit button */}
                   </div>
                 </div>
                 <div className="flex justify-between items-start">
@@ -478,12 +463,7 @@ const ReservationPage = () => {
                     <p className="text-brand-dark font-bold">
                       {guests} Guest(s)
                     </p>
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="text-[10px] text-brand-green font-bold underline mt-1"
-                    >
-                      Edit
-                    </button>
+                    {/* FIXED: Removed forward-jumping Edit button */}
                   </div>
                 </div>
               </div>
