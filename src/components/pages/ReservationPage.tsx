@@ -114,6 +114,8 @@ const ReservationPage = () => {
                   email: contact.email,
                   phone: contact.phoneNumber,
                   booking: bookingIdRef.current,
+                  check_in: dates.checkIn,
+                  check_out: dates.checkOut,
                   price: pricing.total.toString(),
                 };
 
@@ -139,8 +141,7 @@ const ReservationPage = () => {
 
             onApprove: async (data: any, _actions: any) => {
               try {
-                const rawBase =
-                  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+                const rawBase = import.meta.env.VITE_API_BASE_URL;
                 const cleanBase = rawBase.replace(/\/+$/, "");
 
                 const payload = {
@@ -148,6 +149,8 @@ const ReservationPage = () => {
                   name: `${contact.firstName} ${contact.lastName}`.trim(),
                   email: contact.email,
                   phone: contact.phoneNumber,
+                  check_in: dates.checkIn,
+                  check_out: dates.checkOut,
                   booking: bookingIdRef.current,
                   price: pricing.total.toString(),
                 };
@@ -194,9 +197,9 @@ const ReservationPage = () => {
       };
 
       if (!window.paypal) {
+        const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
         const script = document.createElement("script");
-        script.src =
-          "https://www.paypal.com/sdk/js?client-id=AZcJEtHWBYSDnLG52BnG6eVwCwupqQWl492s5feeDvrCAiZuTx-fPSpPR-jatA6G1r2reMNC0hukw8aw&currency=AUD&intent=capture";
+        script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=AUD&intent=capture`;
         script.async = true;
         script.onload = renderPayPal;
         document.body.appendChild(script);
@@ -250,9 +253,7 @@ const ReservationPage = () => {
                   className={`px-5 py-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] transition-all rounded-full
                   ${currentStep === step.id ? "bg-brand-green text-white shadow-md shadow-green-100" : "text-gray-400 hover:text-brand-dark"}`}
                 >
-                  {currentStep > step.id && (
-                    <Check size={12} strokeWidth={4} />
-                  )}
+                  {currentStep > step.id && <Check size={12} strokeWidth={4} />}
                   {step.label}
                 </button>
                 {/* FIXED: ChevronRight is now read and used as a separator */}
@@ -471,11 +472,15 @@ const ReservationPage = () => {
               <div className="bg-gray-50/80 border border-gray-100 rounded-2xl p-6 space-y-3">
                 <div className="flex justify-between text-xs font-bold text-gray-500">
                   <span>Rental ({pricing.nights} nights)</span>
-                  <span className="font-black">${pricing.rental.toLocaleString()}</span>
+                  <span className="font-black">
+                    ${pricing.rental.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between text-xl font-black text-brand-dark pt-3 border-t border-gray-200">
                   <span>Total (AUD)</span>
-                  <span className="text-brand-green font-black">${pricing.total.toLocaleString()}</span>
+                  <span className="text-brand-green font-black">
+                    ${pricing.total.toLocaleString()}
+                  </span>
                 </div>
               </div>
             </div>
