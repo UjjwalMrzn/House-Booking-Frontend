@@ -50,15 +50,15 @@ const Hero = () => {
   });
 
   const { data: allHolidaysData } = useQuery({
-  queryKey: ['admin-holidays', 'all'],
-  queryFn: () => holidayService.getAllHolidays(1, 500),
-});
+    queryKey: ['admin-holidays', 'all'],
+    queryFn: () => holidayService.getAllHolidays(1, 500),
+  });
 
-const holidayDates = useMemo(() => {
-  if (!allHolidaysData) return [];
-  const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
-  return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
-}, [allHolidaysData]);
+  const holidayDates = useMemo(() => {
+    if (!allHolidaysData) return [];
+    const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
+    return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+  }, [allHolidaysData]);
 
   const { data: homeImagesData } = useQuery({
     queryKey: ['home-page-images'],
@@ -76,21 +76,28 @@ const holidayDates = useMemo(() => {
   const activeImageObj = homeImages.find((img: any) => img.is_main) || homeImages[0];
   const activeTitleObj = titles.find((t: any) => t.isMain) || titles[0];
   
+  // COMPRESSION FIX: Changed the Unsplash fallback to request a smaller image (w=1200, q=60)
   const heroBackgroundImage = activeImageObj?.image 
     ? getImageUrl(activeImageObj.image) 
-    : "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=80&w=2080&auto=format&fit=crop";
+    : "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=60&w=1200&auto=format&fit=crop";
     
   const heroTitleText = activeTitleObj?.title || "Find your sanctuary.";
 
   return (
     <div className="w-full bg-[#fafafa] pb-24 overflow-visible">
       <div className="relative max-w-[96%] mx-auto mt-4 h-[550px] md:h-[600px] rounded-[3rem] overflow-hidden group shadow-2xl">
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-[2000ms] group-hover:scale-105"
-          style={{ backgroundImage: `url('${heroBackgroundImage}')` }}
-        >
+        
+        {/* LCP DISCOVERY FIX: Native img tag replaces the CSS background image */}
+        <div className="absolute inset-0 transition-transform duration-[2000ms] group-hover:scale-105">
+          <img 
+            src={heroBackgroundImage} 
+            alt={heroTitleText} 
+            className="w-full h-full object-cover"
+            fetchPriority="high"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
         </div>
+
         <div className="absolute bottom-40 left-0 w-full text-center z-10 px-4">
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight animate-slide-up">
             {heroTitleText}
