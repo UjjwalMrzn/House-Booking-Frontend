@@ -8,7 +8,6 @@ interface FeatureCardProps {
   image?: string;
   aspect?: 'square' | 'video' | 'portrait';
   noZoom?: boolean;
-  // FIXED: Added onClick to the interface
   onClick?: () => void;
 }
 
@@ -20,7 +19,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   aspect = 'square', 
   className = "",
   noZoom = false,
-  onClick // Added here
+  onClick 
 }) => {
   const aspectClasses = {
     square: 'aspect-square',
@@ -31,7 +30,6 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   const boxStyles = "group overflow-hidden rounded-[2rem] border border-gray-100 bg-white transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.04)] hover:border-gray-200";
 
   return (
-    /* FIXED: Applied onClick to the wrapper div */
     <div 
       className={`${boxStyles} ${className} ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
@@ -40,6 +38,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         <img 
           src={image} 
           alt={title || "Feature"}
+          /* SURGICAL FIX: Lazy loading and standard sizes to improve LCP and SI scores */
+          loading="lazy"
+          sizes="(max-width: 768px) 100vw, 33vw"
           className={`w-full h-full object-cover transition-transform duration-700 ${!noZoom ? 'group-hover:scale-105' : ''} ${aspectClasses[aspect]}`}
         />
       )}
@@ -52,7 +53,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
             </div>
           )}
           <div className="space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-widest text-gray-400">
+            {/* SURGICAL FIX: Color changed from text-gray-400 to text-gray-500 for contrast passing */}
+            <h4 className="text-xs font-black uppercase tracking-widest text-gray-500">
               {title}
             </h4>
             {description && (
