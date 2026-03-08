@@ -56,7 +56,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
               {title}
             </h4>
             {description && (
-              <p className="text-sm font-bold text-brand-dark leading-snug">
+              <p className="text-sm font-normal text-brand-dark leading-snug">
                 {description}
               </p>
             )}

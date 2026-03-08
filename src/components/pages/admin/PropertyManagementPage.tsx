@@ -57,30 +57,31 @@ const PropertyManagementPage = () => {
   return (
     <div className="max-w-[1400px] mx-auto w-full animate-fade-in pb-10">
       
-      <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+      {/* SURGICAL FIX: Responsive Header Stacking */}
+      <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-6 px-2">
         <div>
           <h1 className="text-3xl font-black text-brand-dark tracking-tight mb-1 flex items-center gap-3">
             <Home className="text-brand-green" size={32} />
             Properties
-            <span className="ml-2 mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
+            <span className="hidden sm:inline-block ml-2 mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
               {totalCount} Total
             </span>
           </h1>
           <p className="text-sm font-bold text-gray-400 mt-1">Manage your listings, pricing, and details.</p>
         </div>
-        <Link to="/admin/properties/new" className="bg-brand-green text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-emerald-600 hover:shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] transition-all">
+        <Link to="/admin/properties/new" className="w-full md:w-auto bg-brand-green text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 hover:shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] transition-all">
           <Plus size={16} strokeWidth={3} /> Add New Property
         </Link>
       </div>
 
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)]">
+      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
         
         <TableToolbar 
           searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchPlaceholder="Search properties..."
           page={page} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} hasNextPage={!!paginatedData?.next}
         />
         
-        <div className="p-4 rounded-b-[2rem]">
+        <div className="p-2 md:p-4">
           {isLoading ? (
             <div className="space-y-3 p-2">
               {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} variant="button" className="h-16" />)}
@@ -93,15 +94,16 @@ const PropertyManagementPage = () => {
               <h4 className="text-base font-black text-brand-dark mb-1 tracking-tight">No properties found</h4>
             </div>
           ) : (
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse min-w-[850px]">
+            /* SURGICAL FIX: Horizontal scroll container for mobile stability */
+            <div className="overflow-x-auto scrollbar-hide">
+              <table className="w-full text-left border-separate border-spacing-y-2 min-w-[700px] md:min-w-[850px]">
                 <thead>
                   <tr>
-                    <th className="px-5 pb-3 text-[9px] font-black uppercase tracking-widest text-gray-400">Listing</th>
-                    <th className="px-5 pb-3 text-[9px] font-black uppercase tracking-widest text-gray-400">Capacity</th>
-                    <th className="px-5 pb-3 text-[9px] font-black uppercase tracking-widest text-gray-400">Rating</th>
-                    <th className="px-5 pb-3 text-[9px] font-black uppercase tracking-widest text-gray-400">Price / Night</th>
-                    <th className="px-5 pb-3 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
+                    <th className="px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Listing</th>
+                    <th className="hidden sm:table-cell px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Capacity</th>
+                    <th className="hidden md:table-cell px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Rating</th>
+                    <th className="px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Price</th>
+                    <th className="px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm font-bold text-brand-dark">
@@ -110,45 +112,45 @@ const PropertyManagementPage = () => {
                     const rating = typeof property.average_rating === 'number' ? property.average_rating.toFixed(1) : (property.average_rating ? Number(property.average_rating).toFixed(1) : 'New');
 
                     return (
-                      <tr key={property.id} className="group transition-colors hover:bg-gray-50/80 cursor-default">
-                        <td className="py-3 px-5 rounded-l-2xl">
+                      <tr key={property.id} className="group bg-white transition-colors hover:bg-gray-50/80 cursor-default">
+                        <td className="py-3 px-5 rounded-l-2xl whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100">
                               {mainImage ? <img src={mainImage} alt={property.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><Home size={16} /></div>}
                             </div>
-                            <div className="flex flex-col items-start">
-                              <span className="text-sm font-black tracking-tight text-brand-dark flex items-center gap-2">
+                            <div className="flex flex-col items-start min-w-0">
+                              <span className="text-sm font-black tracking-tight text-brand-dark flex items-center gap-2 truncate max-w-[150px] md:max-w-full">
                                 {property.title}
-                                {property.isMain && <span className="bg-brand-green/10 text-brand-green border border-brand-green/20 text-[8px] px-2 py-0.5 rounded-md uppercase tracking-widest font-black flex items-center gap-1"><Star size={10} fill="currentColor" /> Active</span>}
+                                {property.isMain && <Star size={10} className="text-brand-green" fill="currentColor" />}
                               </span>
-                              <span className="text-[9px] text-gray-400 uppercase tracking-wider font-bold flex items-center gap-1 mt-0.5"><MapPin size={9} /> {property.address}</span>
+                              <span className="text-[9px] text-gray-400 uppercase tracking-wider font-bold flex items-center gap-1 mt-0.5 truncate max-w-[150px] md:max-w-full"><MapPin size={9} /> {property.address}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-5">
+                        <td className="hidden sm:table-cell py-3 px-5 whitespace-nowrap">
                           <div className="flex flex-col gap-1">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5"><Users size={11} className="text-indigo-400" /> {property.max_guests} Guests</span>
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5"><BedDouble size={11} className="text-amber-400" /> {property.bedrooms} Beds</span>
                           </div>
                         </td>
-                        <td className="py-3 px-5">
+                        <td className="hidden md:table-cell py-3 px-5">
                           <div className="flex items-center gap-1.5 bg-amber-50 text-amber-500 w-fit px-2 py-1 rounded-md border border-amber-100">
                             <Star size={10} fill="currentColor" /><span className="text-[10px] font-black mt-0.5">{rating}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-5">
+                        <td className="py-3 px-5 whitespace-nowrap">
                           <span className="text-base font-black tracking-tight text-brand-green">${Number(property.base_price_per_night).toLocaleString()}</span>
                         </td>
                         <td className="py-3 px-5 text-right rounded-r-2xl">
                           <div className="flex items-center justify-end gap-1.5">
                             {property.isMain ? (
-                              <div className="mr-2 h-8 px-3 flex items-center justify-center rounded-lg bg-brand-green/10 border border-brand-green/20 text-brand-green text-[9px] font-black uppercase tracking-widest select-none cursor-default" title="This is the active public listing"><CheckCircle size={12} className="mr-1" /> Active</div>
+                              <div className="h-8 px-3 flex items-center justify-center rounded-lg bg-brand-green/10 border border-brand-green/20 text-brand-green text-[9px] font-black uppercase tracking-widest select-none cursor-default"><CheckCircle size={12} className="mr-1" /> Active</div>
                             ) : (
-                              <button onClick={() => setMainMutation.mutate(property.id)} className="mr-2 h-8 px-3 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-200 text-gray-500 hover:bg-brand-green hover:border-brand-green hover:text-white transition-all shadow-sm text-[9px] font-black uppercase tracking-widest" title="Set as public active listing"><CheckCircle size={12} className="mr-1" /> Set Active</button>
+                              <button onClick={() => setMainMutation.mutate(property.id)} className="h-8 px-3 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-200 text-gray-400 hover:bg-brand-green hover:border-brand-green hover:text-white transition-all text-[9px] font-black uppercase tracking-widest">Set Active</button>
                             )}
-                            <Link to={`/admin/properties/view/${property.id}`} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-500 transition-all shadow-sm" title="View Property Details"><Eye size={14} /></Link>
-                            <Link to={`/admin/properties/edit/${property.id}`} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-brand-green hover:border-brand-green hover:text-white transition-all shadow-sm" title="Edit Property"><Edit size={14} /></Link>
-                            <button onClick={() => setDeleteModal({ isOpen: true, id: property.id, title: property.title })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm" title="Delete Property"><Trash2 size={14} /></button>
+                            <Link to={`/admin/properties/view/${property.id}`} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:bg-indigo-50 hover:text-indigo-500 transition-all"><Eye size={14} /></Link>
+                            <Link to={`/admin/properties/edit/${property.id}`} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:bg-brand-green hover:text-white transition-all"><Edit size={14} /></Link>
+                            <button onClick={() => setDeleteModal({ isOpen: true, id: property.id, title: property.title })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:bg-red-500 hover:text-white transition-all"><Trash2 size={14} /></button>
                           </div>
                         </td>
                       </tr>

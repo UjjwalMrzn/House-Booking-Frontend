@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../../api/bookingApi';
-// FIXED: Swapped 'Settings' icon for 'CreditCard'
 import { DollarSign, CalendarCheck, Clock, User, ArrowRight, TrendingUp, Plus, CreditCard, Activity } from 'lucide-react';
 import { Skeleton } from '../../ui/Skeleton';
 import { Link } from 'react-router-dom';
@@ -9,7 +8,6 @@ import { Link } from 'react-router-dom';
 const DashboardPage = () => {
   const { data: bookingsData, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
-    // FIXED: Arrow function explicitly prevents React Query from injecting [object Object]
     queryFn: () => bookingService.getAllBookings(),
   });
 
@@ -57,21 +55,21 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto w-full animate-fade-in">
-      {/* Header */}
-      <div className="mb-10 flex justify-between items-end">
+    <div className="max-w-[1400px] mx-auto w-full animate-fade-in pb-10">
+      {/* SURGICAL FIX: Responsive Header Stacking */}
+      <div className="mb-10 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
         <div>
           <h1 className="text-3xl font-black text-brand-dark tracking-tight mb-2">Dashboard Overview</h1>
-          <p className="text-sm font-bold text-gray-400">Welcome back. Here is what's happening today.</p>
+          <p className="text-sm font-bold text-gray-400">Welcome back. Here's today's activity.</p>
         </div>
-        <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm flex items-center gap-2">
+        <div className="w-fit text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white px-5 py-2.5 rounded-full border border-gray-100 shadow-sm flex items-center gap-2">
           <CalendarCheck size={14} />
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </div>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard 
           title="Total Revenue" 
           value={`$${totalRevenue.toLocaleString()}`} 
@@ -101,19 +99,19 @@ const DashboardPage = () => {
         />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Main Column: Recent Bookings Table */}
-        <div className="lg:col-span-2 flex flex-col">
-          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-full">
-            <div className="p-8 border-b border-gray-50 flex justify-between items-center shrink-0">
+        {/* Recent Bookings Table */}
+        <div className="lg:col-span-2 flex flex-col min-w-0">
+          <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-full">
+            <div className="p-6 md:p-8 border-b border-gray-50 flex justify-between items-center shrink-0">
               <h3 className="text-xl font-black text-brand-dark tracking-tight">Recent Bookings</h3>
               <Link to="/admin/bookings" className="text-[10px] font-black text-brand-green uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1">
                 View All <ArrowRight size={14} />
               </Link>
             </div>
             
-            <div className="p-4 flex-1">
+            <div className="p-2 md:p-4 flex-1">
               {isLoading ? (
                 <div className="space-y-4 p-4">
                   {[1, 2, 3, 4].map(i => <Skeleton key={i} variant="button" className="h-16" />)}
@@ -124,39 +122,39 @@ const DashboardPage = () => {
                      <CalendarCheck size={24} />
                   </div>
                   <h4 className="text-sm font-bold text-brand-dark mb-1">No recent bookings</h4>
-                  <p className="text-xs text-gray-400">When guests book your properties, they will appear here.</p>
+                  <p className="text-xs text-gray-400">When guests book, they will appear here.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[600px]">
+                <div className="overflow-x-auto scrollbar-hide">
+                  <table className="w-full text-left border-separate border-spacing-y-2">
                     <thead>
                       <tr>
-                        <th className="px-6 pb-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Guest</th>
-                        <th className="px-6 pb-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Property & Dates</th>
-                        <th className="px-6 pb-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Status</th>
-                        <th className="px-6 pb-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Amount</th>
+                        <th className="px-6 pb-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Guest</th>
+                        <th className="px-6 pb-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Property</th>
+                        <th className="hidden sm:table-cell px-6 pb-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Status</th>
+                        <th className="px-6 pb-2 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Amount</th>
                       </tr>
                     </thead>
                     <tbody className="text-sm font-bold text-brand-dark">
                       {bookings.slice(0, 5).map((booking: any) => (
-                        <tr key={booking.id} className="group transition-colors hover:bg-gray-50/80 cursor-default">
-                          <td className="p-4 px-6 rounded-l-2xl">
+                        <tr key={booking.id} className="group bg-white transition-colors hover:bg-gray-50/80 cursor-default">
+                          <td className="p-4 px-6 rounded-l-2xl whitespace-nowrap">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                              <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
                                 <User size={16} />
                               </div>
-                              {booking.customer_name || 'Guest'}
+                              <span className="truncate max-w-[100px] md:max-w-full">{booking.customer_name || 'Guest'}</span>
                             </div>
                           </td>
-                          <td className="p-4 px-6">
+                          <td className="p-4 px-6 whitespace-nowrap">
                             <div className="flex flex-col">
-                              <span>{booking.property_title}</span>
+                              <span className="truncate max-w-[120px] md:max-w-full">{booking.property_title}</span>
                               <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">
-                                {booking.check_in} — {booking.check_out}
+                                {booking.check_in}
                               </span>
                             </div>
                           </td>
-                          <td className="p-4 px-6">
+                          <td className="hidden sm:table-cell p-4 px-6">
                             <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
                               booking.status === 'confirmed' ? 'bg-green-50 text-brand-green border border-green-100' :
                               booking.status === 'pending' ? 'bg-amber-50 text-amber-500 border border-amber-100' :
@@ -181,8 +179,7 @@ const DashboardPage = () => {
         {/* Right Column: Widgets */}
         <div className="flex flex-col gap-8 h-full">
           
-          {/* Quick Actions Widget */}
-          <div className="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.05)] shrink-0">
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.05)]">
             <h3 className="text-xl font-black text-brand-dark tracking-tight mb-6">Quick Actions</h3>
             <div className="space-y-3">
               <Link to="/admin/properties" className="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-brand-green hover:shadow-md transition-all group">
@@ -195,7 +192,6 @@ const DashboardPage = () => {
                 <ArrowRight size={16} className="text-gray-300 group-hover:text-brand-green group-hover:translate-x-1 transition-all" />
               </Link>
               
-              {/* FIXED: Changed to Payments link, icon, and text */}
               <Link to="/admin/payments" className="w-full flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-gray-300 hover:shadow-sm transition-all group">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-gray-50 text-gray-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -208,8 +204,7 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Premium "Monthly Target" Widget */}
-          <div className="bg-brand-dark rounded-[2.5rem] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)] relative overflow-hidden group h-fit">
+          <div className="bg-brand-dark rounded-[2.5rem] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.2)] relative overflow-hidden group">
             <div className="absolute -top-20 -right-20 w-48 h-48 bg-brand-green/20 rounded-full blur-[50px] group-hover:bg-brand-green/30 transition-colors duration-700 pointer-events-none"></div>
             
             <div className="relative z-10">
@@ -225,9 +220,9 @@ const DashboardPage = () => {
                 </span>
               </div>
 
-              <div className="w-full bg-white/10 rounded-full h-3 mb-2 overflow-hidden border border-white/5 relative">
+              <div className="w-full bg-white/10 rounded-full h-3 mb-2 overflow-hidden border border-white/5">
                 <div 
-                  className="bg-brand-green h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(74,222,128,0.5)]"
+                  className="bg-brand-green h-full rounded-full transition-all duration-1000 ease-out"
                   style={{ width: `${Math.min((totalRevenue / targetGoal) * 100, 100)}%` }}
                 ></div>
               </div>

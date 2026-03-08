@@ -40,7 +40,7 @@ const LocationTab: React.FC<LocationTabProps> = ({ propertyId, isViewMode }) => 
 
   const handleSearchMap = () => {
     if(searchQuery) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(searchQuery)}`, '_blank');
+      window.open(`https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`, '_blank');
     } else {
       toast.error("Please enter an address to search first.");
     }
@@ -79,18 +79,18 @@ const LocationTab: React.FC<LocationTabProps> = ({ propertyId, isViewMode }) => 
 
   if (!propertyId) {
     return (
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] p-12 text-center">
+      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] p-6 md:p-12 text-center">
         <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mx-auto mb-4">
           <MapIcon size={24} />
         </div>
         <h3 className="text-lg font-black text-brand-dark mb-2">Save Property First</h3>
-        <p className="text-sm font-bold text-gray-400">You must save the basic property details before adding map coordinates.</p>
+        {/* SURGICAL FIX: Unbolded description text */}
+        <p className="text-sm font-normal text-gray-400">You must save the basic property details before adding map coordinates.</p>
       </div>
     );
   }
 
   const hasValidPreview = formData.latitude && formData.longitude && !isNaN(Number(formData.latitude)) && !isNaN(Number(formData.longitude));
-  
   const isInputDisabled = isViewMode || isLoading || (hasExistingData && !isEditingLocation);
 
   return (
@@ -102,24 +102,24 @@ const LocationTab: React.FC<LocationTabProps> = ({ propertyId, isViewMode }) => 
         <h3 className="text-lg font-black text-brand-dark tracking-tight">Location & Coordinates</h3>
       </div>
 
-      <div className="p-8 flex-1">
+      {/* SURGICAL FIX: Responsive padding (p-4 on mobile) */}
+      <div className="p-4 md:p-8 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
           
           <div className="lg:col-span-4 flex flex-col gap-6">
             
-            <div className="bg-white border border-gray-100 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] p-6 rounded-[1.5rem]">
-              <div className="flex items-center justify-between mb-5">
+            {/* SURGICAL FIX: Tightened section padding */}
+            <div className="bg-white border border-gray-100 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] p-4 md:p-6 rounded-[1.5rem]">
+              <div className="flex items-center justify-between mb-4">
                 <h4 className="text-[11px] font-black uppercase tracking-widest text-brand-dark flex items-center gap-2">
                   <MapPin size={14} className="text-brand-green" /> Exact Coordinates
                 </h4>
                 
-                {/* NEW: Sleek Edit Pencil Icon directly in the box header */}
                 {hasExistingData && !isEditingLocation && !isViewMode && (
                   <button 
                     type="button"
                     onClick={() => setIsEditingLocation(true)}
                     className="flex items-center gap-1.5 text-gray-400 hover:text-brand-dark transition-colors"
-                    title="Edit Coordinates"
                   >
                     <Edit2 size={14} strokeWidth={2.5} />
                     <span className="text-[9px] font-black uppercase tracking-widest">Edit</span>
@@ -128,39 +128,20 @@ const LocationTab: React.FC<LocationTabProps> = ({ propertyId, isViewMode }) => 
               </div>
 
               <div className="space-y-4">
-                <Input 
-                  label="Latitude (e.g., 27.695)" 
-                  name="latitude" 
-                  value={formData.latitude} 
-                  onChange={handleChange} 
-                  required 
-                  disabled={isInputDisabled} 
-                />
-                <Input 
-                  label="Longitude (e.g., 85.315)" 
-                  name="longitude" 
-                  value={formData.longitude} 
-                  onChange={handleChange} 
-                  required 
-                  disabled={isInputDisabled} 
-                />
+                <Input label="Latitude" name="latitude" value={formData.latitude} onChange={handleChange} required disabled={isInputDisabled} />
+                <Input label="Longitude" name="longitude" value={formData.longitude} onChange={handleChange} required disabled={isInputDisabled} />
               </div>
             </div>
 
-            <div className="bg-gray-50 border border-gray-100 p-6 rounded-[1.5rem]">
+            <div className="bg-gray-50 border border-gray-100 p-4 md:p-6 rounded-[1.5rem]">
               <h4 className="text-[11px] font-black uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
                 <Search size={14} /> Find Coordinates
               </h4>
-              <Input 
-                label="Search Area"
-                placeholder="City, landmark, or address..." 
-                value={searchQuery} 
-                onChange={(e: any) => setSearchQuery(e.target.value)} 
-              />
+              <Input label="Search Area" placeholder="City, landmark..." value={searchQuery} onChange={(e: any) => setSearchQuery(e.target.value)} />
               <button 
                 type="button" 
                 onClick={handleSearchMap} 
-                className="mt-4 w-full h-11 bg-white border border-gray-200 text-brand-dark hover:bg-brand-dark hover:text-white hover:border-brand-dark font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+                className="mt-4 w-full h-11 bg-white border border-gray-200 text-brand-dark hover:bg-brand-dark hover:text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
               >
                 Open Google Maps <ExternalLink size={14} />
               </button>
@@ -169,7 +150,8 @@ const LocationTab: React.FC<LocationTabProps> = ({ propertyId, isViewMode }) => 
           </div>
 
           <div className="lg:col-span-8">
-            <div className="bg-[#F9F9F7] rounded-[2rem] border border-gray-200 overflow-hidden relative h-full min-h-[400px] flex items-center justify-center w-full shadow-inner">
+            {/* SURGICAL FIX: Responsive Map Height */}
+            <div className="bg-[#F9F9F7] rounded-[2rem] border border-gray-200 overflow-hidden relative h-full min-h-[300px] md:min-h-[400px] flex items-center justify-center w-full shadow-inner">
               {hasValidPreview ? (
                 <iframe 
                   width="100%" 
@@ -186,7 +168,8 @@ const LocationTab: React.FC<LocationTabProps> = ({ propertyId, isViewMode }) => 
                     <MapIcon size={24} />
                   </div>
                   <p className="text-sm font-black uppercase tracking-widest text-gray-400">Map Preview</p>
-                  <p className="text-xs font-bold text-gray-400 mt-2 leading-relaxed">
+                  {/* SURGICAL FIX: Unbolded description text and tightened line-gap */}
+                  <p className="text-xs font-normal text-gray-400 mt-1 leading-relaxed">
                     Paste valid latitude and longitude coordinates to generate the live map preview.
                   </p>
                 </div>
@@ -197,9 +180,9 @@ const LocationTab: React.FC<LocationTabProps> = ({ propertyId, isViewMode }) => 
         </div>
       </div>
 
-      {/* NEW: Footer only shows when creating new data OR when actively editing */}
       {!isViewMode && (!hasExistingData || isEditingLocation) && (
-        <div className="px-8 py-5 border-t border-gray-50 bg-gray-50/50 flex justify-end gap-3 shrink-0 rounded-b-[2rem]">
+        /* SURGICAL FIX: Mobile Footer Stacking (flex-col) */
+        <div className="px-4 md:px-8 py-5 border-t border-gray-50 bg-gray-50/50 flex flex-col sm:flex-row justify-end gap-3 shrink-0 rounded-b-[2rem]">
           {isEditingLocation && (
             <button 
               type="button" 
@@ -207,12 +190,12 @@ const LocationTab: React.FC<LocationTabProps> = ({ propertyId, isViewMode }) => 
                 setIsEditingLocation(false); 
                 setFormData({ latitude: mapData.latitude || '', longitude: mapData.longitude || '' }); 
               }} 
-              className="px-6 font-bold text-gray-400 hover:text-gray-600 transition-colors"
+              className="w-full sm:w-auto px-6 py-2.5 font-bold text-gray-400 hover:text-gray-600 transition-colors order-2 sm:order-1"
             >
               Cancel
             </button>
           )}
-          <Button type="submit" className="px-8 py-2.5 text-sm flex items-center gap-2 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)]" disabled={saveMutation.isPending || isLoading}>
+          <Button type="submit" className="w-full sm:w-auto px-8 py-3 text-sm flex items-center justify-center gap-2 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] order-1 sm:order-2" disabled={saveMutation.isPending || isLoading}>
             <Save size={16} strokeWidth={2.5} />
             {saveMutation.isPending ? 'Saving...' : hasExistingData ? 'Update Location' : 'Save Location'}
           </Button>

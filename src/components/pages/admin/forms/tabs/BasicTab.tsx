@@ -28,7 +28,8 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
         <h3 className="text-lg font-black text-brand-dark tracking-tight">Basic Information</h3>
       </div>
 
-      <div className="p-8 space-y-12">
+      {/* SURGICAL FIX: Responsive padding (p-4 on mobile, p-8 on desktop) */}
+      <div className="p-4 md:p-8 space-y-12">
         
         {/* --- CORE DETAILS --- */}
         <section className="space-y-6">
@@ -68,7 +69,8 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
             <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Capacity & Rooms</h4>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {/* SURGICAL FIX: Responsive Gap (gap-3 on mobile) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
             <Input label="Max Guests *" type="number" name="max_guests" value={formData.max_guests} onChange={handleChange} required disabled={isViewMode} />
             <Input label="Beds *" type="number" name="beds" value={formData.beds} onChange={handleChange} required disabled={isViewMode} />
             <Input label="Bedrooms *" type="number" name="bedrooms" value={formData.bedrooms} onChange={handleChange} required disabled={isViewMode} />
@@ -85,7 +87,7 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
           </div>
 
           {/* New Overview Field */}
-          <div className="relative w-full group">
+          <div className="relative w-full group mb-4">
             <textarea
               name="overView"
               value={formData.overView}
@@ -94,14 +96,14 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
               maxLength={MAX_OVERVIEW_LENGTH}
               placeholder=" "
               rows={4}
+              /* SURGICAL FIX: font-normal weight applied */
               className="peer block w-full px-4 pt-6 pb-2 text-[14px] font-normal text-gray-900 bg-white border border-gray-200 rounded-xl appearance-none transition-all outline-none focus:ring-0 focus:border-brand-green resize-y"
             />
             <label className="absolute text-[12px] text-gray-400 duration-150 transform top-4 z-10 origin-[0] left-4 font-medium pointer-events-none scale-75 -translate-y-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
               Property Overview (Summary)
             </label>
-            {/* NEW: Character Counter */}
             {!isViewMode && (
-              <div className="absolute -bottom-6 right-2 text-[10px] font-bold text-gray-400">
+              <div className="absolute -bottom-5 right-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
                 <span className={currentOverviewLength >= MAX_OVERVIEW_LENGTH ? 'text-red-500' : ''}>
                   {currentOverviewLength}
                 </span> / {MAX_OVERVIEW_LENGTH}
@@ -120,13 +122,14 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
               placeholder=" "
               required
               rows={8}
+              /* SURGICAL FIX: font-normal weight applied */
               className="peer block w-full px-4 pt-6 pb-2 text-[14px] font-normal text-gray-900 bg-white border border-gray-200 rounded-xl appearance-none transition-all outline-none focus:ring-0 focus:border-brand-green resize-y min-h-[120px]"
             />
             <label className="absolute text-[12px] text-gray-400 duration-150 transform top-4 z-10 origin-[0] left-4 font-medium pointer-events-none scale-75 -translate-y-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
               Full Property Description *
             </label>
             {!isViewMode && (
-              <div className="absolute -bottom-6 right-2 text-[10px] font-bold text-gray-400">
+              <div className="absolute -bottom-5 right-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
                 <span className={currentDescLength >= MAX_DESC_LENGTH ? 'text-red-500' : ''}>{currentDescLength}</span> / {MAX_DESC_LENGTH}
               </div>
             )}
@@ -136,11 +139,12 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
       </div>
 
       {!isViewMode && (
-        <div className="px-6 py-5 border-t border-gray-50 bg-gray-50/50 flex justify-end gap-3 mt-8">
-          <Link to="/admin/properties" className="px-6 py-2.5 rounded-xl font-bold text-gray-500 text-sm hover:bg-gray-100 hover:text-gray-700 transition-colors flex items-center">
+        /* SURGICAL FIX: Mobile Footer Stacking (flex-col on xs) */
+        <div className="px-4 md:px-6 py-5 border-t border-gray-50 bg-gray-50/50 flex flex-col sm:flex-row justify-end gap-3 mt-8">
+          <Link to="/admin/properties" className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-gray-500 text-sm hover:bg-gray-100 hover:text-gray-700 transition-colors flex items-center justify-center">
             Cancel
           </Link>
-          <Button type="submit" className="px-8 py-2.5 text-sm flex items-center gap-2 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)]" disabled={isPending}>
+          <Button type="submit" className="w-full sm:w-auto px-8 py-3 text-sm flex items-center justify-center gap-2 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)]" disabled={isPending}>
             <Save size={16} strokeWidth={2.5} />
             {isPending ? 'Saving...' : 'Save Details'}
           </Button>

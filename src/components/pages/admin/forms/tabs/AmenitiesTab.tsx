@@ -50,7 +50,6 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // CLEANED OF HACKS
   const saveAmenityMutation = useMutation({
     mutationFn: async (data: typeof amenityForm) => {
       if (data.isEdit && data.assignmentId) {
@@ -81,45 +80,45 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
   return (
     <>
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden animate-entrance">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-50 bg-white/50 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        {/* SURGICAL FIX: Responsive Header padding and stacking */}
+        <div className="p-4 md:p-6 border-b border-gray-50 bg-white/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 self-start sm:self-auto">
             <div className="w-8 h-8 bg-brand-green/10 text-brand-green rounded-lg flex items-center justify-center shadow-inner">
               <ListChecks size={16} strokeWidth={2.5} />
             </div>
             <h3 className="text-lg font-black text-brand-dark tracking-tight">Property Amenities</h3>
           </div>
           {!isViewMode && (
-            <Button onClick={() => setAmenityForm({ isOpen: true, isEdit: false, assignmentId: null, amenityId: '', description: '' })} className="px-4 py-2 text-xs flex items-center gap-2">
+            <Button onClick={() => setAmenityForm({ isOpen: true, isEdit: false, assignmentId: null, amenityId: '', description: '' })} className="w-full sm:w-auto px-4 py-2.5 text-xs flex items-center justify-center gap-2">
               <Plus size={14} strokeWidth={3} /> Add Amenity
             </Button>
           )}
         </div>
 
-        {/* List */}
-        <div className="p-6">
+        {/* List Content */}
+        <div className="p-4 md:p-6">
           {assignedAmenities.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <p className="text-sm font-bold text-gray-400">No amenities linked yet. Click above to assign one.</p>
+              <p className="text-sm font-bold text-gray-400">No amenities linked yet.</p>
             </div>
           ) : (
             <div className="space-y-3">
               {assignedAmenities.map((amenity: any, index: number) => (
                 <div key={index} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white hover:border-gray-200 transition-all shadow-sm">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gray-50 text-brand-dark rounded-lg flex items-center justify-center">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-10 h-10 bg-gray-50 text-brand-dark rounded-lg flex items-center justify-center shrink-0">
                        <DynamicIcon name={amenity.icon || 'ListChecks'} size={18} />
                     </div>
-                    <div>
-                      <h4 className="text-sm font-black text-brand-dark">{amenity.name}</h4>
-                      <p className="text-xs font-bold text-gray-400 mt-0.5">{amenity.description}</p>
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-black text-brand-dark truncate">{amenity.name}</h4>
+                      {/* SURGICAL FIX: Description unbolded (font-normal) */}
+                      <p className="text-xs font-normal text-gray-400 mt-0.5 leading-relaxed">{amenity.description}</p>
                     </div>
                   </div>
                   {!isViewMode && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0 ml-4">
                    <button 
                       onClick={() => {
-                        // STRICTLY using backend standard fields
                         setAmenityForm({ isOpen: true, isEdit: true, assignmentId: amenity.id, amenityId: String(amenity.amenity), description: amenity.description });
                       }}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-500 hover:bg-brand-green hover:text-white transition-colors"
@@ -143,7 +142,6 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
         </div>
       </div>
 
-      {/* --- REUSABLE FORM MODAL --- */}
       <FormModal
         isOpen={amenityForm.isOpen}
         onClose={() => {
@@ -159,7 +157,7 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
             type="button"
             disabled={amenityForm.isEdit}
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className={`w-full px-4 py-3 flex items-center justify-between bg-white border rounded-xl text-sm font-bold outline-none transition-all ${
+            className={`w-full px-4 py-3.5 flex items-center justify-between bg-white border rounded-xl text-sm font-bold outline-none transition-all ${
               isDropdownOpen ? 'border-brand-green ring-2 ring-brand-green/10' : 'border-gray-200 hover:border-gray-300'
             } ${amenityForm.isEdit ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
           >
@@ -179,7 +177,7 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
                     setAmenityForm({ ...amenityForm, amenityId: String(a.id) });
                     setIsDropdownOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2.5 text-sm font-bold flex items-center justify-between transition-colors hover:bg-brand-green/5 hover:text-brand-green"
+                  className="w-full text-left px-4 py-3 text-sm font-bold flex items-center justify-between transition-colors hover:bg-brand-green/5 hover:text-brand-green"
                 >
                   <span className={amenityForm.amenityId === String(a.id) ? 'text-brand-green' : 'text-gray-600'}>
                     {a.name}
@@ -187,9 +185,6 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
                   {amenityForm.amenityId === String(a.id) && <Check size={16} className="text-brand-green" />}
                 </button>
               ))}
-              {availableAmenities.length === 0 && (
-                <div className="px-4 py-3 text-xs text-gray-400 font-bold text-center">No master amenities available.</div>
-              )}
             </div>
           )}
         </div>
@@ -199,13 +194,14 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
           <textarea 
             value={amenityForm.description} 
             onChange={(e) => setAmenityForm({ ...amenityForm, description: e.target.value })} 
-            placeholder="e.g., Fast 500Mbps WiFi, Pets welcome..." 
+            placeholder="e.g., Fast 500Mbps WiFi..." 
             maxLength={150} 
             rows={3}
-            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-brand-dark outline-none focus:border-brand-green resize-none"
+            /* SURGICAL FIX: Description textarea unbolded (font-normal) */
+            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-normal text-brand-dark outline-none focus:border-brand-green resize-none"
           />
           {!isViewMode && (
-            <div className="absolute bottom-0 right-2 text-[10px] font-bold text-gray-400">
+            <div className="absolute bottom-0 right-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
               <span className={amenityForm.description?.length >= 150 ? 'text-red-500' : ''}>
                 {amenityForm.description?.length || 0}
               </span> / 150
@@ -216,19 +212,18 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
         <Button 
           onClick={() => saveAmenityMutation.mutate(amenityForm)} 
           disabled={!amenityForm.amenityId || !amenityForm.description || saveAmenityMutation.isPending} 
-          className="w-full py-3"
+          className="w-full py-3.5 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)]"
         >
           {saveAmenityMutation.isPending ? 'Saving...' : 'Save Amenity'}
         </Button>
       </FormModal>
 
-      {/* --- ADDED REUSABLE ALERT MODAL --- */}
       <Modal 
         isOpen={deleteAmenityModal.isOpen}
         onClose={() => setDeleteAmenityModal({ isOpen: false, id: null, name: "" })}
         onConfirm={() => { if (deleteAmenityModal.id) deleteAmenityMutation.mutate(deleteAmenityModal.id); }}
         title="Remove Amenity"
-        message={`Are you sure you want to remove "${deleteAmenityModal.name}" from this property?`}
+        message={`Are you sure you want to remove "${deleteAmenityModal.name}"?`}
         confirmText="Remove Now"
         variant="danger"
         loading={deleteAmenityMutation.isPending}

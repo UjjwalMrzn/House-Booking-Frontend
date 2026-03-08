@@ -1,43 +1,84 @@
-import { Globe, ChevronRight } from "lucide-react";
+import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
-  const linkStyles =
-    "flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-brand-green cursor-pointer transition-colors";
   const legalStyles =
     "text-[10px] uppercase tracking-[0.2em] text-gray-600 font-black";
+    
+  // SURGICAL FIX: Dynamic current year
+  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="bg-[#1A1A1A] text-white py-16 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center gap-8 mb-12">
-          <div className={linkStyles}>
-            <Globe size={14} />
-            <span>English</span>
-            <ChevronRight size={12} className="rotate-90 text-gray-600" />
+        
+        {/* SURGICAL FIX: 4-Column Grid layout to push Explore and Contact to the right side */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-8 mb-16">
+          
+          {/* 1. Brand & Info - Spans 2 columns to create the right-side push effect */}
+          <div className="md:col-span-2 space-y-6">
+            <Link to="/" className="flex items-center gap-3 w-fit group">
+              <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center text-white font-black tracking-tighter shadow-lg shadow-brand-green/20 group-hover:scale-110 transition-transform">
+                JB
+              </div>
+              <span className="text-xl font-black tracking-tight text-white group-hover:text-brand-green transition-colors">
+                Jervis Bay Retreats
+              </span>
+            </Link>
+            <p className="text-sm text-gray-400 leading-relaxed max-w-sm">
+              An innovation first coastal retreat dedicated to building high performance relaxation and memorable holiday experiences.
+            </p>
+            <div className="flex items-center gap-4 pt-2">
+              <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white transition-all">
+                <Facebook size={18} />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white transition-all">
+                <Instagram size={18} />
+              </a>
+            </div>
           </div>
-          <div className={linkStyles}>
-            <span>AUD</span>
-            <ChevronRight size={12} className="rotate-90 text-gray-600" />
+
+          {/* 2. Explore Links - Pushed to the right/middle */}
+          <div>
+            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-white mb-6">Explore</h4>
+            <div className="flex flex-col gap-4">
+              <Link to="/" className="text-sm text-gray-400 hover:text-brand-green transition-colors w-fit">Home</Link>
+              <Link to="/overview" className="text-sm text-gray-400 hover:text-brand-green transition-colors w-fit">Overview</Link>
+              <Link to="/map" className="text-sm text-gray-400 hover:text-brand-green transition-colors w-fit">Map</Link>
+              <Link to="/gallery" className="text-sm text-gray-400 hover:text-brand-green transition-colors w-fit">Gallery</Link>
+              <Link to="/reviews" className="text-sm text-gray-400 hover:text-brand-green transition-colors w-fit">Reviews</Link>
+              <Link to="/contact" className="text-sm text-gray-400 hover:text-brand-green transition-colors w-fit">Contact</Link>
+            </div>
           </div>
+
+          {/* 3. Contact Info - SURGICAL FIX: Made address, phone, and email clickable */}
+          <div>
+            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-white mb-6">Contact</h4>
+            <div className="flex flex-col gap-4">
+              {/* Address links to internal Map page */}
+              <Link to="/map" className="flex items-start gap-3 text-gray-400 hover:text-brand-green transition-colors group w-fit">
+                <MapPin size={16} className="text-brand-green shrink-0 mt-0.5" />
+                <span className="text-sm">Sanctuary Point,<br/>Jervis Bay, NSW 2540</span>
+              </Link>
+              {/* Phone trigger */}
+              <a href="tel:+977986553232" className="flex items-center gap-3 text-gray-400 hover:text-brand-green transition-colors group w-fit">
+                <Phone size={16} className="text-brand-green shrink-0" />
+                <span className="text-sm">+977 986553232</span>
+              </a>
+              {/* Email trigger */}
+              <a href="mailto:support@jervisbayretreats.com" className="flex items-center gap-3 text-gray-400 hover:text-brand-green transition-colors group w-fit">
+                <Mail size={16} className="text-brand-green shrink-0" />
+                <span className="text-sm">support@jervisbayretreats.com</span>
+              </a>
+            </div>
+          </div>
+
         </div>
 
+        {/* Mini-Nav and Legal Section */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className={legalStyles}>
-            {/* FIXED: Brand Copyright */}
-            <p>© 2026 Jervis Bay Retreats — Powered by Podamibe Nepal</p>
-          </div>
-
-          <div className="flex gap-8">
-            <span
-              className={`${legalStyles} hover:text-white cursor-pointer transition-colors`}
-            >
-              Privacy
-            </span>
-            <span
-              className={`${legalStyles} hover:text-white cursor-pointer transition-colors`}
-            >
-              Terms
-            </span>
+            <p>© {currentYear} Jervis Bay Retreats</p>
           </div>
         </div>
       </div>

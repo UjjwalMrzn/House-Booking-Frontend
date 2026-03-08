@@ -1,16 +1,16 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "../../api/propertyService";
-import { bookingService } from "../../api/bookingApi"; // NEW IMPORT
+import { bookingService } from "../../api/bookingApi"; 
 import FeatureCard from "../ui/FeatureCard";
 import DatePicker from "../ui/DatePicker";
 import GuestSelector from "../ui/GuestSelector";
 import Button from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toaster";
-import { format, parseISO } from "date-fns"; // ADDED parseISO
-import { Users, Bed, Bath, MapPin, BedSingle } from "lucide-react";
+import { format, parseISO } from "date-fns"; 
+import { Users, Bed, Bath, MapPin, BedSingle, ChevronDown, ChevronUp } from "lucide-react";
 import DynamicIcon from "../ui/DynamicIcon";
 import { holidayService } from "../../api/holidayService";
 
@@ -37,12 +37,17 @@ const OverviewPage = () => {
   const [activeTab, setActiveTab] = useState("description");
   const [hasShownError, setHasShownError] = useState(false);
 
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const [showAllPolicies, setShowAllPolicies] = useState(false);
+
+  const tabContainerRef = useRef<HTMLDivElement>(null);
+
   const { data: property, isLoading, error } = useQuery({
     queryKey: ["main-property"],
     queryFn: propertyService.getMainProperty,
   });
 
-  // NEW: Fetch confirmed bookings to block out red dates
   const { data: bookedRanges = [] } = useQuery({
     queryKey: ["booked-dates", property?.id],
     queryFn: async () => {
@@ -55,15 +60,15 @@ const OverviewPage = () => {
   });
 
   const { data: allHolidaysData } = useQuery({
-  queryKey: ['admin-holidays', 'all'],
-  queryFn: () => holidayService.getAllHolidays(1, 500),
-});
+    queryKey: ['admin-holidays', 'all'],
+    queryFn: () => holidayService.getAllHolidays(1, 500),
+  });
 
-const holidayDates = useMemo(() => {
-  if (!allHolidaysData) return [];
-  const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
-  return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
-}, [allHolidaysData]);
+  const holidayDates = useMemo(() => {
+    if (!allHolidaysData) return [];
+    const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
+    return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+  }, [allHolidaysData]);
 
   useEffect(() => {
     if (error && !hasShownError) {
@@ -84,6 +89,16 @@ const holidayDates = useMemo(() => {
     }
     return baseTabs;
   }, [property]);
+
+  useEffect(() => {
+    if (tabContainerRef.current) {
+      const activeBtn = tabContainerRef.current.querySelector(`button[data-tab-id="${activeTab}"]`) as HTMLButtonElement;
+      if (activeBtn) {
+        const scrollLeft = activeBtn.offsetLeft - tabContainerRef.current.clientWidth / 2 + activeBtn.clientWidth / 2;
+        tabContainerRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -119,25 +134,79 @@ const holidayDates = useMemo(() => {
     }
   };
 
+  const scrollToBookingWidget = () => {
+    const element = document.getElementById("booking-widget");
+    if (element) {
+      const yOffset = -100;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    const manageChatWidget = () => {
+      if (window.innerWidth < 1024) {
+        if ((window as any).Tawk_API?.hideWidget) {
+          (window as any).Tawk_API.hideWidget();
+        }
+      } else {
+        if ((window as any).Tawk_API?.showWidget) {
+          (window as any).Tawk_API.showWidget();
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(manageChatWidget, 1000);
+    window.addEventListener('resize', manageChatWidget);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', manageChatWidget);
+      if ((window as any).Tawk_API?.showWidget) {
+        (window as any).Tawk_API.showWidget();
+      }
+    };
+  }, []);
+
+  const descriptionText = property?.description || "";
+  const isDescriptionLong = descriptionText.length > 350;
+  const displayDescription = isDescriptionLong && !showFullDescription 
+    ? descriptionText.substring(0, 350) + "..." 
+    : descriptionText;
+
+  const amenitiesList = property?.amenities || [];
+  const displayAmenities = showAllAmenities ? amenitiesList : amenitiesList.slice(0, 4);
+  const hasMoreAmenities = amenitiesList.length > 4;
+
+  const policiesList = property?.policies || [];
+  const displayPolicies = showAllPolicies ? policiesList : policiesList.slice(0, 2);
+  const hasMorePolicies = policiesList.length > 2; 
+
   return (
-    <main className="pt-24 bg-white min-h-screen font-sans text-brand-dark animate-fade-in px-6 max-w-7xl mx-auto pb-20">
+    <main className="pt-24 bg-white min-h-screen font-sans text-brand-dark animate-fade-in px-6 max-w-7xl mx-auto pb-32 lg:pb-20 relative">
       <div className="grid lg:grid-cols-3 gap-16 items-start">
-        <div className="lg:col-span-2 space-y-16">
+        <div className="lg:col-span-2 space-y-16 min-w-0">
           {!isLoading && (
-            <div className="flex items-center gap-8 border-b border-gray-200 sticky top-[80px] bg-white z-40 pt-4 mb-12">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => scrollToSection(tab.id)}
-                  className={`pb-4 text-[15px] font-bold transition-all border-b-[3px] -mb-[1.5px] ${
-                    activeTab === tab.id
-                      ? "border-brand-green text-brand-dark"
-                      : "border-transparent text-gray-400 hover:text-gray-900"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="relative sticky top-[80px] bg-white z-40 mb-12">
+              <div 
+                ref={tabContainerRef}
+                className="flex items-center gap-8 border-b border-gray-200 pt-4 overflow-x-auto whitespace-nowrap scrollbar-hide"
+              >
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    data-tab-id={tab.id}
+                    onClick={() => scrollToSection(tab.id)}
+                    className={`pb-4 text-[15px] font-bold transition-all border-b-[3px] -mb-[1.5px] shrink-0 ${
+                      activeTab === tab.id
+                        ? "border-brand-green text-brand-dark"
+                        : "border-transparent text-gray-400 hover:text-gray-900"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -187,7 +256,20 @@ const holidayDates = useMemo(() => {
                   <Skeleton variant="text" />
                   <Skeleton variant="text" className="w-2/3" />
                 </div>
-              ) : property?.description}
+              ) : (
+                <>
+                  {displayDescription}
+                  {isDescriptionLong && (
+                    <button 
+                      onClick={() => setShowFullDescription(!showFullDescription)}
+                      className="text-brand-dark font-bold text-sm flex items-center gap-1 mt-3 hover:text-brand-green transition-colors"
+                    >
+                      {showFullDescription ? "Show less" : "Read more"}
+                      {showFullDescription ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </section>
 
@@ -214,7 +296,7 @@ const holidayDates = useMemo(() => {
               <div className="mt-8">
                 <button 
                   onClick={() => navigate(`/gallery`)}
-                  className="text-brand-green font-black text-xs uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1"
+                  className="text-brand-dark font-bold text-sm hover:text-brand-green transition-colors flex items-center gap-1"
                 >
                   Explore all pictures
                 </button>
@@ -229,15 +311,23 @@ const holidayDates = useMemo(() => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {isLoading
                 ? [1, 2, 3, 4].map((i) => <Skeleton key={i} variant="input" />)
-                : property?.amenities?.map((amenity: any, index: number) => (
-              <FeatureCard
-                key={index}
-                icon={<DynamicIcon name={amenity.icon || 'Info'} size={20} />} 
-                title={amenity.name}
-                description={amenity.description}
-              />
-            ))}
+                : displayAmenities.map((amenity: any, index: number) => (
+                  <FeatureCard
+                    key={index}
+                    icon={<DynamicIcon name={amenity.icon || 'Info'} size={20} />} 
+                    title={amenity.name}
+                    description={amenity.description}
+                  />
+                ))}
             </div>
+            {!isLoading && hasMoreAmenities && (
+              <button 
+                onClick={() => setShowAllAmenities(!showAllAmenities)}
+                className="mt-6 border border-gray-900 rounded-lg px-6 py-3 text-sm font-bold text-gray-900 hover:bg-gray-50 transition-colors flex items-center gap-2"
+              >
+                {showAllAmenities ? "Show fewer amenities" : `Show all ${amenitiesList.length} amenities`}
+              </button>
+            )}
           </section>
 
           {(isLoading || property?.policies?.length > 0 || property?.checkInOutRules?.length > 0) && (
@@ -253,34 +343,49 @@ const holidayDates = useMemo(() => {
                   </>
                 ) : (
                   <>
+                    {/* SURGICAL FIX: Tightened gap and container spacing for House Rules */}
                     {property?.checkInOutRules?.map((rule: any, idx: number) => (
-                      <div key={`rule-${idx}`} className="space-y-2">
+                      <div key={`rule-${idx}`} className="space-y-1">
                         <h4 className="font-bold text-gray-900">House Rules</h4>
-                        <div className="text-sm text-gray-500 flex flex-col gap-1">
+                        <div className="text-sm text-gray-500 flex flex-col">
                           <span>Check-in: {rule.check_in}</span>
                           <span>Check-out: {rule.check_out}</span>
                         </div>
                       </div>
                     ))}
                     
-                    {property?.policies?.map((policy: any, index: number) => (
-                      <div key={`policy-${index}`} className="space-y-2">
-                        <h4 className="font-bold text-gray-900">{policy.name}</h4>
-                        <div className="text-sm text-gray-500 leading-relaxed">
-                          {policy.description?.split('.').filter((s: string) => s.trim().length > 0).map((s: string, i: number) => (
-                              <span key={i} className="block mb-2">{s.trim()}.</span>
-                          ))}
+                    {/* SURGICAL FIX: Standardized line spacing by removing mb-2 and leading-relaxed */}
+                    {displayPolicies.map((policy: any, index: number) => {
+                      const sentences = policy.description?.split('.').filter((s: string) => s.trim().length > 0) || [];
+                      return (
+                        <div key={`policy-${index}`} className="space-y-1">
+                          <h4 className="font-bold text-gray-900">{policy.name}</h4>
+                          <div className="text-sm text-gray-500">
+                            {sentences.map((s: string, i: number) => (
+                                <span key={i} className="block">{s.trim()}.</span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </>
                 )}
               </div>
+              
+              {!isLoading && hasMorePolicies && (
+                <button 
+                  onClick={() => setShowAllPolicies(!showAllPolicies)}
+                  className="text-brand-dark font-bold text-sm flex items-center gap-1 mt-6 hover:text-brand-green transition-colors"
+                >
+                  {showAllPolicies ? "Show fewer policies" : "View all policies"}
+                  {showAllPolicies ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+              )}
             </section>
           )}
         </div>
 
-        <aside className="lg:col-span-1 sticky top-32">
+        <aside id="booking-widget" className="lg:col-span-1 sticky top-32">
           <div className="bg-white border border-gray-200 rounded-[2.5rem] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.08)] space-y-6">
             {isLoading ? (
               <div className="space-y-6">
@@ -296,7 +401,6 @@ const holidayDates = useMemo(() => {
                   <span className="text-gray-400 font-bold text-sm mb-1">/ night</span>
                 </div>
                 
-                {/* FIXED: Now explicitly passing the bookedRanges to disable the red dates */}
                 <DatePicker
                   value={{ checkIn, checkOut }}
                   disabledDates={bookedRanges}
@@ -330,6 +434,24 @@ const holidayDates = useMemo(() => {
           </div>
         </aside>
       </div>
+
+      {!isLoading && (
+        <div 
+          className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pt-4 pb-6 px-6 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.1)] lg:hidden"
+          style={{ zIndex: 2147483647 }}
+        >
+          <div className="flex flex-col">
+            <div className="flex items-end gap-1">
+              <span className="text-xl font-black text-brand-dark">${property?.base_price_per_night}</span>
+              <span className="text-gray-400 font-bold text-xs mb-1">/ night</span>
+            </div>
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Select dates</span>
+          </div>
+          <Button onClick={scrollToBookingWidget} size="sm" className="px-6 rounded-lg">
+            Book Now
+          </Button>
+        </div>
+      )}
     </main>
   );
 };

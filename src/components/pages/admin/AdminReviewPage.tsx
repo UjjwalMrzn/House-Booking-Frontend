@@ -108,14 +108,14 @@ const AdminReviewsPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full animate-fade-in pb-10">
+    <div className="max-w-7xl mx-auto w-full animate-fade-in pb-10 px-2 md:px-0">
       
       <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-black text-brand-dark tracking-tight mb-1 flex items-center gap-3">
+          <h1 className="text-2xl md:text-3xl font-black text-brand-dark tracking-tight mb-1 flex items-center gap-3">
             <MessageSquare className="text-brand-green" size={32} />
             Reviews
-            <span className="ml-2 mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
+            <span className="hidden xs:inline-block ml-2 mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
               {totalCount} Total
             </span>
           </h1>
@@ -123,7 +123,7 @@ const AdminReviewsPage = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)]">
+      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
         
         <TableToolbar 
           searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchPlaceholder="Search by review or property..."
@@ -131,48 +131,52 @@ const AdminReviewsPage = () => {
           page={page} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} hasNextPage={!!(reviewsData as any)?.next}
         />
 
-        <div className="overflow-x-auto custom-scrollbar rounded-b-[2rem]">
-          <table className="w-full text-left border-collapse min-w-[850px]">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="py-5 px-6 w-1/3"><button onClick={() => handleSort('title')} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Review {renderSortIcon('title')}</button></th>
-                <th className="py-5 px-6"><button onClick={() => handleSort('rating')} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Rating {renderSortIcon('rating')}</button></th>
-                <th className="py-5 px-6"><button onClick={() => handleSort('customer_name')} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Guest {renderSortIcon('customer_name')}</button></th>
-                <th className="py-5 px-6"><button onClick={() => handleSort('property_title')} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Property {renderSortIcon('property_title')}</button></th>
-                <th className="py-5 px-6"><button onClick={() => handleSort('createdAt')} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Date {renderSortIcon('createdAt')}</button></th>
-                <th className="py-5 px-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr><td colSpan={6} className="py-12 text-center text-sm font-bold text-gray-400">Loading reviews...</td></tr>
-              ) : processedReviews.length === 0 ? (
+        {/* SURGICAL FIX: Extracted loading and empty states OUTSIDE the table for perfect centering */}
+        {isLoading ? (
+          <div className="py-16 text-center text-sm font-bold text-gray-400">Loading reviews...</div>
+        ) : processedReviews.length === 0 ? (
+          <div className="py-16 flex flex-col items-center justify-center w-full">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-3 text-gray-300">
+              <MessageSquare size={24} />
+            </div>
+            <p className="text-sm font-bold text-gray-400">No reviews found.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto scrollbar-hide rounded-b-[2rem]">
+            <table className="w-full text-left border-separate border-spacing-y-2 min-w-[600px] md:min-w-[850px] px-2 md:px-4">
+              <thead>
                 <tr>
-                  <td colSpan={6} className="py-12 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-3 text-gray-300"><MessageSquare size={24} /></div>
-                    <p className="text-sm font-bold text-gray-400">No reviews found.</p>
-                  </td>
+                  <th className="py-2 px-4 w-1/3"><button onClick={() => handleSort('title')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Review {renderSortIcon('title')}</button></th>
+                  <th className="py-2 px-4"><button onClick={() => handleSort('rating')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Rating {renderSortIcon('rating')}</button></th>
+                  <th className="py-2 px-4"><button onClick={() => handleSort('customer_name')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Guest {renderSortIcon('customer_name')}</button></th>
+                  <th className="hidden sm:table-cell py-2 px-4"><button onClick={() => handleSort('property_title')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Property {renderSortIcon('property_title')}</button></th>
+                  <th className="hidden md:table-cell py-2 px-4"><button onClick={() => handleSort('createdAt')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Date {renderSortIcon('createdAt')}</button></th>
+                  <th className="py-2 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
                 </tr>
-              ) : (
-                processedReviews.map((review: any) => (
-                  <tr key={review.id} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors group">
-                    <td className="py-4 px-6"><div className="font-black text-brand-dark text-sm line-clamp-1">{review.title}</div><div className="text-xs font-medium text-gray-500 mt-1 line-clamp-1">{review.comment}</div></td>
-                    <td className="py-4 px-6"><div className="flex items-center gap-1.5 bg-amber-50 text-amber-500 w-fit px-2.5 py-1.5 rounded-lg border border-amber-100"><Star size={12} fill="currentColor" /><span className="text-[11px] font-black mt-0.5">{review.rating}.0</span></div></td>
-                    <td className="py-4 px-6"><div className="font-bold text-brand-dark text-sm flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0"><User size={12} /></div><span className="truncate max-w-[120px]">{review.customer_name || 'Guest User'}</span></div></td>
-                    <td className="py-4 px-6"><div className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5 truncate max-w-[150px]" title={review.property_title}><MapPin size={11} className="text-indigo-400 shrink-0" /> {review.property_title}</div></td>
-                    <td className="py-4 px-6 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{review.createdAt ? review.createdAt.split('T')[0] : 'N/A'}</div></td>
-                    <td className="py-4 px-6 text-right">
+              </thead>
+              <tbody className="text-sm font-bold text-brand-dark">
+                {processedReviews.map((review: any) => (
+                  <tr key={review.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
+                    <td className="py-4 px-4 rounded-l-2xl">
+                      <div className="font-black text-brand-dark text-sm line-clamp-1">{review.title}</div>
+                      <div className="text-xs font-medium text-gray-500 mt-1 line-clamp-1">{review.comment}</div>
+                    </td>
+                    <td className="py-4 px-4"><div className="flex items-center gap-1.5 bg-amber-50 text-amber-500 w-fit px-2.5 py-1.5 rounded-lg border border-amber-100"><Star size={12} fill="currentColor" /><span className="text-[11px] font-black mt-0.5">{review.rating}.0</span></div></td>
+                    <td className="py-4 px-4"><div className="font-bold text-brand-dark text-sm flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0"><User size={12} /></div><span className="truncate max-w-[120px]">{review.customer_name || 'Guest User'}</span></div></td>
+                    <td className="hidden sm:table-cell py-4 px-4"><div className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5 truncate max-w-[150px]" title={review.property_title}><MapPin size={11} className="text-indigo-400 shrink-0" /> {review.property_title}</div></td>
+                    <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{review.createdAt ? review.createdAt.split('T')[0] : 'N/A'}</div></td>
+                    <td className="py-4 px-4 text-right rounded-r-2xl">
                       <div className="flex items-center justify-end gap-2">
                         <button onClick={() => setViewModal({ isOpen: true, review })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-brand-dark hover:border-gray-300 shadow-sm transition-colors" title="Read Full Review"><Eye size={14} /></button>
                         <button onClick={() => setDeleteModal({ isOpen: true, id: review.id, title: review.title })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm" title="Delete Review"><Trash2 size={14} /></button>
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <Modal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, id: null, title: "" })} onConfirm={() => { if (deleteModal.id) deleteMutation.mutate(deleteModal.id); }} title="Delete Review" message={`Are you sure you want to delete the review "${deleteModal.title}"? This action cannot be undone.`} confirmText="Delete Permanently" variant="danger" loading={deleteMutation.isPending} />

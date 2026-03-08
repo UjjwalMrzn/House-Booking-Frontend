@@ -8,7 +8,6 @@ interface TimePickerProps {
   required?: boolean;
 }
 
-// Arrays for our Dual-Pane Grid
 const HOURS = ['12', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11'];
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
 
@@ -16,7 +15,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Parse the current value to figure out Hour, Minute, and AM/PM
   const safeValue = value || '12:00'; 
   const parsedHour24 = parseInt(safeValue.split(':')[0], 10);
   const currentMinute = safeValue.split(':')[1] || '00';
@@ -25,7 +23,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
   const currentHour12 = parsedHour24 % 12 === 0 ? 12 : parsedHour24 % 12;
   const currentHourStr = currentHour12.toString().padStart(2, '0');
 
-  // Handle clicking outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -36,7 +33,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Update the time and convert back to Django's 24-hour format
   const updateTime = (newH12: string, newM: string, newPeriod: string) => {
     let h24 = parseInt(newH12, 10);
     if (newPeriod === 'PM' && h24 !== 12) h24 += 12;
@@ -45,7 +41,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
     onChange(`${h24.toString().padStart(2, '0')}:${newM}`);
   };
 
-  // Format the visual label (e.g., "14:30" becomes "02:30 PM")
   const formatDisplayValue = (val: string) => {
     if (!val) return 'Select time...';
     const [h, m] = val.split(':');
@@ -63,7 +58,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
         </label>
       )}
       
-      {/* TRIGGER BUTTON */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -82,11 +76,10 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
         <ChevronDown size={16} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* COMPACT DUAL-PANE MENU */}
       {isOpen && (
-        <div className="absolute z-[120] top-full left-0 w-full min-w-[280px] mt-2 bg-white border border-gray-100 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden animate-fade-in origin-top">
+        /* SURGICAL FIX: Reduced width to 240px to ensure it perfectly fits inside standard mobile viewports */
+        <div className="absolute z-[120] top-full left-1/2 -translate-x-1/2 w-[240px] mt-2 bg-white border border-gray-100 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden animate-fade-in origin-top">
           
-          {/* AM / PM TABS (Slimmer padding) */}
           <div className="flex p-1.5 bg-gray-50/80 border-b border-gray-100">
             <button
               type="button"
@@ -112,10 +105,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
             </button>
           </div>
 
-          {/* DUAL GRID: HOURS (Left) and MINUTES (Right) */}
           <div className="flex p-2 gap-2">
-            
-            {/* HOURS COLUMN */}
             <div className="flex-1">
               <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center mb-1.5">Hour</div>
               <div className="grid grid-cols-3 gap-1">
@@ -139,10 +129,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
               </div>
             </div>
 
-            {/* DIVIDER */}
             <div className="w-px bg-gray-100 rounded-full"></div>
 
-            {/* MINUTES COLUMN */}
             <div className="flex-1">
               <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center mb-1.5">Minute</div>
               <div className="grid grid-cols-3 gap-1">
@@ -154,7 +142,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
                       type="button"
                       onClick={() => {
                         updateTime(currentHourStr, m, currentPeriod);
-                        setIsOpen(false); // Auto-close when they pick the exact minute
+                        setIsOpen(false); 
                       }}
                       className={`py-1.5 rounded-lg text-[11px] transition-all ${
                         isSelected
@@ -168,7 +156,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
                 })}
               </div>
             </div>
-
           </div>
         </div>
       )}

@@ -81,10 +81,10 @@ const AdminContactsPage = () => {
   });
 
   return (
-    <div className="max-w-4xl mx-auto w-full animate-fade-in pb-10">
+    <div className="max-w-4xl mx-auto w-full animate-fade-in pb-10 px-2 md:px-0">
       
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-brand-dark tracking-tight flex items-center gap-3">
+        <h1 className="text-2xl md:text-3xl font-black text-brand-dark tracking-tight flex items-center gap-3">
           <Contact className="text-brand-green" size={32} />
           Contact Details
         </h1>
@@ -93,15 +93,16 @@ const AdminContactsPage = () => {
 
       <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
         
-        {/* STRICTLY ORIGINAL HEADER */}
-        <div className="p-6 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
-          <div className="w-8 h-8 bg-brand-green/10 text-brand-green rounded-xl flex items-center justify-center shadow-inner">
+        {/* SURGICAL FIX: Responsive Header Padding */}
+        <div className="p-4 md:p-6 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
+          <div className="w-8 h-8 bg-brand-green/10 text-brand-green rounded-xl flex items-center justify-center shadow-inner shrink-0">
             <Building size={16} strokeWidth={2.5} />
           </div>
-          <h3 className="text-lg font-black text-brand-dark tracking-tight">Main Office Information</h3>
+          <h3 className="text-base md:text-lg font-black text-brand-dark tracking-tight">Main Office Information</h3>
         </div>
 
-        <div className="p-8 md:p-10 space-y-8">
+        {/* SURGICAL FIX: Tightened Mobile Padding */}
+        <div className="p-4 md:p-10 space-y-8">
           {isLoading ? (
             <div className="space-y-6">
               <Skeleton variant="input" />
@@ -114,12 +115,11 @@ const AdminContactsPage = () => {
           ) : (
             <div className="space-y-8">
               
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 <div className="flex items-center gap-2 mb-2">
                   <Building size={16} className="text-indigo-400" />
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Company Name</h4>
                 </div>
-                {/* STRICTLY LOCKED INPUT */}
                 <Input 
                   label="Title / Company Name" 
                   value={formData.name} 
@@ -130,7 +130,7 @@ const AdminContactsPage = () => {
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   <div className="flex items-center gap-2 mb-2">
                     <Phone size={16} className="text-brand-green" />
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Phone</h4>
@@ -145,7 +145,7 @@ const AdminContactsPage = () => {
                   />
                 </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   <div className="flex items-center gap-2 mb-2">
                     <Mail size={16} className="text-amber-500" />
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Email</h4>
@@ -161,7 +161,7 @@ const AdminContactsPage = () => {
                 </div>
               </div>
 
-              <div className="space-y-6 pt-4 border-t border-gray-50">
+              <div className="space-y-4 md:space-y-6 pt-4 border-t border-gray-50">
                 <div className="flex items-center gap-2 mb-2">
                   <MapPin size={16} className="text-red-400" />
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Location</h4>
@@ -179,12 +179,12 @@ const AdminContactsPage = () => {
           )}
         </div>
 
-        {/* STRICTLY ORIGINAL BOTTOM BAR + CANCEL BUTTON */}
-        <div className="px-8 py-5 border-t border-gray-50 bg-gray-50/50 flex justify-end gap-4">
+        {/* SURGICAL FIX: Responsive Footer Stacking (flex-col on small screens) */}
+        <div className="px-4 md:px-8 py-5 border-t border-gray-50 bg-gray-50/50 flex flex-col sm:flex-row justify-end gap-3 md:gap-4">
           {!isEditing ? (
             <Button 
               onClick={(e) => { e.preventDefault(); setIsEditing(true); }}
-              className="px-10 py-3 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)]"
+              className="w-full sm:w-auto px-10 py-3 md:py-3.5 shadow-md flex items-center justify-center"
             >
               <Edit2 size={18} strokeWidth={2.5} className="mr-2" />
               Edit Details
@@ -193,14 +193,14 @@ const AdminContactsPage = () => {
             <>
               <button 
                 onClick={handleCancel}
-                className="px-6 py-3 text-sm font-bold text-gray-500 hover:text-brand-dark transition-colors"
+                className="w-full sm:w-auto px-6 py-3 text-sm font-bold text-gray-500 hover:text-brand-dark hover:bg-gray-100 rounded-xl transition-colors order-2 sm:order-1"
               >
                 Cancel
               </button>
               <Button 
                 onClick={() => saveMutation.mutate(formData)} 
                 disabled={!formData.name || !formData.email || !formData.phoneNumber || saveMutation.isPending || isLoading} 
-                className="px-10 py-3 shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)]"
+                className="w-full sm:w-auto px-10 py-3 md:py-3.5 shadow-md flex items-center justify-center order-1 sm:order-2"
               >
                 <Save size={18} strokeWidth={2.5} className="mr-2" />
                 {saveMutation.isPending ? 'Saving...' : 'Save Details'}

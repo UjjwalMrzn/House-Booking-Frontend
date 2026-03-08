@@ -96,3 +96,11 @@
   background-color: #f0fdf4 !important;
   color: var(--color-brand-green) !important;
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

@@ -73,7 +73,6 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
         customer: customerResponse.data.id
       });
 
-      // FIXED: Tell React Query to refresh both the public and admin review lists instantly
       queryClient.invalidateQueries({ queryKey: ["main-reviews"] });
       queryClient.invalidateQueries({ queryKey: ["admin-reviews"] });
       queryClient.invalidateQueries({ queryKey: ["reviews", propertyId] });
@@ -103,20 +102,23 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={onClose}></div>
       
       <div className={`
-        bg-white w-full max-w-2xl rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative z-10 animate-scale-up 
+        bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl relative z-10 animate-scale-up 
         max-h-[90vh] overflow-y-auto
         [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
       `}>
-        <button onClick={onClose} className="absolute top-8 right-8 text-gray-400 hover:text-gray-900 transition-colors">
-          <X size={24} />
-        </button>
-
-        <div className="space-y-6">
+        
+        {/* SURGICAL FIX: Sticky Header to keep "X" and Title visible while scrolling */}
+        <div className="sticky top-0 bg-white z-20 px-8 md:px-12 pt-8 md:pt-12 pb-4 flex items-start justify-between border-b border-transparent">
           <div>
             <h2 className="text-2xl font-black text-brand-dark tracking-tight mb-2">Write a review</h2>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Share your experience with others</p>
           </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-900 transition-colors p-1">
+            <X size={24} />
+          </button>
+        </div>
 
+        <div className="px-8 md:px-12 pb-8 md:pb-12 pt-2 space-y-6">
           <hr className="border-gray-100" />
           
           <div>
@@ -137,12 +139,14 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
             <input type="email" placeholder="Email Address" className={inputStyles} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          {/* SURGICAL FIX: Changed to grid-cols-1 on mobile to prevent Phone/Location squashing */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input type="text" placeholder="Phone" className={inputStyles} value={formData.phoneNumber} onChange={e => setFormData({...formData, phoneNumber: e.target.value})} />
             <input type="text" placeholder="Your Location" className={inputStyles} value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* SURGICAL FIX: Changed to grid-cols-1 on mobile for comfortable Month/Year selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Dropdown placeholder="Month of stay" options={MONTHS} value={formData.month} onChange={val => setFormData({...formData, month: val})} />
             <Dropdown placeholder="Year of stay" options={YEARS} value={formData.year} onChange={val => setFormData({...formData, year: val})} />
           </div>

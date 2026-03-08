@@ -19,16 +19,17 @@ const AdminSettingsPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full animate-fade-in">
+    <div className="max-w-4xl mx-auto w-full animate-fade-in pb-10 px-4 md:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-brand-dark tracking-tight flex items-center gap-3">
+        <h1 className="text-2xl md:text-3xl font-black text-brand-dark tracking-tight flex items-center gap-3">
           <Settings className="text-brand-green" size={32} />
           Platform Settings
         </h1>
         <p className="text-sm font-bold text-gray-400 mt-1">Manage global configurations and business targets.</p>
       </div>
 
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] p-8 space-y-8">
+      {/* SURGICAL FIX: Responsive inner padding */}
+      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] p-5 md:p-8 space-y-8">
         <section className="space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
             <Target className="text-brand-green" size={20} />
@@ -43,7 +44,8 @@ const AdminSettingsPage = () => {
               onChange={(e: any) => setMonthlyGoal(e.target.value)}
               placeholder="e.g. 300000"
             />
-            <p className="text-[10px] font-bold text-gray-400 mt-2 ml-1 italic">
+            {/* SURGICAL FIX: Unbolded helper text for standardization */}
+            <p className="text-[10px] font-normal text-gray-400 mt-2 ml-1">
               This value determines the progress bar percentage on your main dashboard.
             </p>
           </div>
@@ -54,15 +56,17 @@ const AdminSettingsPage = () => {
             <ShieldCheck className="text-indigo-500" size={20} />
             <h3 className="font-black text-brand-dark uppercase text-[10px] tracking-widest">Security & Access</h3>
           </div>
-          <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 flex justify-between items-center">
+          {/* SURGICAL FIX: Allows wrapping on extremely narrow screens */}
+          <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <span className="text-xs font-bold text-indigo-700">Administrator Token Status</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-white bg-indigo-500 px-3 py-1 rounded-full shadow-sm">Active</span>
+            <span className="w-fit text-[10px] font-black uppercase tracking-widest text-white bg-indigo-500 px-3 py-1 rounded-full shadow-sm">Active</span>
           </div>
         </section>
 
-        <div className="pt-6 flex justify-end">
-          <Button onClick={handleSave} className="px-10">
-            <Save size={18} /> Save Settings
+        {/* SURGICAL FIX: Full width button on mobile */}
+        <div className="pt-6 flex flex-col sm:flex-row sm:justify-end border-t border-gray-50">
+          <Button onClick={handleSave} className="w-full sm:w-auto px-10 py-3 md:py-3.5 shadow-md flex items-center justify-center gap-2">
+            <Save size={18} strokeWidth={2.5} /> Save Settings
           </Button>
         </div>
       </div>

@@ -88,7 +88,7 @@ const Hero = () => {
       <div className="relative max-w-[96%] mx-auto mt-4 h-[550px] md:h-[600px] rounded-[3rem] overflow-hidden group shadow-2xl">
         
         {/* LCP DISCOVERY FIX: Native img tag replaces the CSS background image */}
-        <div className="absolute inset-0 transition-transform duration-[2000ms] group-hover:scale-105">
+        <div className="absolute inset-0 transition-transform duration-[2000ms]">
           <img 
             src={heroBackgroundImage} 
             alt={heroTitleText} 
@@ -133,8 +133,9 @@ const Hero = () => {
             />
           </div>
           
-          <div className="flex items-center">
-            <Button size="md" className="h-[56px] rounded-xl px-10" onClick={handleBookingRedirect}>
+          {/* SURGICAL FIX: Added 'w-full md:w-auto' to ensure the wrapper and button stretch correctly on mobile without getting cut off */}
+          <div className="flex items-center w-full md:w-auto mt-2 md:mt-0">
+            <Button size="md" className="h-[56px] rounded-xl px-10 w-full md:w-auto" onClick={handleBookingRedirect}>
               Book Now
             </Button>
           </div>
