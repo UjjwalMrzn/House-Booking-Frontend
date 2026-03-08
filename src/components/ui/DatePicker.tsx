@@ -48,16 +48,18 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
     <div className={`relative w-full group ${className}`} ref={containerRef}>
       <div className="relative">
         <div onClick={toggleOpen} className={`${boxBaseStyles} ${boxActiveStyles}`} tabIndex={0}>
-          <span className={range?.from ? 'text-gray-900' : 'text-gray-400'}>
+          {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
+          <span className={range?.from ? 'text-gray-900' : 'text-gray-500'}>
             {range?.from ? format(range.from, 'd MMM yyyy') : "Check-In"}
           </span>
-          <ArrowRight size={14} className="text-gray-300 mx-1" />
+          <ArrowRight size={14} className="text-gray-400 mx-1" />
           <div className="flex items-center gap-2">
-            <span className={range?.to ? 'text-gray-900' : 'text-gray-400'}>
+            {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
+            <span className={range?.to ? 'text-gray-900' : 'text-gray-500'}>
               {range?.to ? format(range.to, 'd MMM yyyy') : "Check-Out"}
             </span>
             {range && (range.from || range.to) && (
-              <button className="ml-1 p-1 hover:bg-gray-100 rounded-full text-gray-400" onClick={(e) => { 
+              <button className="ml-1 p-1 hover:bg-gray-100 rounded-full text-gray-500" onClick={(e) => { 
                 e.stopPropagation(); 
                 onChange?.(undefined); 
                 setHoveredDate(null); 
@@ -67,7 +69,8 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
             )}
           </div>
         </div>
-        <label className="absolute text-[12px] text-gray-400 duration-150 transform -translate-y-2.5 scale-75 top-3.5 z-10 origin-[0] left-4 font-medium pointer-events-none">
+        {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
+        <label className="absolute text-[12px] text-gray-500 duration-150 transform -translate-y-2.5 scale-75 top-3.5 z-10 origin-[0] left-4 font-medium pointer-events-none">
           Dates
         </label>
       </div>

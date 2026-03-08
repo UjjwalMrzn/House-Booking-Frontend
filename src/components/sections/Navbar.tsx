@@ -48,9 +48,9 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative z-[101]">
           
           <Link to="/" className="flex items-center gap-2 group z-[101]" onClick={() => setIsMobileMenuOpen(false)}>
-            <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center text-white font-black transition-transform group-hover:scale-110 shadow-lg shadow-green-100 tracking-tighter">
-              JB
-            </div>
+            <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center text-brand-dark font-black transition-transform group-hover:scale-110 shadow-lg shadow-green-100 tracking-tighter">
+  JB
+</div>
           </Link>
 
           <div className="hidden md:flex items-center gap-10">

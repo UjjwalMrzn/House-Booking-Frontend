@@ -197,10 +197,11 @@ const OverviewPage = () => {
                     key={tab.id}
                     data-tab-id={tab.id}
                     onClick={() => scrollToSection(tab.id)}
+                    /* SURGICAL FIX: Changed text-gray-400 to text-gray-500 for contrast */
                     className={`pb-4 text-[15px] font-bold transition-all border-b-[3px] -mb-[1.5px] shrink-0 ${
                       activeTab === tab.id
                         ? "border-brand-green text-brand-dark"
-                        : "border-transparent text-gray-400 hover:text-gray-900"
+                        : "border-transparent text-gray-500 hover:text-gray-900"
                     }`}
                   >
                     {tab.label}
@@ -213,7 +214,8 @@ const OverviewPage = () => {
           <section id="description">
             <div className="flex items-center gap-2 mb-4">
               {isLoading ? <Skeleton variant="text" className="w-32" /> : (
-                <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                /* SURGICAL FIX: Changed text-gray-400 to text-gray-500 for contrast */
+                <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-500 uppercase">
                   <MapPin size={14} /> {property?.address}
                 </div>
               )}
@@ -343,7 +345,6 @@ const OverviewPage = () => {
                   </>
                 ) : (
                   <>
-                    {/* SURGICAL FIX: Tightened gap and container spacing for House Rules */}
                     {property?.checkInOutRules?.map((rule: any, idx: number) => (
                       <div key={`rule-${idx}`} className="space-y-1">
                         <h4 className="font-bold text-gray-900">House Rules</h4>
@@ -354,7 +355,6 @@ const OverviewPage = () => {
                       </div>
                     ))}
                     
-                    {/* SURGICAL FIX: Standardized line spacing by removing mb-2 and leading-relaxed */}
                     {displayPolicies.map((policy: any, index: number) => {
                       const sentences = policy.description?.split('.').filter((s: string) => s.trim().length > 0) || [];
                       return (
@@ -398,7 +398,8 @@ const OverviewPage = () => {
               <>
                 <div className="flex items-end gap-1">
                   <span className="text-3xl font-black text-brand-dark">${property?.base_price_per_night}</span>
-                  <span className="text-gray-400 font-bold text-sm mb-1">/ night</span>
+                  {/* SURGICAL FIX: Contrast fix from 400 to 500 */}
+                  <span className="text-gray-500 font-bold text-sm mb-1">/ night</span>
                 </div>
                 
                 <DatePicker
@@ -426,7 +427,8 @@ const OverviewPage = () => {
                   Book Now
                 </Button>
                 
-                <div className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                {/* SURGICAL FIX: Contrast fix from 400 to 500 */}
+                <div className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-widest">
                   No charge yet
                 </div>
               </>
@@ -443,9 +445,11 @@ const OverviewPage = () => {
           <div className="flex flex-col">
             <div className="flex items-end gap-1">
               <span className="text-xl font-black text-brand-dark">${property?.base_price_per_night}</span>
-              <span className="text-gray-400 font-bold text-xs mb-1">/ night</span>
+              {/* SURGICAL FIX: Contrast fix from 400 to 500 */}
+              <span className="text-gray-500 font-bold text-xs mb-1">/ night</span>
             </div>
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Select dates</span>
+            {/* SURGICAL FIX: Contrast fix from 400 to 500 */}
+            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Select dates</span>
           </div>
           <Button onClick={scrollToBookingWidget} size="sm" className="px-6 rounded-lg">
             Book Now

@@ -30,14 +30,15 @@ const GuestSelector = ({ adults, kids, onAdultsChange, onKidsChange, max = 10, c
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
       <div>
         <div className="text-sm font-bold text-gray-900">{title}</div>
-        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{sub}</div>
+        {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
+        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{sub}</div>
       </div>
       <div className="flex items-center gap-3">
         <button 
           type="button"
           onClick={onDecrease} 
           disabled={val <= minAllowed} 
-          className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-50 border border-gray-100 text-gray-400 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all"
+          className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-50 border border-gray-100 text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-all"
         >
           <Minus size={14} strokeWidth={3} />
         </button>
@@ -70,13 +71,14 @@ const GuestSelector = ({ adults, kids, onAdultsChange, onKidsChange, max = 10, c
               {totalGuests} Guest{totalGuests !== 1 ? 's' : ''}
             </span>
           </div>
-          <div className="flex items-center text-gray-400 shrink-0 ml-2">
+          {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
+          <div className="flex items-center text-gray-500 shrink-0 ml-2">
             <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-brand-green' : ''}`} />
           </div>
         </button>
         
-        {/* RESTORED: Exact floating label from your original code */}
-        <label className="absolute text-[12px] text-gray-400 duration-150 transform -translate-y-2.5 scale-75 top-3.5 z-10 origin-[0] left-4 font-medium pointer-events-none">
+        {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
+        <label className="absolute text-[12px] text-gray-500 duration-150 transform -translate-y-2.5 scale-75 top-3.5 z-10 origin-[0] left-4 font-medium pointer-events-none">
           Guests
         </label>
       </div>
@@ -84,7 +86,8 @@ const GuestSelector = ({ adults, kids, onAdultsChange, onKidsChange, max = 10, c
       {isOpen && (
         <div className="absolute top-[64px] left-0 w-full min-w-[280px] bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-gray-100 p-4 z-50 animate-fade-in">
           
-          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100 text-gray-400">
+          {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
+          <div className="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100 text-gray-500">
             <Users size={16} />
             <span className="text-[10px] font-black uppercase tracking-widest">Maximum capacity: {max}</span>
           </div>
