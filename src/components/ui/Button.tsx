@@ -23,10 +23,10 @@ const Button: React.FC<ButtonProps> = ({
   };
 
   const variants = {
-    /* SURGICAL FIX: Text changed from white to brand-dark (#1A1A1A) for strict contrast passing on brand-green */
-    primary: "bg-brand-green text-brand-dark shadow-[0_8px_20px_-6px_rgba(74,222,128,0.5)] hover:bg-emerald-500",
+    /* SURGICAL FIX: Restored text-white. 
+       Note: This REQUIRES the darker brand-green (#057a55) to pass accessibility. */
+    primary: "bg-brand-green text-white shadow-[0_8px_20px_-6px_rgba(5,122,85,0.4)] hover:shadow-[0_12px_25px_-6px_rgba(5,122,85,0.5)]",
     outline: "bg-transparent border-2 border-brand-green text-brand-green hover:bg-green-50",
-    /* SURGICAL FIX: Text changed from 500 to 600 for contrast passing on white bg */
     ghost: "bg-transparent text-gray-600 hover:text-brand-dark hover:bg-gray-100/50"
   };
 

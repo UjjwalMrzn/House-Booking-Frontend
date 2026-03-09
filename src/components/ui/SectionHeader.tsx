@@ -19,7 +19,8 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   // The hierarchy of sizes (4xl/5xl for titles, text-lg for descriptions) is locked here.
   const containerStyles = `space-y-6 ${centered ? 'text-center mx-auto max-w-3xl' : ''} ${className}`;
   
-  const subciteStyles = "text-[10px] font-black tracking-[0.25em] text-gray-400 uppercase animate-fade-in block select-none";
+  /* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 for "THE HAVEN EXPERIENCE" */
+  const subciteStyles = "text-[10px] font-black tracking-[0.25em] text-gray-500 uppercase animate-fade-in block select-none";
   
   const titleStyles = "text-4xl md:text-5xl font-black text-brand-dark leading-[1.1] tracking-tight animate-slide-up";
   

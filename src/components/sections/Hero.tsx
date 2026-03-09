@@ -76,73 +76,75 @@ const Hero = () => {
   const activeImageObj = homeImages.find((img: any) => img.is_main) || homeImages[0];
   const activeTitleObj = titles.find((t: any) => t.isMain) || titles[0];
   
-  // COMPRESSION FIX: Changed the Unsplash fallback to request a smaller image (w=1200, q=60)
+  /* SURGICAL FIX: Shaved bandwidth by dropping Unsplash quality to 50 and max width to 1080 */
   const heroBackgroundImage = activeImageObj?.image 
     ? getImageUrl(activeImageObj.image) 
-    : "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=60&w=1200&auto=format&fit=crop";
+    : "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=50&w=1080&auto=format&fit=crop";
     
   const heroTitleText = activeTitleObj?.title || "Find your sanctuary.";
 
   return (
-    <div className="w-full bg-[#fafafa] pb-24 overflow-visible">
-      <div className="relative max-w-[96%] mx-auto mt-4 h-[550px] md:h-[600px] rounded-[3rem] overflow-hidden group shadow-2xl">
-        
-        {/* LCP DISCOVERY FIX: Native img tag replaces the CSS background image */}
-        <div className="absolute inset-0 transition-transform duration-[2000ms]">
-          <img 
-            src={heroBackgroundImage} 
-            alt={heroTitleText} 
-            className="w-full h-full object-cover"
-            fetchPriority="high"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+    <>
+      {/* SURGICAL FIX: Force the browser to preload the LCP hero image immediately, drastically dropping the "Render Delay" penalty in Lighthouse */}
+      <link rel="preload" as="image" href={heroBackgroundImage} />
+      
+      <div className="w-full bg-[#fafafa] pb-24 overflow-visible">
+        <div className="relative max-w-[96%] mx-auto mt-4 h-[550px] md:h-[600px] rounded-[3rem] overflow-hidden group shadow-2xl">
+          
+          <div className="absolute inset-0 transition-transform duration-[2000ms]">
+            <img 
+              src={heroBackgroundImage} 
+              alt={heroTitleText} 
+              className="w-full h-full object-cover"
+              fetchPriority="high"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          </div>
+
+          <div className="absolute bottom-40 left-0 w-full text-center z-10 px-4">
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight animate-slide-up">
+              {heroTitleText}
+            </h1>
+          </div>
         </div>
 
-        <div className="absolute bottom-40 left-0 w-full text-center z-10 px-4">
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight animate-slide-up">
-            {heroTitleText}
-          </h1>
+        <div className="relative -mt-10 z-[50] flex justify-center px-6 overflow-visible">
+          <div className="bg-white rounded-xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] p-2 flex flex-col md:flex-row items-stretch w-full max-w-4xl border border-gray-100 transition-all gap-2 overflow-visible">
+            
+            <div className="flex-[1.5]">
+              <DatePicker 
+                value={dates} 
+                disabledDates={bookedRanges}
+                holidayDates={holidayDates}
+                onChange={(range: any) => setDates({ 
+                  checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '', 
+                  checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : '' 
+                })} 
+              />
+            </div>
+            
+            <div className="hidden md:block w-px h-8 bg-gray-100 self-center"></div>
+            
+            <div className="flex-1">
+              <GuestSelector 
+                adults={adults} 
+                kids={kids} 
+                onAdultsChange={setAdults} 
+                onKidsChange={setKids} 
+                max={property?.max_guests || 10} 
+              />
+            </div>
+            
+            <div className="flex items-center w-full md:w-auto mt-2 md:mt-0">
+              <Button size="md" className="h-[56px] rounded-xl px-10 w-full md:w-auto" onClick={handleBookingRedirect}>
+                Book Now
+              </Button>
+            </div>
+            
+          </div>
         </div>
       </div>
-
-      <div className="relative -mt-10 z-[50] flex justify-center px-6 overflow-visible">
-        <div className="bg-white rounded-xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] p-2 flex flex-col md:flex-row items-stretch w-full max-w-4xl border border-gray-100 transition-all gap-2 overflow-visible">
-          
-          <div className="flex-[1.5]">
-            <DatePicker 
-              value={dates} 
-              disabledDates={bookedRanges}
-              holidayDates={holidayDates}
-              onChange={(range: any) => setDates({ 
-                checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '', 
-                checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : '' 
-              })} 
-            />
-          </div>
-          
-          <div className="hidden md:block w-px h-8 bg-gray-100 self-center"></div>
-          
-          <div className="flex-1">
-            {/* FIXED: Uses Adults and Kids specifically */}
-            <GuestSelector 
-              adults={adults} 
-              kids={kids} 
-              onAdultsChange={setAdults} 
-              onKidsChange={setKids} 
-              max={property?.max_guests || 10} 
-            />
-          </div>
-          
-          {/* SURGICAL FIX: Added 'w-full md:w-auto' to ensure the wrapper and button stretch correctly on mobile without getting cut off */}
-          <div className="flex items-center w-full md:w-auto mt-2 md:mt-0">
-            <Button size="md" className="h-[56px] rounded-xl px-10 w-full md:w-auto" onClick={handleBookingRedirect}>
-              Book Now
-            </Button>
-          </div>
-          
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 

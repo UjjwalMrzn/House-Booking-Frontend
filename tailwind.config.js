@@ -8,7 +8,7 @@ export default {
     extend: {
       colors: {
         brand: {
-          green: '#059669', // Darker, premium Emerald
+          green: '#057a55', // Darker, premium Emerald
           dark: '#111827',  // Deep charcoal
           light: '#f9fafb', // Soft gray
         }

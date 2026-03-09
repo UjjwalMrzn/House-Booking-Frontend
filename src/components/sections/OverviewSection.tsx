@@ -15,8 +15,9 @@ const OverviewSection = () => {
 
   const propertyImages = property?.images?.filter((img: any) => !img.is_main) || [];
   
-  const img1 = propertyImages[0]?.image || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1000&auto=format&fit=crop";
-  const img2 = propertyImages[1]?.image || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop";
+  /* SURGICAL FIX: Downsized the fallback Unsplash images from w=1000 to w=800 to save bandwidth on mobile */
+  const img1 = propertyImages[0]?.image || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop";
+  const img2 = propertyImages[1]?.image || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop";
 
   const shortDescription = property?.overView || (property?.description 
     ? property.description.length > 200 
@@ -24,7 +25,6 @@ const OverviewSection = () => {
       : property.description
     : "Experience the ultimate coastal getaway. Designed for comfort and style, this elegant residence offers a private sanctuary for families, professionals, and discerning travellers.");
 
-  // SURGICAL FIX: Fullscreen Image Viewer State
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const viewerImages = [img1, img2];
 
@@ -40,7 +40,6 @@ const OverviewSection = () => {
     setSelectedIndex(null);
   }, []);
 
-  // SURGICAL FIX: Lock body scroll & hide Tawk.to chat when viewing images
   useEffect(() => {
     if (selectedIndex !== null) {
       document.body.style.overflow = 'hidden';
@@ -61,7 +60,6 @@ const OverviewSection = () => {
     };
   }, [selectedIndex]);
 
-  // SURGICAL FIX: Keyboard navigation for viewer
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selectedIndex === null) return;
@@ -84,7 +82,8 @@ const OverviewSection = () => {
               title={
                 <>
                   Welcome to <br />
-                  <span className="italic text-slate-400 font-serif font-medium">{property?.title || "Jervis Bay Retreats"}</span>
+                  {/* SURGICAL FIX: Contrast changed from text-slate-400 to text-slate-500 */}
+                  <span className="italic text-slate-500 font-serif font-medium">{property?.title || "Your Coastal Retreat"}</span>
                 </>
               }
               description={shortDescription}
@@ -105,7 +104,6 @@ const OverviewSection = () => {
           <div className="relative">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
               <div onClick={() => setSelectedIndex(0)} className="cursor-pointer group">
-                {/* SURGICAL FIX: Added noZoom={true} */}
                 <FeatureCard 
                   image={img1} 
                   noZoom={true}
@@ -113,7 +111,6 @@ const OverviewSection = () => {
                 />
               </div>
               <div onClick={() => setSelectedIndex(1)} className="cursor-pointer group">
-                {/* SURGICAL FIX: Added noZoom={true} */}
                 <FeatureCard 
                   image={img2} 
                   noZoom={true}
@@ -127,7 +124,6 @@ const OverviewSection = () => {
         </div>
       </section>
 
-      {/* SURGICAL FIX: Image Viewer Portal */}
       {selectedIndex !== null && createPortal(
         <div className="fixed inset-0 z-[100000] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-sm" onClick={handleClose}></div>
