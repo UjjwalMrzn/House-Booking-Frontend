@@ -38,13 +38,14 @@ const TawkChat = () => {
     }
   }, []);
 
-  // 2. Watch the URL and hide the widget if we enter the Admin panel
+  // 2. Watch the URL and hide the widget if we enter the Admin panel or Booking page
   useEffect(() => {
-    const isAdmin = location.pathname.startsWith('/admin');
+    // SURGICAL FIX: Added /book so it hides during checkout/reservation
+    const isHidden = location.pathname.startsWith('/admin') || location.pathname.startsWith('/book');
 
     const toggleVisibility = () => {
       if (window.Tawk_API && typeof window.Tawk_API.hideWidget === 'function') {
-        if (isAdmin) {
+        if (isHidden) {
           window.Tawk_API.hideWidget();
         } else {
           window.Tawk_API.showWidget();

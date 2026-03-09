@@ -48,13 +48,11 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
     <div className={`relative w-full group ${className}`} ref={containerRef}>
       <div className="relative">
         <div onClick={toggleOpen} className={`${boxBaseStyles} ${boxActiveStyles}`} tabIndex={0}>
-          {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
           <span className={range?.from ? 'text-gray-900' : 'text-gray-500'}>
             {range?.from ? format(range.from, 'd MMM yyyy') : "Check-In"}
           </span>
           <ArrowRight size={14} className="text-gray-400 mx-1" />
           <div className="flex items-center gap-2">
-            {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
             <span className={range?.to ? 'text-gray-900' : 'text-gray-500'}>
               {range?.to ? format(range.to, 'd MMM yyyy') : "Check-Out"}
             </span>
@@ -69,7 +67,6 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
             )}
           </div>
         </div>
-        {/* SURGICAL FIX: Contrast changed from text-gray-400 to text-gray-500 */}
         <label className="absolute text-[12px] text-gray-500 duration-150 transform -translate-y-2.5 scale-75 top-3.5 z-10 origin-[0] left-4 font-medium pointer-events-none">
           Dates
         </label>
@@ -80,7 +77,11 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
           className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} left-1/2 -translate-x-1/2 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-gray-100 p-8 z-[99999] min-w-[320px] md:min-w-[620px] animate-entrance`}
         >
           <style>{`
-            /* FIXED: Holiday style added before Booked so Booked takes priority if they overlap */
+            /* SURGICAL FIX: Order matters. Weekend < Holiday < Booked */
+            .rdp-day_weekend {
+              color: #3b82f6 !important; /* Soft Blue instead of harsh amber */
+              font-weight: 900 !important;
+            }
             .rdp-day_holiday { 
               color: #8b5cf6 !important; 
               font-weight: 900 !important;
@@ -121,14 +122,16 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
                 if (!range?.from || range?.to || !hoveredDate) return false;
                 return normalizeDate(date) === normalizeDate(hoveredDate);
               },
+              weekend: { dayOfWeek: [0, 6] },
               booked: disabledDates,
-              holiday: holidayDates /* FIXED: Passed holidays into modifiers */
+              holiday: holidayDates
             }}
             modifiersClassNames={{
               hoverRange: "rdp-day_range_middle", 
               hoverEnd: "rdp-day_selected",
+              weekend: "rdp-day_weekend", 
               booked: "rdp-day_booked",
-              holiday: "rdp-day_holiday" /* FIXED: Applied the purple CSS class */
+              holiday: "rdp-day_holiday"
             }}
             components={{
               DayContent: (props) => {
@@ -144,12 +147,16 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
             }}
           />
 
-          <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-center gap-6 md:gap-10">
+          <div className="mt-8 pt-6 border-t border-gray-50 flex flex-wrap items-center justify-center gap-y-3 gap-x-5 md:gap-10">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-brand-green shadow-sm ring-4 ring-brand-green/10"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark opacity-70">Pick Dates</span>
             </div>
-            {/* FIXED: Added Public Holiday Legend */}
+            {/* SURGICAL FIX: Soft Blue Weekend Legend */}
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm ring-4 ring-blue-50"></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-blue-500">Weekend</span>
+            </div>
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm ring-4 ring-purple-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-purple-500">Holiday</span>

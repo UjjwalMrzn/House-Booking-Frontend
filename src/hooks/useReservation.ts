@@ -44,7 +44,6 @@ export const useReservation = () => {
     return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
   }, [allHolidaysData]);
 
-  // UPDATED: Replaced single 'guests' with adults and kids
   const [adults, setAdults] = useState(parseInt(searchParams.get("adults") || searchParams.get("guests") || "1"));
   const [kids, setKids] = useState(parseInt(searchParams.get("kids") || "0"));
   const guests = adults + kids;
@@ -55,9 +54,10 @@ export const useReservation = () => {
   });
 
   const [contact, setContact] = useState({ firstName: "", lastName: "", email: "", phoneNumber: "", country: "" });
-  const [pricing, setPricing] = useState({ nights: 0, rental: 0, total: 0, dueNow: 0 });
+  
+  // SURGICAL FIX: Added 'bond' to the pricing state
+  const [pricing, setPricing] = useState({ nights: 0, rental: 0, bond: 0, total: 0, dueNow: 0 });
 
-  // UPDATED: Now fetches exact price from backend API instead of multiplying on the frontend
   useEffect(() => {
     const fetchPrice = async () => {
       if (dates.checkIn && dates.checkOut && property?.id) {
@@ -76,9 +76,18 @@ export const useReservation = () => {
               kids: kids
             });
             
-            // Backend returns exact price factoring in weekends/holidays
+            // SURGICAL FIX: Extracting bond charge from the breakdown
             const exactPrice = Number(res.total_price);
-            setPricing({ nights, rental: exactPrice, total: exactPrice, dueNow: exactPrice * 0.5 });
+            const bondCharge = res.breakdown?.bond_charge ? Number(res.breakdown.bond_charge) : 0;
+            const rentalCharge = exactPrice - bondCharge; // Pure rental cost
+
+            setPricing({ 
+              nights, 
+              rental: rentalCharge, 
+              bond: bondCharge, 
+              total: exactPrice, 
+              dueNow: exactPrice * 0.5 
+            });
           } catch (error) {
             console.error("Failed to calculate price:", error);
             toast.error("Error calculating exact price for these dates.");
@@ -87,7 +96,7 @@ export const useReservation = () => {
       }
     };
     fetchPrice();
-  }, [dates, property, adults, kids, guests]); // Re-runs whenever dates or guest count changes
+  }, [dates, property, adults, kids, guests]); 
 
   const saveCustomerAndContinue = async () => {
     if (!contact.firstName || !contact.lastName || !contact.email || !contact.phoneNumber || !contact.country) {
@@ -121,8 +130,8 @@ export const useReservation = () => {
         check_out: dates.checkOut,
         customer: customerId,
         guests: guests,
-        adults: adults, // Added new field
-        kids: kids,     // Added new field
+        adults: adults, 
+        kids: kids,     
         total_price: pricing.total.toString(),
         status: 'pending'
       };

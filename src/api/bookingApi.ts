@@ -13,6 +13,12 @@ export const bookingService = {
     return response.data;
   },
 
+  // SURGICAL FIX: Added endpoint to fetch specific booking details for the Payment Modal
+  getBookingById: async (id: number | string) => {
+    const response = await api.get(`/bookings/${id}/`);
+    return response.data;
+  },
+
   // NEW: Backend Price Calculation Endpoint
   calculatePrice: async (payload: {
     property: number;

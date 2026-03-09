@@ -15,7 +15,6 @@ const FormModal: React.FC<FormModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Reusable "Click Outside to Close" logic baked right in!
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -32,8 +31,9 @@ const FormModal: React.FC<FormModalProps> = ({
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-fade-in">
-      <div ref={modalRef} className={`bg-white w-full ${maxWidth} relative rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 animate-slide-up`}>
-        <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 rounded-t-[2rem]">
+      {/* SURGICAL FIX: Added max-h and overflow-y-auto so the modal is scrollable on mobile */}
+      <div ref={modalRef} className={`bg-white w-full ${maxWidth} relative rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 animate-slide-up max-h-[90vh] overflow-y-auto`}>
+        <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 rounded-t-[2rem] sticky top-0 z-10">
           <h3 className="text-lg font-black text-brand-dark tracking-tight">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-brand-dark transition-colors">
             <X size={20} strokeWidth={3} />
