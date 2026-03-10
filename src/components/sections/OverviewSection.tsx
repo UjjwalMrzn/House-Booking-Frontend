@@ -8,7 +8,8 @@ import { Link } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const OverviewSection = () => {
-  const { data: property } = useQuery({
+  // THE FIX: Extracted isLoading here
+  const { data: property, isLoading } = useQuery({
     queryKey: ['main-property'],
     queryFn: propertyService.getMainProperty,
   });
@@ -16,8 +17,9 @@ const OverviewSection = () => {
   const propertyImages = property?.images?.filter((img: any) => !img.is_main) || [];
   
   /* SURGICAL FIX: Downsized the fallback Unsplash images from w=1000 to w=800 to save bandwidth on mobile */
-  const img1 = propertyImages[0]?.image || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop";
-  const img2 = propertyImages[1]?.image || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop";
+  // THE FIX: Set to undefined while loading so Unsplash isn't triggered early
+  const img1 = isLoading ? undefined : (propertyImages[0]?.image || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop");
+  const img2 = isLoading ? undefined : (propertyImages[1]?.image || "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop");
 
   const shortDescription = property?.overView || (property?.description 
     ? property.description.length > 200 
@@ -26,7 +28,8 @@ const OverviewSection = () => {
     : "Experience the ultimate coastal getaway. Designed for comfort and style, this elegant residence offers a private sanctuary for families, professionals, and discerning travellers.");
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const viewerImages = [img1, img2];
+  // Ensure viewer images don't contain undefined before rendering the lightbox
+  const viewerImages = [img1, img2].filter(Boolean) as string[];
 
   const showNext = useCallback(() => {
     setSelectedIndex((prev) => (prev !== null && prev < viewerImages.length - 1 ? prev + 1 : 0));
@@ -103,19 +106,29 @@ const OverviewSection = () => {
 
           <div className="relative">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
-              <div onClick={() => setSelectedIndex(0)} className="cursor-pointer group">
-                <FeatureCard 
-                  image={img1} 
-                  noZoom={true}
-                  className="md:mt-12 shadow-2xl shadow-gray-200/50"
-                />
+              <div onClick={() => img1 && setSelectedIndex(0)} className={`group ${img1 ? 'cursor-pointer' : ''}`}>
+                {/* THE FIX: Show a loading pulse skeleton if img1 is still loading */}
+                {img1 ? (
+                  <FeatureCard 
+                    image={img1} 
+                    noZoom={true}
+                    className="md:mt-12 shadow-2xl shadow-gray-200/50"
+                  />
+                ) : (
+                  <div className="md:mt-12 aspect-square bg-gray-100 rounded-[2rem] animate-pulse"></div>
+                )}
               </div>
-              <div onClick={() => setSelectedIndex(1)} className="cursor-pointer group">
-                <FeatureCard 
-                  image={img2} 
-                  noZoom={true}
-                  className="md:mb-12 shadow-2xl shadow-gray-200/50"
-                />
+              <div onClick={() => img2 && setSelectedIndex(1)} className={`group ${img2 ? 'cursor-pointer' : ''}`}>
+                {/* THE FIX: Show a loading pulse skeleton if img2 is still loading */}
+                {img2 ? (
+                  <FeatureCard 
+                    image={img2} 
+                    noZoom={true}
+                    className="md:mb-12 shadow-2xl shadow-gray-200/50"
+                  />
+                ) : (
+                  <div className="md:mb-12 aspect-square bg-gray-100 rounded-[2rem] animate-pulse"></div>
+                )}
               </div>
             </div>
             <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-brand-green/5 rounded-full blur-3xl -z-10 animate-pulse"></div>
@@ -124,7 +137,7 @@ const OverviewSection = () => {
         </div>
       </section>
 
-      {selectedIndex !== null && createPortal(
+      {selectedIndex !== null && viewerImages[selectedIndex] && createPortal(
         <div className="fixed inset-0 z-[100000] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-sm" onClick={handleClose}></div>
           <button onClick={handleClose} className="absolute top-8 right-8 z-[100001] text-white/50 hover:text-white transition-colors">

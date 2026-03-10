@@ -60,7 +60,8 @@ const Hero = () => {
     return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
   }, [allHolidaysData]);
 
-  const { data: homeImagesData } = useQuery({
+  // THE FIX: Extracted isLoading here
+  const { data: homeImagesData, isLoading: isImagesLoading } = useQuery({
     queryKey: ['home-page-images'],
     queryFn: homeService.getHomePageImages,
   });
@@ -77,27 +78,34 @@ const Hero = () => {
   const activeTitleObj = titles.find((t: any) => t.isMain) || titles[0];
   
   /* SURGICAL FIX: Shaved bandwidth by dropping Unsplash quality to 50 and max width to 1080 */
-  const heroBackgroundImage = activeImageObj?.image 
-    ? getImageUrl(activeImageObj.image) 
-    : "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=50&w=1080&auto=format&fit=crop";
+  // THE FIX: Added isImagesLoading check so it doesn't trigger Unsplash while waiting for the API
+  const heroBackgroundImage = isImagesLoading 
+    ? undefined 
+    : (activeImageObj?.image 
+      ? getImageUrl(activeImageObj.image) 
+      : "https://images.unsplash.com/photo-1523217582562-09d0def993a6?q=50&w=1080&auto=format&fit=crop");
     
   const heroTitleText = activeTitleObj?.title || "Find your sanctuary.";
 
   return (
     <>
       {/* SURGICAL FIX: Force the browser to preload the LCP hero image immediately, drastically dropping the "Render Delay" penalty in Lighthouse */}
-      <link rel="preload" as="image" href={heroBackgroundImage} />
+      {/* THE FIX: Only preload if the image is actually ready */}
+      {heroBackgroundImage && <link rel="preload" as="image" href={heroBackgroundImage} />}
       
       <div className="w-full bg-[#fafafa] pb-24 overflow-visible">
         <div className="relative max-w-[96%] mx-auto mt-4 h-[550px] md:h-[600px] rounded-[3rem] overflow-hidden group shadow-2xl">
           
           <div className="absolute inset-0 transition-transform duration-[2000ms]">
-            <img 
-              src={heroBackgroundImage} 
-              alt={heroTitleText} 
-              className="w-full h-full object-cover"
-              fetchPriority="high"
-            />
+            {/* THE FIX: Only render the img tag if heroBackgroundImage is not undefined */}
+            {heroBackgroundImage && (
+              <img 
+                src={heroBackgroundImage} 
+                alt={heroTitleText} 
+                className="w-full h-full object-cover"
+                fetchPriority="high"
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
           </div>
 
