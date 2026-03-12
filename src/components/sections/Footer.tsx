@@ -16,7 +16,7 @@ const Footer = () => {
           
           <div className="md:col-span-2 space-y-6">
             <Link to="/" className="flex items-center gap-3 w-fit group">
-              <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center text-brand-dark font-black tracking-tighter shadow-lg shadow-brand-green/20 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 bg-brand-green rounded-full flex items-center justify-center text-white font-black tracking-tighter shadow-lg shadow-brand-green/20 group-hover:scale-110 transition-transform">
                 JB
               </div>
               <span className="text-xl font-black tracking-tight text-white group-hover:text-brand-green transition-colors">
