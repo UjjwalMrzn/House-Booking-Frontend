@@ -36,6 +36,7 @@ const AdminPaymentPage = lazy(() => import('./components/pages/admin/AdminPaymen
 const AdminSettingsPage = lazy(() => import('./components/pages/admin/AdminSettingsPage'));
 const AdminHolidayPage = lazy(() => import('./components/pages/admin/AdminHolidayPage'));
 const AdminContactsPage = lazy(() => import('./components/pages/admin/AdminContactsPage'));
+const AdminCustomersPage = lazy(() => import('./components/pages/admin/AdminCustomersPage'));
 
 // ==========================================
 // STATIC COMPONENTS (Load instantly)
@@ -119,6 +120,7 @@ function App() {
                 <Route path="holidays" element={<AdminHolidayPage />} />
                 <Route path="contacts" element={<AdminContactsPage />} /> 
                 <Route path="settings" element={<AdminSettingsPage />} />
+                <Route path="customers" element={<AdminCustomersPage />} />
               </Route>
             </Route>
             

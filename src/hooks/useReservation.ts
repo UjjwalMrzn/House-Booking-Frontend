@@ -105,7 +105,10 @@ export const useReservation = () => {
     }
     setIsSubmitting(true);
     try {
-      const response = await customerService.createCustomer(contact);
+      const response = await customerService.createCustomer({
+        ...contact,
+        action: "booking"
+      });
       setCustomerId(response.data.id);
       toast.success("Contact details saved!");
       setCurrentStep(2);

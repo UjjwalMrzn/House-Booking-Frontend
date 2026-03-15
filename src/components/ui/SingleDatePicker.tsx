@@ -27,7 +27,8 @@ const SingleDatePicker = ({ label, value, onChange }: SingleDatePickerProps) => 
   }, []);
 
   return (
-    <div className="relative w-full group" ref={containerRef}>
+    /* SURGICAL FIX: Added z-[9999] when open so it overlays neighboring inputs perfectly */
+    <div className={`relative w-full group ${isOpen ? 'z-[9999]' : 'z-10'}`} ref={containerRef}>
       <div className="relative">
         <div 
           onClick={() => setIsOpen(!isOpen)} 
@@ -44,26 +45,35 @@ const SingleDatePicker = ({ label, value, onChange }: SingleDatePickerProps) => 
       </div>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+8px)] left-0 bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] rounded-2xl border border-gray-100 p-4 z-[99999] animate-entrance origin-top">
+        <>
+          {/* SURGICAL FIX: This temporarily drops the FormModal's clipping wall ONLY while the calendar is open */}
           <style>{`
-            .rdp-day_selected, .rdp-day_selected:focus-visible, .rdp-day_selected:hover {
-              background-color: var(--color-brand-green) !important;
-              color: white !important;
-              font-weight: 900 !important;
-              border-radius: 50% !important;
+            .admin-modal-overlay .custom-scrollbar {
+              overflow: visible !important;
             }
           `}</style>
-          <DayPicker
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => {
-              if (date) {
-                onChange(format(date, 'yyyy-MM-dd'));
-                setIsOpen(false);
+          
+          <div className="absolute top-[calc(100%+8px)] left-0 bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] rounded-2xl border border-gray-100 p-4 z-[120] animate-entrance origin-top">
+            <style>{`
+              .rdp-day_selected, .rdp-day_selected:focus-visible, .rdp-day_selected:hover {
+                background-color: var(--color-brand-green) !important;
+                color: white !important;
+                font-weight: 900 !important;
+                border-radius: 50% !important;
               }
-            }}
-          />
-        </div>
+            `}</style>
+            <DayPicker
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => {
+                if (date) {
+                  onChange(format(date, 'yyyy-MM-dd'));
+                  setIsOpen(false);
+                }
+              }}
+            />
+          </div>
+        </>
       )}
     </div>
   );

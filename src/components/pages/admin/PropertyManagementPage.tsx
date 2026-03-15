@@ -7,6 +7,7 @@ import { Skeleton } from '../../ui/Skeleton';
 import { Link } from 'react-router-dom';
 import Modal from '../../ui/Modal';
 import TableToolbar from '../../ui/TableToolbar';
+import AdminPageContainer from '../../layouts/AdminPageContainer';
 
 const PropertyManagementPage = () => {
   const queryClient = useQueryClient();
@@ -55,27 +56,22 @@ const PropertyManagementPage = () => {
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto w-full animate-fade-in pb-10">
-      
-      {/* SURGICAL FIX: Responsive Header Stacking */}
-      <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-6 px-2">
-        <div>
-          <h1 className="text-3xl font-black text-brand-dark tracking-tight mb-1 flex items-center gap-3">
-            <Home className="text-brand-green" size={32} />
-            Properties
-            <span className="hidden sm:inline-block ml-2 mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
+    <>
+      <AdminPageContainer
+        title="Properties"
+        subtitle="Manage your listings, pricing, and details."
+        icon={<Home size={32} />}
+        headerAction={
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-block text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
               {totalCount} Total
             </span>
-          </h1>
-          <p className="text-sm font-bold text-gray-400 mt-1">Manage your listings, pricing, and details.</p>
-        </div>
-        <Link to="/admin/properties/new" className="w-full md:w-auto bg-brand-green text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 hover:shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] transition-all">
-          <Plus size={16} strokeWidth={3} /> Add New Property
-        </Link>
-      </div>
-
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
-        
+            <Link to="/admin/properties/new" className="w-full md:w-auto bg-brand-green text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-emerald-600 hover:shadow-[0_8px_15px_-5px_rgba(74,222,128,0.4)] transition-all">
+              <Plus size={16} strokeWidth={3} /> Add New Property
+            </Link>
+          </div>
+        }
+      >
         <TableToolbar 
           searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchPlaceholder="Search properties..."
           page={page} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} hasNextPage={!!paginatedData?.next}
@@ -94,7 +90,6 @@ const PropertyManagementPage = () => {
               <h4 className="text-base font-black text-brand-dark mb-1 tracking-tight">No properties found</h4>
             </div>
           ) : (
-            /* SURGICAL FIX: Horizontal scroll container for mobile stability */
             <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full text-left border-separate border-spacing-y-2 min-w-[700px] md:min-w-[850px]">
                 <thead>
@@ -161,14 +156,14 @@ const PropertyManagementPage = () => {
             </div>
           )}
         </div>
-      </div>
+      </AdminPageContainer>
 
       <Modal 
         isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
         onConfirm={() => { if (deleteModal.id) deleteMutation.mutate(deleteModal.id); setDeleteModal({ ...deleteModal, isOpen: false }); }}
         title="Delete Property" message={`Are you sure you want to delete "${deleteModal.title}"?`} confirmText="Delete Now" variant="danger" loading={deleteMutation.isPending}
       />
-    </div>
+    </>
   );
 };
 

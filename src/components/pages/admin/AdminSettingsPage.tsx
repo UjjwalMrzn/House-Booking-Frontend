@@ -3,6 +3,7 @@ import { Settings, Save, Target, ShieldCheck } from 'lucide-react';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import { useToast } from '../../ui/Toaster';
+import AdminPageContainer from '../../layouts/AdminPageContainer';
 
 const AdminSettingsPage = () => {
   const toast = useToast();
@@ -19,17 +20,13 @@ const AdminSettingsPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full animate-fade-in pb-10 px-4 md:px-0">
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-black text-brand-dark tracking-tight flex items-center gap-3">
-          <Settings className="text-brand-green" size={32} />
-          Platform Settings
-        </h1>
-        <p className="text-sm font-bold text-gray-400 mt-1">Manage global configurations and business targets.</p>
-      </div>
-
+    <AdminPageContainer
+      title="Platform Settings"
+      subtitle="Manage global configurations and business targets."
+      icon={<Settings size={32} />}
+    >
       {/* SURGICAL FIX: Responsive inner padding */}
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] p-5 md:p-8 space-y-8">
+      <div className="p-5 md:p-8 space-y-8">
         <section className="space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
             <Target className="text-brand-green" size={20} />
@@ -70,7 +67,7 @@ const AdminSettingsPage = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </AdminPageContainer>
   );
 };
 

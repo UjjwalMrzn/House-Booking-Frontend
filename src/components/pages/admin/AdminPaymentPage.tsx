@@ -6,6 +6,7 @@ import { propertyService } from '../../../api/propertyService';
 import { CreditCard, Eye, ArrowUpDown, ChevronUp, ChevronDown, User, Users, MapPin, Calendar, DollarSign, Hash, Mail, Phone, Activity } from 'lucide-react';
 import FormModal from '../../ui/FormModal';
 import TableToolbar from '../../ui/TableToolbar';
+import AdminPageContainer from '../../layouts/AdminPageContainer';
 
 type SortConfig = { key: string; direction: 'asc' | 'desc' } | null;
 
@@ -89,27 +90,22 @@ const AdminPaymentPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full animate-fade-in pb-10 px-2 md:px-0">
-      <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-brand-dark tracking-tight mb-1 flex items-center gap-3">
-            <CreditCard className="text-brand-green" size={32} />
-            Payments
-            <span className="hidden xs:inline-block ml-2 mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
-              {totalCount} Total
-            </span>
-          </h1>
-          <p className="text-sm font-bold text-gray-400 mt-1">Track PayPal transactions and revenue.</p>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+    <>
+      <AdminPageContainer
+        title="Payments"
+        subtitle="Track PayPal transactions and revenue."
+        icon={<CreditCard size={32} />}
+        headerAction={
+          <span className="hidden xs:inline-block text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
+            {totalCount} Total
+          </span>
+        }
+      >
         <TableToolbar 
           searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchPlaceholder="Search Order ID, Booking ID..."
           page={page} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} hasNextPage={!!paymentsData?.next}
         />
 
-        {/* SURGICAL FIX: Restored use of isLoading to resolve TS Error 6133 */}
         {isLoading ? (
           <div className="py-16 text-center text-sm font-bold text-gray-400">Loading payments...</div>
         ) : processedPayments.length === 0 ? (
@@ -120,13 +116,13 @@ const AdminPaymentPage = () => {
             <p className="text-sm font-bold text-gray-400">No payment records found.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto scrollbar-hide rounded-b-[2rem]">
+          <div className="overflow-x-auto scrollbar-hide rounded-b-[2.5rem]">
             <table className="w-full text-left border-separate border-spacing-y-2 min-w-full lg:min-w-[950px] px-2 md:px-4">
               <thead>
                 <tr>
                   <th className="hidden md:table-cell py-2 px-4"><button onClick={() => handleSort('paypalOrderId')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Order ID {renderSortIcon('paypalOrderId')}</button></th>
                   <th className="py-2 px-4"><button onClick={() => handleSort('booking')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Booking ID {renderSortIcon('booking')}</button></th>
-                  <th className="py-2 px-4"><button onClick={() => handleSort('name')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Guest {renderSortIcon('name')}</button></th>
+                  <th className="py-2 px-4"><button onClick={() => handleSort('name')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Customer {renderSortIcon('name')}</button></th>
                   <th className="py-2 px-4"><button onClick={() => handleSort('property_title')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Property {renderSortIcon('property_title')}</button></th>
                   <th className="hidden sm:table-cell py-2 px-4"><button onClick={() => handleSort('createdAt')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Date {renderSortIcon('createdAt')}</button></th>
                   <th className="py-2 px-4"><button onClick={() => handleSort('status')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Status {renderSortIcon('status')}</button></th>
@@ -140,7 +136,11 @@ const AdminPaymentPage = () => {
                     <td className="hidden md:table-cell py-4 px-4 rounded-l-2xl"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit truncate max-w-[120px]">{payment.paypalOrderId}</div></td>
                     <td className="py-4 px-4 whitespace-nowrap md:rounded-none rounded-l-2xl"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{payment.booking}</div></td>
                     <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="font-black text-brand-dark text-sm truncate max-w-[120px] md:max-w-[150px]">{payment.name || 'Guest'}</div>
+                      <div className="font-black text-brand-dark text-sm truncate max-w-[120px] md:max-w-[150px]">
+                        {payment.name || 'Unknown Customer'}
+                        {/* If you wanted to fetch customer ID here, it would require pre-fetching, 
+                            but we can just show the email cleanly underneath instead */}
+                      </div>
                       <div className="text-[10px] md:text-[11px] font-medium text-gray-500 truncate max-w-[120px] md:max-w-[150px] mt-0.5">{payment.email}</div>
                     </td>
                     <td className="py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm truncate max-w-[120px] md:max-w-[150px]">{payment.property_title || `Prop ID: ${payment.property}`}</div></td>
@@ -154,13 +154,12 @@ const AdminPaymentPage = () => {
             </table>
           </div>
         )}
-      </div>
+      </AdminPageContainer>
 
-      <FormModal isOpen={viewModal.isOpen} onClose={() => setViewModal({ isOpen: false, payment: null })} title="Transaction Details" maxWidth="max-w-2xl">
+      <FormModal isOpen={viewModal.isOpen} onClose={() => setViewModal({ isOpen: false, payment: null })} title="Transaction Details">
         <div className="max-h-[80vh] overflow-y-auto pr-2 scrollbar-hide">
           {viewModal.payment && (
             <div className="space-y-6">
-              {/* SURGICAL FIX: Header stacked for mobile and added break-all */}
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">PAYPAL ORDER ID</p>
@@ -177,7 +176,7 @@ const AdminPaymentPage = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                  <div className="flex items-center gap-2 mb-2 text-gray-400"><User size={14} /><p className="text-[10px] font-black uppercase tracking-widest">Guest Name</p></div>
+                  <div className="flex items-center gap-2 mb-2 text-gray-400"><User size={14} /><p className="text-[10px] font-black uppercase tracking-widest">Customer Name</p></div>
                   <p className="text-sm font-bold text-brand-dark truncate">{viewModal.payment.name || customerData?.firstName || (isCustomerLoading ? 'Loading...' : 'N/A')}</p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
@@ -190,7 +189,6 @@ const AdminPaymentPage = () => {
                 </div>
               </div>
 
-              {/* SURGICAL FIX: Green bar stacked for mobile and restored icons */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center border border-brand-green/20 bg-brand-green/5 rounded-xl gap-6 p-4">
                 <div className="flex-1 w-full">
                   <div className="flex items-center gap-2 mb-1 text-brand-green"><Calendar size={14} /><p className="text-[10px] font-black uppercase tracking-widest">Check-In</p></div>
@@ -221,7 +219,7 @@ const AdminPaymentPage = () => {
           )}
         </div>
       </FormModal>
-    </div>
+    </>
   );
 };
 

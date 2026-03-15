@@ -7,7 +7,8 @@ import Input from '../../ui/Input';
 import Modal from '../../ui/Modal';
 import FormModal from '../../ui/FormModal'; 
 import DynamicIcon from '../../ui/DynamicIcon';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, ListChecks } from 'lucide-react';
+import AdminPageContainer from '../../layouts/AdminPageContainer';
 
 const ICON_LIBRARY = [
   'Wifi', 'Tv', 'Monitor', 'Speaker', 'Gamepad', 'Radio', 'Phone', 'Laptop', 'Plug', 'Battery', 'Video', 'Music', 'Projector', 'Cable',
@@ -64,27 +65,23 @@ const AmenitiesManagementPage = () => {
   if (isLoading) return <div className="p-10 text-center text-gray-400 font-bold">Loading amenities...</div>;
 
   return (
-    <div className="max-w-5xl mx-auto w-full animate-fade-in pb-10 px-2">
-      
-      {/* SURGICAL FIX: Responsive Header Stacking */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6">
-        <div>
-          <h1 className="text-3xl font-black text-brand-dark tracking-tight">Master Amenities</h1>
-          <p className="text-sm font-bold text-gray-400 mt-1">Manage the global list of property features.</p>
-        </div>
-        <Button 
-          onClick={() => {
-            setFormModal({ isOpen: true, isEdit: false, id: '', name: '', icon: 'ListChecks' });
-            setIconSearch('');
-          }}
-          className="w-full sm:w-auto px-6 py-3 flex items-center justify-center gap-2 shadow-md"
-        >
-          <Plus size={16} strokeWidth={3} /> Create Amenity
-        </Button>
-      </div>
-
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
-        {/* SURGICAL FIX: Responsive grid padding */}
+    <>
+      <AdminPageContainer
+        title="Master Amenities"
+        subtitle="Manage the global list of property features."
+        icon={<ListChecks size={32} />}
+        headerAction={
+          <Button 
+            onClick={() => {
+              setFormModal({ isOpen: true, isEdit: false, id: '', name: '', icon: 'ListChecks' });
+              setIconSearch('');
+            }}
+            className="w-full sm:w-auto px-6 py-3 flex items-center justify-center gap-2 shadow-md"
+          >
+            <Plus size={16} strokeWidth={3} /> Create Amenity
+          </Button>
+        }
+      >
         <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {amenities.map((amenity: any) => (
             <div key={amenity.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-brand-green/30 transition-all group shadow-sm bg-gray-50/50">
@@ -97,7 +94,6 @@ const AmenitiesManagementPage = () => {
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">ID: {amenity.id}</p>
                 </div>
               </div>
-              {/* SURGICAL FIX: Always visible on mobile, hover-only on desktop */}
               <div className="flex gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                 <button 
                   onClick={() => {
@@ -118,7 +114,7 @@ const AmenitiesManagementPage = () => {
             </div>
           ))}
         </div>
-      </div>
+      </AdminPageContainer>
 
       <FormModal
         isOpen={formModal.isOpen}
@@ -151,7 +147,6 @@ const AmenitiesManagementPage = () => {
             />
           </div>
           
-          {/* SURGICAL FIX: Better mobile icon grid (grid-cols-4) */}
           <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-48 overflow-y-auto p-1 pr-2 custom-scrollbar bg-white rounded-lg border border-gray-100">
             {filteredIcons.length > 0 ? (
               filteredIcons.map((iconName) => (
@@ -194,7 +189,7 @@ const AmenitiesManagementPage = () => {
         variant="danger"
         loading={deleteMutation.isPending}
       />
-    </div>
+    </>
   );
 };
 

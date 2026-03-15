@@ -51,7 +51,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
   };
 
   return (
-    <div className="space-y-2 w-full relative" ref={dropdownRef}>
+    /* SURGICAL FIX: Added z-[9999] when open so it overlays neighboring inputs perfectly */
+    <div className={`space-y-2 w-full relative ${isOpen ? 'z-[9999]' : 'z-10'}`} ref={dropdownRef}>
       {label && (
         <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400">
           {label} {required && <span className="text-red-500">*</span>}
@@ -77,87 +78,95 @@ const TimePicker: React.FC<TimePickerProps> = ({ label, value, onChange, require
       </button>
 
       {isOpen && (
-        /* SURGICAL FIX: Reduced width to 240px to ensure it perfectly fits inside standard mobile viewports */
-        <div className="absolute z-[120] top-full left-1/2 -translate-x-1/2 w-[240px] mt-2 bg-white border border-gray-100 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden animate-fade-in origin-top">
-          
-          <div className="flex p-1.5 bg-gray-50/80 border-b border-gray-100">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); updateTime(currentHourStr, currentMinute, 'AM'); }}
-              className={`flex-1 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                currentPeriod === 'AM' 
-                  ? 'bg-white text-brand-dark shadow-sm ring-1 ring-gray-200/50' 
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              AM
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); updateTime(currentHourStr, currentMinute, 'PM'); }}
-              className={`flex-1 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                currentPeriod === 'PM' 
-                  ? 'bg-white text-brand-dark shadow-sm ring-1 ring-gray-200/50' 
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              PM
-            </button>
-          </div>
+        <>
+          {/* SURGICAL FIX: This temporarily drops the FormModal's clipping wall ONLY while the dropdown is open */}
+          <style>{`
+            .admin-modal-overlay .custom-scrollbar {
+              overflow: visible !important;
+            }
+          `}</style>
 
-          <div className="flex p-2 gap-2">
-            <div className="flex-1">
-              <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center mb-1.5">Hour</div>
-              <div className="grid grid-cols-3 gap-1">
-                {HOURS.map((h) => {
-                  const isSelected = value && currentHourStr === h;
-                  return (
-                    <button
-                      key={`h-${h}`}
-                      type="button"
-                      onClick={() => updateTime(h, currentMinute, currentPeriod)}
-                      className={`py-1.5 rounded-lg text-[11px] transition-all ${
-                        isSelected
-                          ? 'bg-brand-green text-white font-black shadow-md shadow-brand-green/30 scale-105'
-                          : 'bg-gray-50 border border-transparent text-gray-600 font-bold hover:bg-brand-green/10 hover:text-brand-green'
-                      }`}
-                    >
-                      {h}
-                    </button>
-                  );
-                })}
-              </div>
+          <div className="absolute z-[120] top-full left-1/2 -translate-x-1/2 w-[240px] mt-2 bg-white border border-gray-100 rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden animate-fade-in origin-top">
+            
+            <div className="flex p-1.5 bg-gray-50/80 border-b border-gray-100">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); updateTime(currentHourStr, currentMinute, 'AM'); }}
+                className={`flex-1 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                  currentPeriod === 'AM' 
+                    ? 'bg-white text-brand-dark shadow-sm ring-1 ring-gray-200/50' 
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                AM
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); updateTime(currentHourStr, currentMinute, 'PM'); }}
+                className={`flex-1 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                  currentPeriod === 'PM' 
+                    ? 'bg-white text-brand-dark shadow-sm ring-1 ring-gray-200/50' 
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                PM
+              </button>
             </div>
 
-            <div className="w-px bg-gray-100 rounded-full"></div>
+            <div className="flex p-2 gap-2">
+              <div className="flex-1">
+                <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center mb-1.5">Hour</div>
+                <div className="grid grid-cols-3 gap-1">
+                  {HOURS.map((h) => {
+                    const isSelected = value && currentHourStr === h;
+                    return (
+                      <button
+                        key={`h-${h}`}
+                        type="button"
+                        onClick={() => updateTime(h, currentMinute, currentPeriod)}
+                        className={`py-1.5 rounded-lg text-[11px] transition-all ${
+                          isSelected
+                            ? 'bg-brand-green text-white font-black shadow-md shadow-brand-green/30 scale-105'
+                            : 'bg-gray-50 border border-transparent text-gray-600 font-bold hover:bg-brand-green/10 hover:text-brand-green'
+                        }`}
+                      >
+                        {h}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-            <div className="flex-1">
-              <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center mb-1.5">Minute</div>
-              <div className="grid grid-cols-3 gap-1">
-                {MINUTES.map((m) => {
-                  const isSelected = value && currentMinute === m;
-                  return (
-                    <button
-                      key={`m-${m}`}
-                      type="button"
-                      onClick={() => {
-                        updateTime(currentHourStr, m, currentPeriod);
-                        setIsOpen(false); 
-                      }}
-                      className={`py-1.5 rounded-lg text-[11px] transition-all ${
-                        isSelected
-                          ? 'bg-brand-green text-white font-black shadow-md shadow-brand-green/30 scale-105'
-                          : 'bg-gray-50 border border-transparent text-gray-600 font-bold hover:bg-brand-green/10 hover:text-brand-green'
-                      }`}
-                    >
-                      :{m}
-                    </button>
-                  );
-                })}
+              <div className="w-px bg-gray-100 rounded-full"></div>
+
+              <div className="flex-1">
+                <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest text-center mb-1.5">Minute</div>
+                <div className="grid grid-cols-3 gap-1">
+                  {MINUTES.map((m) => {
+                    const isSelected = value && currentMinute === m;
+                    return (
+                      <button
+                        key={`m-${m}`}
+                        type="button"
+                        onClick={() => {
+                          updateTime(currentHourStr, m, currentPeriod);
+                          setIsOpen(false); 
+                        }}
+                        className={`py-1.5 rounded-lg text-[11px] transition-all ${
+                          isSelected
+                            ? 'bg-brand-green text-white font-black shadow-md shadow-brand-green/30 scale-105'
+                            : 'bg-gray-50 border border-transparent text-gray-600 font-bold hover:bg-brand-green/10 hover:text-brand-green'
+                        }`}
+                      >
+                        :{m}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

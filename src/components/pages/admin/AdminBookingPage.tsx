@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-// SURGICAL FIX 1: Restored correct @tanstack/react-query import
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { propertyService } from "../../../api/propertyService";
 import { bookingService } from "../../../api/bookingApi";
@@ -22,6 +21,7 @@ import {
 import Modal from "../../ui/Modal";
 import FormModal from "../../ui/FormModal";
 import TableToolbar from "../../ui/TableToolbar";
+import AdminPageContainer from "../../layouts/AdminPageContainer";
 
 type SortConfig = { key: string; direction: "asc" | "desc" } | null;
 
@@ -75,7 +75,6 @@ const AdminBookingsPage = () => {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) =>
       propertyService.updateBookingStatus(id, status as any),
-    // SURGICAL FIX 2: Added explicit types to satisfy strict TypeScript (TS7006)
     onSuccess: (_: any, variables: { id: number; status: string }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
       toast.success(`Booking marked as ${variables.status}.`);
@@ -100,7 +99,8 @@ const AdminBookingsPage = () => {
         (b: any) =>
           b.customer_name?.toLowerCase().includes(lowerSearch) ||
           b.property_title?.toLowerCase().includes(lowerSearch) ||
-          String(b.id).includes(lowerSearch),
+          String(b.id).includes(lowerSearch) ||
+          String(b.customer).includes(lowerSearch)
       );
     }
     if (sortConfig !== null) {
@@ -150,21 +150,19 @@ const AdminBookingsPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full animate-fade-in pb-10 px-2 md:px-0">
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-black text-brand-dark tracking-tight flex items-center gap-3">
-          <CalendarCheck className="text-brand-green" size={32} />
-          Bookings
-          <span className="hidden xs:inline-block ml-2 mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
+    <>
+      <AdminPageContainer
+        title="Bookings"
+        subtitle="Manage guest reservations and statuses."
+        icon={<CalendarCheck size={32} />}
+        headerAction={
+          <span className="hidden xs:inline-block text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
             {totalCount} Total
           </span>
-        </h1>
-        <p className="text-sm font-bold text-gray-400 mt-1">Manage guest reservations and statuses.</p>
-      </div>
-
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+        }
+      >
         <TableToolbar
-          searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchPlaceholder="Search guest or ID..."
+          searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchPlaceholder="Search customer or ID..."
           filterOptions={STATUS_OPTIONS} activeFilter={statusFilter} setActiveFilter={setStatusFilter}
           page={page} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} hasNextPage={!!paginatedData?.next}
         />
@@ -173,9 +171,9 @@ const AdminBookingsPage = () => {
           <table className="w-full text-left border-separate border-spacing-y-2 min-w-full lg:min-w-[950px] px-2 md:px-4">
             <thead>
               <tr>
-                <th className="py-2 px-4"><button onClick={() => handleSort("id")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">ID {renderSortIcon("id")}</button></th>
+                <th className="py-2 px-4"><button onClick={() => handleSort("id")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Booking ID {renderSortIcon("id")}</button></th>
                 <th className="hidden lg:table-cell py-2 px-4"><button onClick={() => handleSort("createdAt")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Booked At {renderSortIcon("createdAt")}</button></th>
-                <th className="py-2 px-4"><button onClick={() => handleSort("customer_name")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Guest {renderSortIcon("customer_name")}</button></th>
+                <th className="py-2 px-4"><button onClick={() => handleSort("customer_name")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Customer {renderSortIcon("customer_name")}</button></th>
                 <th className="py-2 px-4"><button onClick={() => handleSort("property_title")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Property {renderSortIcon("property_title")}</button></th>
                 <th className="hidden sm:table-cell py-2 px-4"><button onClick={() => handleSort("guests")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Guests {renderSortIcon("guests")}</button></th>
                 <th className="hidden md:table-cell py-2 px-4"><button onClick={() => handleSort("check_in")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Dates {renderSortIcon("check_in")}</button></th>
@@ -195,7 +193,10 @@ const AdminBookingsPage = () => {
                     <td className="py-4 px-4 rounded-l-2xl whitespace-nowrap"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{booking.id}</div></td>
                     <td className="hidden lg:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'N/A'}</div></td>
                     <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="font-black text-brand-dark text-sm truncate max-w-[120px]">{booking.customer_name || "Guest User"}</div>
+                      <div className="font-black text-brand-dark text-sm truncate max-w-[150px]">
+                        {booking.customer_name || "Unknown Customer"}
+                        {booking.customer && <span className="text-[11px] font-bold text-brand-green ml-1.5">• ID #{booking.customer}</span>}
+                      </div>
                       <div className="md:hidden text-[10px] font-bold text-brand-green mt-0.5">In: {booking.check_in}</div>
                     </td>
                     <td className="py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm truncate max-w-[120px] md:max-w-full">{booking.property_title || `Prop #${booking.property}`}</div></td>
@@ -220,11 +221,12 @@ const AdminBookingsPage = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </AdminPageContainer>
       
       <Modal isOpen={actionModal.isOpen} onClose={() => setActionModal({ isOpen: false, type: "confirm", bookingId: null })} onConfirm={() => { if (actionModal.bookingId) statusMutation.mutate({ id: actionModal.bookingId, status: actionModal.type === "confirm" ? "confirmed" : "cancelled" }); }} title={actionModal.type === "confirm" ? "Confirm Booking" : "Cancel Booking"} message={actionModal.type === "confirm" ? "Are you sure you want to confirm this booking?" : "Are you sure you want to cancel this booking?"} confirmText={actionModal.type === "confirm" ? "Yes, Confirm" : "Yes, Cancel"} variant={actionModal.type === "confirm" ? "primary" : "danger"} loading={statusMutation.isPending} />
 
-      <FormModal isOpen={viewModal.isOpen} onClose={() => setViewModal({ isOpen: false, booking: null })} title="Booking Details" maxWidth="max-w-2xl">
+      {/* FIXED: Removed maxWidth prop */}
+      <FormModal isOpen={viewModal.isOpen} onClose={() => setViewModal({ isOpen: false, booking: null })} title="Booking Details">
         <div className="max-h-[80vh] overflow-y-auto pr-2 scrollbar-hide">
           {viewModal.booking && (
             <div className="space-y-6">
@@ -234,7 +236,7 @@ const AdminBookingsPage = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                  <div className="flex items-center gap-2 mb-2 text-gray-400"><User size={14} /><p className="text-[10px] font-black uppercase tracking-widest">Guest Name</p></div>
+                  <div className="flex items-center gap-2 mb-2 text-gray-400"><User size={14} /><p className="text-[10px] font-black uppercase tracking-widest">Customer Name</p></div>
                   <p className="text-sm font-bold text-brand-dark truncate">{viewModal.booking.customer_name || `User ID: ${viewModal.booking.customer}`}</p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
@@ -252,7 +254,6 @@ const AdminBookingsPage = () => {
                   <div><p className="text-[10px] font-black uppercase tracking-widest text-brand-green">Check-in</p><p className="text-sm font-black text-brand-dark">{viewModal.booking.check_in}</p></div>
                 </div>
                 <div className="hidden sm:block w-px h-8 bg-brand-green/20"></div>
-                {/* MODIFICATION: Restored icon and flex wrapper for Check-out */}
                 <div className="flex items-center gap-3">
                   <Calendar size={20} className="text-brand-green" />
                   <div><p className="text-[10px] font-black uppercase tracking-widest text-brand-green">Check-out</p><p className="text-sm font-black text-brand-dark">{viewModal.booking.check_out}</p></div>
@@ -286,7 +287,7 @@ const AdminBookingsPage = () => {
           )}
         </div>
       </FormModal>
-    </div>
+    </>
   );
 };
 

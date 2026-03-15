@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from 'react'; // Added useMemo
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { homeService } from '../../../api/homeService';
-// SURGICAL FIX: Purged unused imports to clear TS6133 errors
-import { Trash2, Star, UploadCloud, Save, Edit2 } from 'lucide-react'; 
+import { Trash2, Star, UploadCloud, Save, Edit2, Image as ImageIcon } from 'lucide-react'; 
 import Button from '../../ui/Button';
 import { useToast } from '../../ui/Toaster';
 
@@ -23,7 +22,6 @@ const AdminHomeSection = () => {
     queryFn: homeService.getTitles,
   });
 
-  // SURGICAL FIX: Stable sort by ID ensures images don't jump when toggling Active status
   const heroImages = useMemo(() => {
     const list = [...((heroImagesData as any[]) || [])];
     return list.sort((a, b) => Number(a.id) - Number(b.id));
@@ -105,12 +103,12 @@ const AdminHomeSection = () => {
   if (isLoading) return <div className="p-20 text-center text-gray-400 font-bold animate-pulse">Loading Hero Data...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto pb-20 animate-fade-in w-full relative px-2">
+    <div className="max-w-7xl mx-auto pb-20 animate-fade-in w-full relative px-2 md:px-0">
       
       {/* 1. LIVE HERO PREVIEW */}
-      <div className="relative w-full h-[400px] md:h-[550px] rounded-[2.5rem] md:rounded-[3rem] overflow-hidden group shadow-2xl bg-gray-900 border border-gray-100">
+      <div className="relative w-full h-[400px] md:h-[550px] rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-gray-900 border border-gray-100">
         <div 
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-[2000ms] lg:group-hover:scale-105"
+          className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url('${previewImage}')` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -127,19 +125,18 @@ const AdminHomeSection = () => {
         </div>
       </div>
 
-      {/* 2. TEXT EDITOR (RE-ENGINEERED FOR WRAPPING) */}
+      {/* 2. TEXT EDITOR */}
       <div className="relative -mt-12 md:-mt-16 z-[50] flex justify-center px-4 md:px-6 mb-16">
         <div className="bg-white rounded-[2rem] shadow-xl p-3 flex flex-col md:flex-row items-center w-full max-w-4xl border border-gray-100 gap-3">
           
           <div className="flex-1 w-full relative">
-            {/* SURGICAL FIX: Converted to textarea with line-wrapping and limit */}
-            <textarea
+            <input
+              type="text"
               value={draftTitle}
               onChange={(e: any) => setDraftTitle(e.target.value)}
               disabled={!isEditingText}
               maxLength={60}
-              rows={2}
-              className={`peer block w-full px-4 pt-7 pb-2 text-base md:text-lg font-black bg-white border-none rounded-2xl appearance-none transition-all outline-none focus:ring-0 resize-none leading-tight ${
+              className={`peer block w-full px-4 pt-7 pb-3 text-base md:text-lg font-black bg-white border-none rounded-2xl appearance-none transition-all outline-none focus:ring-0 ${
                 isEditingText ? 'bg-gray-50/50 cursor-text' : 'bg-transparent text-gray-500 cursor-default'
               }`}
               placeholder=" "
@@ -148,7 +145,7 @@ const AdminHomeSection = () => {
               Hero Overlay Text
             </label>
             {isEditingText && (
-              <div className="absolute top-1 right-2 text-[8px] font-bold text-gray-300 uppercase tracking-widest">
+              <div className="absolute top-4 right-4 text-[9px] font-bold text-gray-300 uppercase tracking-widest">
                 {draftTitle.length} / 60
               </div>
             )}
@@ -182,68 +179,74 @@ const AdminHomeSection = () => {
       </div>
 
       {/* 3. IMAGE GALLERY */}
-      <div className="px-4 md:px-6">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-black text-brand-dark tracking-tight">Image Gallery</h2>
-            <p className="text-sm font-normal text-gray-400 mt-1">Upload images to set the active hero background.</p>
-          </div>
-          <span className="w-fit text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
-            {heroImages.length} Images
-          </span>
+      <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-end gap-4 px-2 md:px-0">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black text-brand-dark tracking-tight flex items-center gap-3">
+            <ImageIcon className="text-brand-green" size={32} />
+            Image Gallery
+          </h2>
+          <p className="text-sm font-bold text-gray-400 mt-1">Upload images to set the active hero background.</p>
         </div>
+        <span className="w-fit text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+          {heroImages.length} Images
+        </span>
+      </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          
-          <label className="relative flex flex-col items-center justify-center w-full aspect-video rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-brand-green/5 hover:border-brand-green transition-all cursor-pointer group shadow-sm">
-            {uploadImageMutation.isPending ? (
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-brand-green rounded-full animate-spin"></div>
-            ) : (
-              <>
-                <UploadCloud size={24} className="mb-2 text-gray-400 group-hover:text-brand-green transition-colors" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 group-hover:text-brand-green transition-colors">Upload</span>
-              </>
-            )}
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploadImageMutation.isPending} />
-          </label>
-
-          {heroImages.map((img: any) => (
-            <div key={img.id} className={`relative aspect-video rounded-2xl overflow-hidden group shadow-sm transition-all border-2 ${img.is_main ? 'border-brand-green ring-4 ring-brand-green/10' : 'border-gray-100'}`}>
-              <img src={img.image} alt="Hero Banner" className="w-full h-full object-cover transition-transform duration-700 lg:group-hover:scale-105" />
-              
-              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/20 pointer-events-none"></div>
-
-              {!img.is_main && (
-                <div className="absolute top-2 right-2 z-10">
-                  <button 
-                    onClick={() => deleteImageMutation.mutate(img.id)}
-                    className="w-7 h-7 bg-red-500/80 backdrop-blur-md text-white rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 lg:opacity-0 lg:group-hover:opacity-100"
-                    title="Delete Image"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
+      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="p-6 md:p-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            
+            <label className="relative flex flex-col items-center justify-center w-full aspect-video rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-brand-green/5 hover:border-brand-green transition-all cursor-pointer group shadow-sm">
+              {uploadImageMutation.isPending ? (
+                <div className="w-8 h-8 border-4 border-gray-200 border-t-brand-green rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <UploadCloud size={24} className="mb-2 text-gray-400 group-hover:text-brand-green transition-colors" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 group-hover:text-brand-green transition-colors">Upload</span>
+                </>
               )}
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploadImageMutation.isPending} />
+            </label>
 
-              <div className="absolute top-2 left-2 z-10">
-                {img.is_main ? (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-brand-green/90 backdrop-blur-md text-white rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">
-                    <Star size={8} fill="currentColor" /> Active
+            {heroImages.map((img: any) => (
+              <div key={img.id} className={`relative aspect-video rounded-2xl overflow-hidden group shadow-sm transition-all border-2 ${img.is_main ? 'border-brand-green ring-4 ring-brand-green/10' : 'border-gray-100'}`}>
+                <img src={img.image} alt="Hero Banner" className="w-full h-full object-cover transition-transform duration-700 lg:group-hover:scale-105" />
+                
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/20 pointer-events-none"></div>
+
+                {!img.is_main && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <button 
+                      onClick={() => deleteImageMutation.mutate(img.id)}
+                      className="w-7 h-7 bg-red-500/80 backdrop-blur-md text-white rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 lg:opacity-0 lg:group-hover:opacity-100"
+                      title="Delete Image"
+                    >
+                      <Trash2 size={12} />
+                    </button>
                   </div>
-                ) : (
-                  <button 
-                    onClick={() => setMainImageMutation.mutate(img.id)}
-                    className="w-7 h-7 bg-white/70 backdrop-blur-md text-gray-700 hover:text-brand-green rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 lg:opacity-0 lg:group-hover:opacity-100"
-                    title="Set Active"
-                  >
-                    <Star size={12} />
-                  </button>
                 )}
+
+                <div className="absolute top-2 left-2 z-10">
+                  {img.is_main ? (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-brand-green/90 backdrop-blur-md text-white rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">
+                      <Star size={8} fill="currentColor" /> Active
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setMainImageMutation.mutate(img.id)}
+                      className="w-7 h-7 bg-white/70 backdrop-blur-md text-gray-700 hover:text-brand-green rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 lg:opacity-0 lg:group-hover:opacity-100"
+                      title="Set Active"
+                    >
+                      <Star size={12} />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
+
     </div>
   );
 };
