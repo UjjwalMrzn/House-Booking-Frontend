@@ -141,6 +141,12 @@ const AdminReviewsPage = () => {
             <table className="w-full text-left border-separate border-spacing-y-2 min-w-[600px] md:min-w-[850px] px-2 md:px-4">
               <thead>
                 <tr>
+                  {/* SURGICAL FIX: Added S.N. Column Header */}
+                  <th className="py-2 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400 w-12">S.N.</th>
+                  
+                  {/* SURGICAL FIX: Added ID Column Header */}
+                  <th className="py-2 px-4"><button onClick={() => handleSort('id')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Review ID {renderSortIcon('id')}</button></th>
+
                   <th className="py-2 px-4 w-1/3"><button onClick={() => handleSort('title')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Review {renderSortIcon('title')}</button></th>
                   <th className="py-2 px-4"><button onClick={() => handleSort('rating')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Rating {renderSortIcon('rating')}</button></th>
                   <th className="py-2 px-4"><button onClick={() => handleSort('customer_name')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Customer {renderSortIcon('customer_name')}</button></th>
@@ -150,32 +156,42 @@ const AdminReviewsPage = () => {
                 </tr>
               </thead>
               <tbody className="text-sm font-bold text-brand-dark">
-                {processedReviews.map((review: any) => (
-                  <tr key={review.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
-                    <td className="py-4 px-4 rounded-l-2xl">
-                      <div className="font-black text-brand-dark text-sm line-clamp-1">{review.title}</div>
-                      <div className="text-xs font-medium text-gray-500 mt-1 line-clamp-1">{review.comment}</div>
-                    </td>
-                    <td className="py-4 px-4"><div className="flex items-center gap-1.5 bg-amber-50 text-amber-500 w-fit px-2.5 py-1.5 rounded-lg border border-amber-100"><Star size={12} fill="currentColor" /><span className="text-[11px] font-black mt-0.5">{review.rating}.0</span></div></td>
-                    <td className="py-4 px-4">
-                      <div className="font-bold text-brand-dark text-sm flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0"><User size={12} /></div>
-                        <span className="truncate max-w-[120px]">
-                          {review.customer_name || 'Unknown Customer'}
-                          {review.customer && <span className="text-[11px] font-bold text-brand-green ml-1.5">• ID #{review.customer}</span>}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="hidden sm:table-cell py-4 px-4"><div className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5 truncate max-w-[150px]" title={review.property_title}><MapPin size={11} className="text-indigo-400 shrink-0" /> {review.property_title}</div></td>
-                    <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{review.createdAt ? review.createdAt.split('T')[0] : 'N/A'}</div></td>
-                    <td className="py-4 px-4 text-right rounded-r-2xl">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setViewModal({ isOpen: true, review })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-brand-dark hover:border-gray-300 shadow-sm transition-colors" title="Read Full Review"><Eye size={14} /></button>
-                        <button onClick={() => setDeleteModal({ isOpen: true, id: review.id, title: review.title })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm" title="Delete Review"><Trash2 size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {processedReviews.map((review: any, index: number) => {
+                  /* SURGICAL FIX: Calculate continuous serial number */
+                  const serialNumber = (page - 1) * Number(pageSize) + index + 1;
+                  return (
+                    <tr key={review.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
+                      {/* SURGICAL FIX: Added S.N. Cell and shifted rounded-l-2xl here */}
+                      <td className="py-4 px-4 rounded-l-2xl whitespace-nowrap text-sm font-bold text-gray-500">{serialNumber}</td>
+                      
+                      {/* SURGICAL FIX: Added ID Cell */}
+                      <td className="py-4 px-4 md:rounded-none whitespace-nowrap"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{review.id}</div></td>
+
+                      <td className="py-4 px-4">
+                        <div className="font-black text-brand-dark text-sm line-clamp-1">{review.title}</div>
+                        <div className="text-xs font-medium text-gray-500 mt-1 line-clamp-1">{review.comment}</div>
+                      </td>
+                      <td className="py-4 px-4"><div className="flex items-center gap-1.5 bg-amber-50 text-amber-500 w-fit px-2.5 py-1.5 rounded-lg border border-amber-100"><Star size={12} fill="currentColor" /><span className="text-[11px] font-black mt-0.5">{review.rating}.0</span></div></td>
+                      <td className="py-4 px-4">
+                        <div className="font-bold text-brand-dark text-sm flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0"><User size={12} /></div>
+                          <span className="truncate max-w-[120px]">
+                            {review.customer_name || 'Unknown Customer'}
+                            {review.customer && <span className="text-[11px] font-bold text-brand-green ml-1.5">• ID #{review.customer}</span>}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="hidden sm:table-cell py-4 px-4"><div className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5 truncate max-w-[150px]" title={review.property_title}><MapPin size={11} className="text-indigo-400 shrink-0" /> {review.property_title}</div></td>
+                      <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{review.createdAt ? review.createdAt.split('T')[0] : 'N/A'}</div></td>
+                      <td className="py-4 px-4 text-right rounded-r-2xl">
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => setViewModal({ isOpen: true, review })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-brand-dark hover:border-gray-300 shadow-sm transition-colors" title="Read Full Review"><Eye size={14} /></button>
+                          <button onClick={() => setDeleteModal({ isOpen: true, id: review.id, title: review.title })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm" title="Delete Review"><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

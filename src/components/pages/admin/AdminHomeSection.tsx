@@ -11,6 +11,7 @@ const AdminHomeSection = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isEditingText, setIsEditingText] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const { data: heroImagesData, isLoading: isLoadingImages } = useQuery({
     queryKey: ['home-page-images'],
@@ -46,12 +47,19 @@ const AdminHomeSection = () => {
   };
 
   const uploadImageMutation = useMutation({
-    mutationFn: (file: File) => homeService.createHomePageImage(file, heroImages.length === 0),
+    mutationFn: async (files: FileList | File[]) => {
+      const filesArray = Array.from(files);
+      for (let i = 0; i < filesArray.length; i++) {
+        const isMain = heroImages.length === 0 && i === 0;
+        await homeService.createHomePageImage(filesArray[i], isMain);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['home-page-images'] });
-      toast.success('Image uploaded successfully!');
+      toast.success('Images uploaded successfully!');
+      if (fileInputRef.current) fileInputRef.current.value = '';
     },
-    onError: () => toast.error('Failed to upload image.')
+    onError: () => toast.error('Failed to upload some images.')
   });
 
   const deleteImageMutation = useMutation({
@@ -87,9 +95,43 @@ const AdminHomeSection = () => {
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) uploadImageMutation.mutate(file);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (e.target.files && e.target.files.length > 0) {
+      uploadImageMutation.mutate(e.target.files);
+    }
+  };
+
+  /* SURGICAL FIX: Prevent browser from opening file on accidental drop outside the zone */
+  const preventGlobalDragDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  /* Dropzone specific handlers */
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const imageFiles = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+      if (imageFiles.length > 0) {
+        uploadImageMutation.mutate(imageFiles);
+      } else {
+        toast.error("Please drop valid image files only.");
+      }
+    }
   };
 
   const handleSaveText = () => {
@@ -103,7 +145,12 @@ const AdminHomeSection = () => {
   if (isLoading) return <div className="p-20 text-center text-gray-400 font-bold animate-pulse">Loading Hero Data...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto pb-20 animate-fade-in w-full relative px-2 md:px-0">
+    <div 
+      className="max-w-7xl mx-auto pb-20 animate-fade-in w-full relative px-2 md:px-0"
+      /* SURGICAL FIX: Added global drag blockers to the container */
+      onDragOver={preventGlobalDragDrop}
+      onDrop={preventGlobalDragDrop}
+    >
       
       {/* 1. LIVE HERO PREVIEW */}
       <div className="relative w-full h-[400px] md:h-[550px] rounded-[2.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl bg-gray-900 border border-gray-100">
@@ -196,16 +243,25 @@ const AdminHomeSection = () => {
         <div className="p-6 md:p-8">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             
-            <label className="relative flex flex-col items-center justify-center w-full aspect-video rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-brand-green/5 hover:border-brand-green transition-all cursor-pointer group shadow-sm">
+            <label 
+              className={`relative flex flex-col items-center justify-center w-full aspect-video rounded-2xl border-2 border-dashed transition-all cursor-pointer group shadow-sm ${
+                isDragging 
+                  ? 'border-brand-green bg-brand-green/10 shadow-[0_0_15px_rgba(5,122,85,0.2)] scale-[1.02]' 
+                  : 'border-gray-200 bg-gray-50 hover:bg-brand-green/5 hover:border-brand-green'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               {uploadImageMutation.isPending ? (
                 <div className="w-8 h-8 border-4 border-gray-200 border-t-brand-green rounded-full animate-spin"></div>
               ) : (
                 <>
-                  <UploadCloud size={24} className="mb-2 text-gray-400 group-hover:text-brand-green transition-colors" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 group-hover:text-brand-green transition-colors">Upload</span>
+                  <UploadCloud size={24} className={`mb-2 transition-colors pointer-events-none ${isDragging ? 'text-brand-green' : 'text-gray-400 group-hover:text-brand-green'}`} />
+                  <span className={`text-[9px] font-black uppercase tracking-widest transition-colors pointer-events-none ${isDragging ? 'text-brand-green' : 'text-gray-500 group-hover:text-brand-green'}`}>Upload</span>
                 </>
               )}
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploadImageMutation.isPending} />
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleFileUpload} disabled={uploadImageMutation.isPending} />
             </label>
 
             {heroImages.map((img: any) => (

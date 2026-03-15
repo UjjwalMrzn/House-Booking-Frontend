@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Added useMemo
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom'; 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../../../api/propertyService';
@@ -17,20 +17,27 @@ const ImagesTab: React.FC<ImagesTabProps> = ({ propertyId, images = [], isViewMo
   const toast = useToast();
   const [imgDeleteModal, setImgDeleteModal] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // SURGICAL FIX: Stable sorting locks images in place by ID to prevent grid jumping on Active toggle
   const sortedImages = useMemo(() => {
     const list = [...(images || [])];
     return list.sort((a, b) => Number(a.id) - Number(b.id));
   }, [images]);
 
   const uploadImageMutation = useMutation({
-    mutationFn: (file: File) => propertyService.uploadPropertyImage(propertyId, file),
+    mutationFn: async (files: FileList | File[]) => {
+      for (const file of Array.from(files)) {
+         await propertyService.uploadPropertyImage(propertyId, file);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property', propertyId] });
-      toast.success("Image uploaded successfully!");
+      toast.success("Images uploaded successfully!");
+      if (fileInputRef.current) fileInputRef.current.value = '';
     },
-    onError: () => toast.error("Failed to upload image.")
+    onError: () => toast.error("Failed to upload some images.")
   });
 
   const deleteImageMutation = useMutation({
@@ -53,8 +60,43 @@ const ImagesTab: React.FC<ImagesTabProps> = ({ propertyId, images = [], isViewMo
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) uploadImageMutation.mutate(file);
+    if (e.target.files && e.target.files.length > 0) {
+      uploadImageMutation.mutate(e.target.files);
+    }
+  };
+
+  /* SURGICAL FIX: Prevent browser from opening file on accidental drop outside the zone */
+  const preventGlobalDragDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  /* Dropzone specific handlers */
+  const handleDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const imageFiles = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+      if (imageFiles.length > 0) {
+        uploadImageMutation.mutate(imageFiles);
+      } else {
+        toast.error("Please drop valid image files only.");
+      }
+    }
   };
 
   const showNext = useCallback(() => {
@@ -91,7 +133,12 @@ const ImagesTab: React.FC<ImagesTabProps> = ({ propertyId, images = [], isViewMo
 
   return (
     <>
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden animate-entrance">
+      {/* SURGICAL FIX: Added global drag blockers to the container */}
+      <div 
+        className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden animate-entrance"
+        onDragOver={preventGlobalDragDrop}
+        onDrop={preventGlobalDragDrop}
+      >
         <div className="p-6 border-b border-gray-50 bg-white/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-brand-green/10 text-brand-green rounded-lg flex items-center justify-center shadow-inner">
@@ -107,18 +154,29 @@ const ImagesTab: React.FC<ImagesTabProps> = ({ propertyId, images = [], isViewMo
         <div className="p-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {!isViewMode && (
-            <label className="relative flex flex-col items-center justify-center w-full aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-brand-green transition-all cursor-pointer group">
-              <div className="flex flex-col items-center justify-center text-gray-400 group-hover:text-brand-green transition-colors">
+            <label 
+              className={`relative flex flex-col items-center justify-center w-full aspect-square rounded-2xl border-2 border-dashed transition-all cursor-pointer group ${
+                isDragging 
+                  ? 'border-brand-green bg-brand-green/10 shadow-[0_0_15px_rgba(5,122,85,0.2)] scale-[1.02]' 
+                  : 'border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-brand-green'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <div className="flex flex-col items-center justify-center text-gray-400 group-hover:text-brand-green transition-colors pointer-events-none">
                 {uploadImageMutation.isPending ? (
                   <div className="w-8 h-8 border-4 border-gray-200 border-t-brand-green rounded-full animate-spin"></div>
                 ) : (
                   <>
-                    <UploadCloud size={28} className="mb-2" />
-                    <span className="text-xs font-bold text-center px-2 leading-tight">Upload<br/>Photo</span>
+                    <UploadCloud size={28} className={`mb-2 ${isDragging ? 'text-brand-green' : ''}`} />
+                    <span className={`text-xs font-bold text-center px-2 leading-tight ${isDragging ? 'text-brand-green' : ''}`}>
+                      Upload<br/>Photo
+                    </span>
                   </>
                 )}
               </div>
-              <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploadImageMutation.isPending} />
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleFileUpload} disabled={uploadImageMutation.isPending} />
             </label>
             )}
 

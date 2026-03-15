@@ -94,6 +94,9 @@ const PropertyManagementPage = () => {
               <table className="w-full text-left border-separate border-spacing-y-2 min-w-[700px] md:min-w-[850px]">
                 <thead>
                   <tr>
+                    {/* SURGICAL FIX: Added S.N. Column Header */}
+                    <th className="px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400 w-12">S.N.</th>
+                    
                     <th className="px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Listing</th>
                     <th className="hidden sm:table-cell px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Capacity</th>
                     <th className="hidden md:table-cell px-5 pb-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Rating</th>
@@ -102,13 +105,20 @@ const PropertyManagementPage = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm font-bold text-brand-dark">
-                  {filteredProperties.map((property: any) => {
+                  {filteredProperties.map((property: any, index: number) => {
                     const mainImage = property.images?.find((img: any) => img.is_main)?.image || property.images?.[0]?.image;                    
                     const rating = typeof property.average_rating === 'number' ? property.average_rating.toFixed(1) : (property.average_rating ? Number(property.average_rating).toFixed(1) : 'New');
+                    
+                    /* SURGICAL FIX: Calculate continuous serial number */
+                    const serialNumber = (page - 1) * Number(pageSize) + index + 1;
 
                     return (
                       <tr key={property.id} className="group bg-white transition-colors hover:bg-gray-50/80 cursor-default">
-                        <td className="py-3 px-5 rounded-l-2xl whitespace-nowrap">
+                        {/* SURGICAL FIX: Added S.N. Cell and shifted rounded-l-2xl here */}
+                        <td className="py-3 px-5 rounded-l-2xl text-sm font-bold text-gray-500">{serialNumber}</td>
+                        
+                        {/* SURGICAL FIX: Removed rounded-l-2xl from this column since it's no longer the leftmost */}
+                        <td className="py-3 px-5 md:rounded-none whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100">
                               {mainImage ? <img src={mainImage} alt={property.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><Home size={16} /></div>}

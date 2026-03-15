@@ -120,6 +120,9 @@ const AdminPaymentPage = () => {
             <table className="w-full text-left border-separate border-spacing-y-2 min-w-full lg:min-w-[950px] px-2 md:px-4">
               <thead>
                 <tr>
+                  {/* SURGICAL FIX: Added S.N. Column Header */}
+                  <th className="py-2 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400 w-12">S.N.</th>
+                  
                   <th className="hidden md:table-cell py-2 px-4"><button onClick={() => handleSort('paypalOrderId')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Order ID {renderSortIcon('paypalOrderId')}</button></th>
                   <th className="py-2 px-4"><button onClick={() => handleSort('booking')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Booking ID {renderSortIcon('booking')}</button></th>
                   <th className="py-2 px-4"><button onClick={() => handleSort('name')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Customer {renderSortIcon('name')}</button></th>
@@ -131,25 +134,31 @@ const AdminPaymentPage = () => {
                 </tr>
               </thead>
               <tbody className="text-sm font-bold text-brand-dark">
-                {processedPayments.map((payment: any) => (
-                  <tr key={payment.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
-                    <td className="hidden md:table-cell py-4 px-4 rounded-l-2xl"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit truncate max-w-[120px]">{payment.paypalOrderId}</div></td>
-                    <td className="py-4 px-4 whitespace-nowrap md:rounded-none rounded-l-2xl"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{payment.booking}</div></td>
-                    <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="font-black text-brand-dark text-sm truncate max-w-[120px] md:max-w-[150px]">
-                        {payment.name || 'Unknown Customer'}
-                        {/* If you wanted to fetch customer ID here, it would require pre-fetching, 
-                            but we can just show the email cleanly underneath instead */}
-                      </div>
-                      <div className="text-[10px] md:text-[11px] font-medium text-gray-500 truncate max-w-[120px] md:max-w-[150px] mt-0.5">{payment.email}</div>
-                    </td>
-                    <td className="py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm truncate max-w-[120px] md:max-w-[150px]">{payment.property_title || `Prop ID: ${payment.property}`}</div></td>
-                    <td className="hidden sm:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{payment.createdAt ? new Date(payment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</div></td>
-                    <td className="py-4 px-4"><span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1 ${getStatusStyle(payment.status)}`}>{payment.status || 'Unknown'}</span></td>
-                    <td className="py-4 px-4 whitespace-nowrap"><div className="font-black text-brand-green text-sm flex items-center gap-1"><DollarSign size={14} className="opacity-50" />{Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div></td>
-                    <td className="py-4 px-4 text-right rounded-r-2xl"><div className="flex items-center justify-end gap-2"><button onClick={() => setViewModal({ isOpen: true, payment })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-brand-dark hover:border-gray-300 shadow-sm transition-colors" title="View Full Details"><Eye size={14} /></button></div></td>
-                  </tr>
-                ))}
+                {processedPayments.map((payment: any, index: number) => {
+                  /* SURGICAL FIX: Calculate continuous serial number */
+                  const serialNumber = (page - 1) * Number(pageSize) + index + 1;
+                  return (
+                    <tr key={payment.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
+                      {/* SURGICAL FIX: Added S.N. Cell and shifted rounded-l-2xl here */}
+                      <td className="py-4 px-4 rounded-l-2xl whitespace-nowrap text-sm font-bold text-gray-500">{serialNumber}</td>
+                      
+                      {/* SURGICAL FIX: Removed rounded-l-2xl from previous edge columns */}
+                      <td className="hidden md:table-cell py-4 px-4"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit truncate max-w-[120px]">{payment.paypalOrderId}</div></td>
+                      <td className="py-4 px-4 whitespace-nowrap"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{payment.booking}</div></td>
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="font-black text-brand-dark text-sm truncate max-w-[120px] md:max-w-[150px]">
+                          {payment.name || 'Unknown Customer'}
+                        </div>
+                        <div className="text-[10px] md:text-[11px] font-medium text-gray-500 truncate max-w-[120px] md:max-w-[150px] mt-0.5">{payment.email}</div>
+                      </td>
+                      <td className="py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm truncate max-w-[120px] md:max-w-[150px]">{payment.property_title || `Prop ID: ${payment.property}`}</div></td>
+                      <td className="hidden sm:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{payment.createdAt ? new Date(payment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</div></td>
+                      <td className="py-4 px-4"><span className={`px-2.5 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1 ${getStatusStyle(payment.status)}`}>{payment.status || 'Unknown'}</span></td>
+                      <td className="py-4 px-4 whitespace-nowrap"><div className="font-black text-brand-green text-sm flex items-center gap-1"><DollarSign size={14} className="opacity-50" />{Number(payment.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div></td>
+                      <td className="py-4 px-4 text-right rounded-r-2xl"><div className="flex items-center justify-end gap-2"><button onClick={() => setViewModal({ isOpen: true, payment })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-brand-dark hover:border-gray-300 shadow-sm transition-colors" title="View Full Details"><Eye size={14} /></button></div></td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

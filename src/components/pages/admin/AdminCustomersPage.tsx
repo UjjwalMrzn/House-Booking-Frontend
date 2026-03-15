@@ -99,6 +99,8 @@ const AdminCustomersPage = () => {
           <table className="w-full text-left border-separate border-spacing-y-2 min-w-full lg:min-w-[950px] px-2 md:px-4">
             <thead>
               <tr>
+                {/* SURGICAL FIX: Added S.N. Header */}
+                <th className="py-2 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400 w-12">S.N.</th>
                 <th className="py-2 px-4"><button onClick={() => handleSort("id")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Customer ID {renderSortIcon("id")}</button></th>
                 <th className="py-2 px-4"><button onClick={() => handleSort("firstName")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Guest Name {renderSortIcon("firstName")}</button></th>
                 <th className="hidden sm:table-cell py-2 px-4"><button onClick={() => handleSort("email")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Contact Info {renderSortIcon("email")}</button></th>
@@ -113,60 +115,68 @@ const AdminCustomersPage = () => {
             </thead>
             <tbody className="text-sm font-bold text-brand-dark">
               {isLoading ? (
-                <tr><td colSpan={7} className="py-12 px-4"><div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} variant="button" className="h-14" />)}</div></td></tr>
+                /* SURGICAL FIX: Changed colSpan from 7 to 8 to match new column count */
+                <tr><td colSpan={8} className="py-12 px-4"><div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} variant="button" className="h-14" />)}</div></td></tr>
               ) : processedCustomers.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-sm font-bold text-gray-400">No customers found.</td></tr>
+                /* SURGICAL FIX: Changed colSpan from 7 to 8 to match new column count */
+                <tr><td colSpan={8} className="py-12 text-center text-sm font-bold text-gray-400">No customers found.</td></tr>
               ) : (
-                processedCustomers.map((customer: any) => (
-                  <tr key={customer.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
-                    <td className="py-4 px-4 rounded-l-2xl whitespace-nowrap"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{customer.id}</div></td>
-                    
-                    <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="font-black text-brand-dark text-sm truncate max-w-[150px]">{customer.firstName} {customer.lastName}</div>
-                      <div className="sm:hidden text-[10px] font-medium text-gray-500 mt-0.5 truncate max-w-[150px]">{customer.email}</div>
-                    </td>
+                processedCustomers.map((customer: any, index: number) => {
+                  /* SURGICAL FIX: Calculate continuous serial number */
+                  const serialNumber = (page - 1) * Number(pageSize) + index + 1;
+                  return (
+                    <tr key={customer.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
+                      {/* SURGICAL FIX: Added S.N. Cell and shifted rounded-l-2xl here */}
+                      <td className="py-4 px-4 rounded-l-2xl whitespace-nowrap text-sm font-bold text-gray-500">{serialNumber}</td>
+                      <td className="py-4 px-4 md:rounded-none whitespace-nowrap"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{customer.id}</div></td>
+                      
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="font-black text-brand-dark text-sm truncate max-w-[150px]">{customer.firstName} {customer.lastName}</div>
+                        <div className="sm:hidden text-[10px] font-medium text-gray-500 mt-0.5 truncate max-w-[150px]">{customer.email}</div>
+                      </td>
 
-                    <td className="hidden sm:table-cell py-4 px-4 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
-                        <span className="flex items-center gap-1.5 text-xs text-gray-500"><Mail size={12} className="text-amber-400"/> {customer.email}</span>
-                        {customer.phoneNumber && customer.phoneNumber !== "0000000000" && (
-                          <span className="flex items-center gap-1.5 text-xs text-gray-500"><Phone size={12} className="text-brand-green"/> {customer.phoneNumber}</span>
-                        )}
-                      </div>
-                    </td>
+                      <td className="hidden sm:table-cell py-4 px-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-1">
+                          <span className="flex items-center gap-1.5 text-xs text-gray-500"><Mail size={12} className="text-amber-400"/> {customer.email}</span>
+                          {customer.phoneNumber && customer.phoneNumber !== "0000000000" && (
+                            <span className="flex items-center gap-1.5 text-xs text-gray-500"><Phone size={12} className="text-brand-green"/> {customer.phoneNumber}</span>
+                          )}
+                        </div>
+                      </td>
 
-                    <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap">
-                      <span className="flex items-center gap-1.5 text-xs text-gray-500"><MapPin size={12} className="text-indigo-400"/> {customer.country || "Unknown"}</span>
-                    </td>
+                      <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap">
+                        <span className="flex items-center gap-1.5 text-xs text-gray-500"><MapPin size={12} className="text-indigo-400"/> {customer.country || "Unknown"}</span>
+                      </td>
 
-                    <td className="py-4 px-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                        customer.action === 'booking' ? 'bg-blue-50 text-blue-500 border border-blue-100' : 
-                        customer.action === 'review' ? 'bg-purple-50 text-purple-500 border border-purple-100' : 
-                        'bg-gray-100 text-gray-500 border border-gray-200'
-                      }`}>
-                        {customer.action || "Unknown"}
-                      </span>
-                    </td>
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                          customer.action === 'booking' ? 'bg-blue-50 text-blue-500 border border-blue-100' : 
+                          customer.action === 'review' ? 'bg-purple-50 text-purple-500 border border-purple-100' : 
+                          'bg-gray-100 text-gray-500 border border-gray-200'
+                        }`}>
+                          {customer.action || "Unknown"}
+                        </span>
+                      </td>
 
-                    <td className="hidden lg:table-cell py-4 px-4 whitespace-nowrap">
-                      <div className="font-bold text-brand-dark text-sm flex items-center gap-1.5">
-                        <Calendar size={14} className="text-gray-400" />
-                        {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
-                      </div>
-                    </td>
+                      <td className="hidden lg:table-cell py-4 px-4 whitespace-nowrap">
+                        <div className="font-bold text-brand-dark text-sm flex items-center gap-1.5">
+                          <Calendar size={14} className="text-gray-400" />
+                          {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                        </div>
+                      </td>
 
-                    <td className="py-4 px-4 text-right rounded-r-2xl">
-                      <button 
-                        onClick={() => setViewModal({ isOpen: true, customer })} 
-                        className="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:bg-brand-green/10 hover:text-brand-green hover:border-brand-green/30 transition-all shadow-sm"
-                        title="View Profile"
-                      >
-                        <Eye size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      <td className="py-4 px-4 text-right rounded-r-2xl">
+                        <button 
+                          onClick={() => setViewModal({ isOpen: true, customer })} 
+                          className="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:bg-brand-green/10 hover:text-brand-green hover:border-brand-green/30 transition-all shadow-sm"
+                          title="View Profile"
+                        >
+                          <Eye size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

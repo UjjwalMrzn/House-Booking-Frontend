@@ -42,8 +42,6 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
             <Input label="Property Title *" name="title" value={formData.title} onChange={handleChange} required disabled={isViewMode} />
             <Input label="Full Address *" name="address" value={formData.address} onChange={handleChange} required disabled={isViewMode} />
           </div>
-
-          <Input label="Highlight (Short Selling Point)" name="highlight" value={formData.highlight} onChange={handleChange} disabled={isViewMode} placeholder="e.g. Waterfront luxury villa" />
         </section>
 
 

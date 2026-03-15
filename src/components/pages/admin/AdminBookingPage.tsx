@@ -171,6 +171,9 @@ const AdminBookingsPage = () => {
           <table className="w-full text-left border-separate border-spacing-y-2 min-w-full lg:min-w-[950px] px-2 md:px-4">
             <thead>
               <tr>
+                {/* SURGICAL FIX: Added S.N. Column Header */}
+                <th className="py-2 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400 w-12">S.N.</th>
+                
                 <th className="py-2 px-4"><button onClick={() => handleSort("id")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Booking ID {renderSortIcon("id")}</button></th>
                 <th className="hidden lg:table-cell py-2 px-4"><button onClick={() => handleSort("createdAt")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Booked At {renderSortIcon("createdAt")}</button></th>
                 <th className="py-2 px-4"><button onClick={() => handleSort("customer_name")} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400">Customer {renderSortIcon("customer_name")}</button></th>
@@ -184,39 +187,50 @@ const AdminBookingsPage = () => {
             </thead>
             <tbody className="text-sm font-bold text-brand-dark">
               {isLoading ? (
-                <tr><td colSpan={9} className="py-12 text-center text-sm font-bold text-gray-400">Loading bookings...</td></tr>
+                /* SURGICAL FIX: Increased colSpan from 9 to 10 */
+                <tr><td colSpan={10} className="py-12 text-center text-sm font-bold text-gray-400">Loading bookings...</td></tr>
               ) : processedBookings.length === 0 ? (
-                <tr><td colSpan={9} className="py-12 text-center text-sm font-bold text-gray-400">No bookings found.</td></tr>
+                /* SURGICAL FIX: Increased colSpan from 9 to 10 */
+                <tr><td colSpan={10} className="py-12 text-center text-sm font-bold text-gray-400">No bookings found.</td></tr>
               ) : (
-                processedBookings.map((booking: any) => (
-                  <tr key={booking.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
-                    <td className="py-4 px-4 rounded-l-2xl whitespace-nowrap"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{booking.id}</div></td>
-                    <td className="hidden lg:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'N/A'}</div></td>
-                    <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="font-black text-brand-dark text-sm truncate max-w-[150px]">
-                        {booking.customer_name || "Unknown Customer"}
-                        {booking.customer && <span className="text-[11px] font-bold text-brand-green ml-1.5">• ID #{booking.customer}</span>}
-                      </div>
-                      <div className="md:hidden text-[10px] font-bold text-brand-green mt-0.5">In: {booking.check_in}</div>
-                    </td>
-                    <td className="py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm truncate max-w-[120px] md:max-w-full">{booking.property_title || `Prop #${booking.property}`}</div></td>
-                    <td className="hidden sm:table-cell py-4 px-4"><div className="font-bold text-brand-dark text-sm flex items-center gap-1.5"><Users size={14} className="text-indigo-400" /> {booking.guests}</div></td>
-                    <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{booking.check_in}</div><div className="text-[11px] font-bold text-gray-400 mt-0.5">to {booking.check_out}</div></td>
-                    <td className="py-4 px-4 whitespace-nowrap"><div className="font-black text-brand-green text-sm">${Number(booking.total_price).toLocaleString()}</div></td>
-                    <td className="py-4 px-4">{renderStatusBadge(booking.status)}</td>
-                    <td className="py-4 px-4 text-right rounded-r-2xl">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {booking.status?.toLowerCase() === "pending" && (
-                          <>
-                            <button onClick={() => setActionModal({ isOpen: true, type: "confirm", bookingId: booking.id })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-brand-green hover:bg-brand-green hover:text-white transition-all"><CheckCircle size={14} /></button>
-                            <button onClick={() => setActionModal({ isOpen: true, type: "cancel", bookingId: booking.id })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-red-500 hover:bg-red-500 hover:text-white transition-all"><XCircle size={14} /></button>
-                          </>
-                        )}
-                        <button onClick={() => setViewModal({ isOpen: true, booking })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:bg-indigo-50 hover:text-indigo-500 transition-all"><Eye size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                processedBookings.map((booking: any, index: number) => {
+                  /* SURGICAL FIX: Calculate continuous serial number */
+                  const serialNumber = (page - 1) * Number(pageSize) + index + 1;
+                  return (
+                    <tr key={booking.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
+                      {/* SURGICAL FIX: Added S.N. Cell and shifted rounded-l-2xl here */}
+                      <td className="py-4 px-4 rounded-l-2xl whitespace-nowrap text-sm font-bold text-gray-500">{serialNumber}</td>
+                      
+                      {/* SURGICAL FIX: Removed rounded-l-2xl from previous edge column */}
+                      <td className="py-4 px-4 md:rounded-none whitespace-nowrap"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{booking.id}</div></td>
+                      
+                      <td className="hidden lg:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'N/A'}</div></td>
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="font-black text-brand-dark text-sm truncate max-w-[150px]">
+                          {booking.customer_name || "Unknown Customer"}
+                          {booking.customer && <span className="text-[11px] font-bold text-brand-green ml-1.5">• ID #{booking.customer}</span>}
+                        </div>
+                        <div className="md:hidden text-[10px] font-bold text-brand-green mt-0.5">In: {booking.check_in}</div>
+                      </td>
+                      <td className="py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm truncate max-w-[120px] md:max-w-full">{booking.property_title || `Prop #${booking.property}`}</div></td>
+                      <td className="hidden sm:table-cell py-4 px-4"><div className="font-bold text-brand-dark text-sm flex items-center gap-1.5"><Users size={14} className="text-indigo-400" /> {booking.guests}</div></td>
+                      <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{booking.check_in}</div><div className="text-[11px] font-bold text-gray-400 mt-0.5">to {booking.check_out}</div></td>
+                      <td className="py-4 px-4 whitespace-nowrap"><div className="font-black text-brand-green text-sm">${Number(booking.total_price).toLocaleString()}</div></td>
+                      <td className="py-4 px-4">{renderStatusBadge(booking.status)}</td>
+                      <td className="py-4 px-4 text-right rounded-r-2xl">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {booking.status?.toLowerCase() === "pending" && (
+                            <>
+                              <button onClick={() => setActionModal({ isOpen: true, type: "confirm", bookingId: booking.id })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-brand-green hover:bg-brand-green hover:text-white transition-all"><CheckCircle size={14} /></button>
+                              <button onClick={() => setActionModal({ isOpen: true, type: "cancel", bookingId: booking.id })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-red-500 hover:bg-red-500 hover:text-white transition-all"><XCircle size={14} /></button>
+                            </>
+                          )}
+                          <button onClick={() => setViewModal({ isOpen: true, booking })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-400 hover:bg-indigo-50 hover:text-indigo-500 transition-all"><Eye size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

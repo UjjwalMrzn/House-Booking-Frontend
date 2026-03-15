@@ -176,6 +176,9 @@ const AdminHolidaysPage = () => {
               <table className="w-full text-left border-collapse min-w-[600px] md:min-w-[850px]">
                 <thead>
                   <tr className="bg-gray-50/30 border-b border-gray-100">
+                    {/* SURGICAL FIX: Added S.N. Column Header */}
+                    <th className="py-4 px-4 md:px-8 text-[10px] font-black uppercase tracking-widest text-gray-400 w-12">S.N.</th>
+                    
                     <th className="py-4 px-4 md:px-8 text-[10px] font-black uppercase tracking-widest text-gray-400">Date</th>
                     <th className="py-4 px-4 md:px-8 text-[10px] font-black uppercase tracking-widest text-gray-400">Name</th>
                     <th className="py-4 px-4 md:px-8 text-[10px] font-black uppercase tracking-widest text-gray-400">Status</th>
@@ -183,36 +186,43 @@ const AdminHolidaysPage = () => {
                   </tr>
                 </thead>
                 <tbody className="text-sm font-bold text-brand-dark">
-                  {tableHolidays.map((holiday: any) => (
-                    <tr key={holiday.id} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors group cursor-default">
-                      <td className="py-4 px-4 md:px-8 font-black text-brand-dark flex items-center gap-2 whitespace-nowrap">
-                        <CalendarIcon size={14} className="text-purple-400" />
-                        {format(parseISO(holiday.date), 'dd MMM yyyy')}
-                      </td>
-                      <td className="py-4 px-4 md:px-8 font-bold truncate max-w-[150px] md:max-w-full">{holiday.name}</td>
-                      <td className="py-4 px-4 md:px-8">
-                        {holiday.is_active ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-50 text-brand-green text-[10px] font-black uppercase border border-green-100">
-                            <CheckCircle size={12} strokeWidth={3} /> Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-500 text-[10px] font-black uppercase border border-gray-200">
-                            <XCircle size={12} strokeWidth={3} /> Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 md:px-8 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => openEdit(holiday)} className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-brand-dark transition-colors shadow-sm">
-                            <Edit2 size={14} />
-                          </button>
-                          <button onClick={() => setDeleteModal({ isOpen: true, id: holiday.id, name: holiday.name })} className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:text-white transition-all shadow-sm">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {tableHolidays.map((holiday: any, index: number) => {
+                    /* SURGICAL FIX: Calculate continuous serial number */
+                    const serialNumber = (page - 1) * Number(pageSize) + index + 1;
+                    return (
+                      <tr key={holiday.id} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors group cursor-default">
+                        {/* SURGICAL FIX: Added S.N. Cell */}
+                        <td className="py-4 px-4 md:px-8 text-sm font-bold text-gray-500">{serialNumber}</td>
+                        
+                        <td className="py-4 px-4 md:px-8 font-black text-brand-dark flex items-center gap-2 whitespace-nowrap">
+                          <CalendarIcon size={14} className="text-purple-400" />
+                          {format(parseISO(holiday.date), 'dd MMM yyyy')}
+                        </td>
+                        <td className="py-4 px-4 md:px-8 font-bold truncate max-w-[150px] md:max-w-full">{holiday.name}</td>
+                        <td className="py-4 px-4 md:px-8">
+                          {holiday.is_active ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-50 text-brand-green text-[10px] font-black uppercase border border-green-100">
+                              <CheckCircle size={12} strokeWidth={3} /> Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-500 text-[10px] font-black uppercase border border-gray-200">
+                              <XCircle size={12} strokeWidth={3} /> Inactive
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 md:px-8 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => openEdit(holiday)} className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-brand-dark transition-colors shadow-sm">
+                              <Edit2 size={14} />
+                            </button>
+                            <button onClick={() => setDeleteModal({ isOpen: true, id: holiday.id, name: holiday.name })} className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
