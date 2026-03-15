@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowRight, X } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInDays } from 'date-fns';
+import { useToast } from './Toaster';
 import 'react-day-picker/dist/style.css';
 
 // FIXED: Added holidayDates to props
@@ -12,6 +13,7 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
 
   const range = value?.checkIn ? {
     from: parseISO(value.checkIn),
@@ -99,10 +101,23 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
             mode="range" 
             selected={range} 
             onSelect={(newRange) => { 
-              onChange?.(newRange); 
               if (newRange?.from && newRange?.to) {
+                // SURGICAL FIX: Calculate nights and enforce minimum 2-night stay
+                const nights = differenceInDays(newRange.to, newRange.from);
+                if (nights < 2) {
+                  // CHANGED: From toast.error to toast.info for better UX
+                  toast.info("Minimum 2 nights required for booking."); 
+                  
+                  // Reset checkout date so they can pick again
+                  onChange?.({ from: newRange.from, to: undefined });
+                  return;
+                }
+
+                onChange?.(newRange); 
                 setIsOpen(false); 
                 setHoveredDate(null);
+              } else {
+                onChange?.(newRange);
               }
             }} 
             numberOfMonths={window.innerWidth > 768 ? 2 : 1} 
