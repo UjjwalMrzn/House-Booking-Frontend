@@ -3,14 +3,15 @@ import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { propertyService } from '../../../../api/propertyService';
 import { useToast } from '../../../ui/Toaster';
-import { ArrowLeft, Home, Image as ImageIcon, ListChecks, FileText, Map as MapIcon, Lock, CheckCircle, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Home, Image as ImageIcon, ListChecks, FileText, Map as MapIcon, Lock, CheckCircle, ChevronLeft, ChevronRight, ShieldCheck, Users } from 'lucide-react';
 
 import BasicTab from './tabs/BasicTab';
 import ImagesTab from './tabs/ImagesTab';
 import AmenitiesTab from './tabs/AmenitiesTab';
 import PoliciesTab from './tabs/PoliciesTab';
 import LocationTab from './tabs/LocationTab';
-import BondTab from './tabs/BondTab'; // FIX: Imported the BondTab
+import BondTab from './tabs/BondTab'; 
+import GuestTab from './tabs/GuestTab';
 import AdminPageContainer from '../../../layouts/AdminPageContainer';
 
 const PropertyFormPage = () => {
@@ -21,10 +22,8 @@ const PropertyFormPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();
-
-  const [activeTab, setActiveTab] = useState<'basic' | 'images' | 'location' | 'bonds' | 'amenities' | 'policies'>('basic');
-
-  const TABS = ['basic', 'images', 'location', 'bonds', 'amenities', 'policies'] as const;
+  const [activeTab, setActiveTab] = useState<'basic' | 'images' | 'location' | 'guests' | 'bonds' | 'amenities' | 'policies'>('basic');
+  const TABS = ['basic', 'images', 'location', 'guests', 'bonds', 'amenities', 'policies'] as const;
   const currentIndex = TABS.indexOf(activeTab);
 
   const handleNext = () => {
@@ -101,19 +100,16 @@ const PropertyFormPage = () => {
       <div className="p-4 md:p-8">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-8">
           
-          {/* Scrollable Tab Navigation */}
           <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 -mx-4 px-4 md:mx-0 md:px-0 flex-1">
             <button onClick={() => setActiveTab('basic')} className={getTabClass('basic')}><Home size={14} /> Basic</button>
             <button onClick={() => isEditMode && setActiveTab('images')} className={getTabClass('images')} disabled={!isEditMode}>{isEditMode ? <ImageIcon size={14} /> : <Lock size={12} />} Photos</button>
             <button onClick={() => isEditMode && setActiveTab('location')} className={getTabClass('location')} disabled={!isEditMode}>{isEditMode ? <MapIcon size={14} /> : <Lock size={12} />} Map</button>
-            
+            <button onClick={() => isEditMode && setActiveTab('guests')} className={getTabClass('guests')} disabled={!isEditMode}>{isEditMode ? <Users size={14} /> : <Lock size={12} />} Guests</button>
             <button onClick={() => isEditMode && setActiveTab('bonds')} className={getTabClass('bonds')} disabled={!isEditMode}>{isEditMode ? <ShieldCheck size={14} /> : <Lock size={12} />} Bonds</button>
-
             <button onClick={() => isEditMode && setActiveTab('amenities')} className={getTabClass('amenities')} disabled={!isEditMode}>{isEditMode ? <ListChecks size={14} /> : <Lock size={12} />} Amenities</button>
             <button onClick={() => isEditMode && setActiveTab('policies')} className={getTabClass('policies')} disabled={!isEditMode}>{isEditMode ? <FileText size={14} /> : <Lock size={12} />} Policies</button>
           </div>
 
-          {/* Controls */}
           {isEditMode && (
             <div className={`flex items-center justify-between lg:justify-end gap-3 shrink-0 transition-opacity duration-200 ${(!isViewMode && activeTab === 'basic') ? 'opacity-0 pointer-events-none hidden lg:flex' : 'opacity-100 flex'}`}>
               <div className="flex gap-2">
@@ -158,10 +154,8 @@ const PropertyFormPage = () => {
 
           {activeTab === 'images' && <ImagesTab propertyId={id!} images={existingProperty?.images} isViewMode={isViewMode} />}
           {activeTab === 'location' && <LocationTab propertyId={Number(id)} isViewMode={isViewMode} />}
-          
-          {/* FIX: Render Bond Tab */}
+          {activeTab === 'guests' && <GuestTab propertyId={Number(id)} isViewMode={isViewMode} />}
           {activeTab === 'bonds' && <BondTab propertyId={Number(id)} isViewMode={isViewMode} />}
-
           {activeTab === 'amenities' && <AmenitiesTab propertyId={id!} assignedAmenities={existingProperty?.amenities} isViewMode={isViewMode} />}
           {activeTab === 'policies' && <PoliciesTab propertyId={id!} checkInOutRules={existingProperty?.checkInOutRules} policies={existingProperty?.policies} isViewMode={isViewMode} />}
         </div>

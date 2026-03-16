@@ -55,8 +55,8 @@ export const useReservation = () => {
 
   const [contact, setContact] = useState({ firstName: "", lastName: "", email: "", phoneNumber: "", country: "" });
   
-  // SURGICAL FIX: Added 'bond' to the pricing state
-  const [pricing, setPricing] = useState({ nights: 0, rental: 0, bond: 0, total: 0, dueNow: 0 });
+  // SURGICAL FIX: Added 'perPersonCharge' to the pricing state
+  const [pricing, setPricing] = useState({ nights: 0, rental: 0, bond: 0, perPersonCharge: 0, total: 0, dueNow: 0 });
 
   useEffect(() => {
     const fetchPrice = async () => {
@@ -76,15 +76,17 @@ export const useReservation = () => {
               kids: kids
             });
             
-            // SURGICAL FIX: Extracting bond charge from the breakdown
+            // SURGICAL FIX: Extracting per_person_charge and updating rental math
             const exactPrice = Number(res.total_price);
             const bondCharge = res.breakdown?.bond_charge ? Number(res.breakdown.bond_charge) : 0;
-            const rentalCharge = exactPrice - bondCharge; // Pure rental cost
+            const perPersonCharge = res.breakdown?.per_person_charge ? Number(res.breakdown.per_person_charge) : 0;
+            const rentalCharge = exactPrice - bondCharge - perPersonCharge; // Pure rental cost
 
             setPricing({ 
               nights, 
               rental: rentalCharge, 
               bond: bondCharge, 
+              perPersonCharge: perPersonCharge,
               total: exactPrice, 
               dueNow: exactPrice * 0.5 
             });

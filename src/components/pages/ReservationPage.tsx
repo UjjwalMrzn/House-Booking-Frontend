@@ -232,7 +232,6 @@ const ReservationPage = () => {
   const isDatesValid = !!(dates.checkIn && dates.checkOut);
 
   return (
-    // SURGICAL FIX: Added pb-32 to account for the new sticky bottom bar!
     <main className="min-h-screen bg-[#FCFBF9] font-sans text-brand-dark pb-32 lg:pb-20 pt-24 animate-fade-in text-brand-dark">
       <div className="max-w-[1200px] mx-auto px-4 md:px-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 md:mb-16 gap-6">
@@ -245,7 +244,6 @@ const ReservationPage = () => {
             </button>
           </div>
 
-          {/* SURGICAL FIX: Changed w-full to w-fit and mx-auto so it hugs the steps tightly */}
           <div className="flex items-center justify-center bg-white border border-gray-100 p-1.5 rounded-full shadow-sm w-fit mx-auto md:mx-0 overflow-x-auto scrollbar-hide">
             {[
               { id: 1, label: "Contact" },
@@ -479,14 +477,26 @@ const ReservationPage = () => {
 
               <div className="bg-gray-50/80 border border-gray-100 rounded-2xl p-5 md:p-6 space-y-3">
                 <div className="flex justify-between text-xs font-bold text-gray-500">
+                  {/* SURGICAL FIX: Reverted rental string */}
                   <span>Rental ({pricing.nights} nights)</span>
                   <span className="font-black">
                     ${pricing.rental.toLocaleString()}
                   </span>
                 </div>
+                
+                {pricing.perPersonCharge > 0 && (
+                  <div className="flex justify-between text-xs font-bold text-gray-500">
+                    {/* SURGICAL FIX: Only Per Person has calculation */}
+                    <span>Per Person Charge ({guests} x ${guests > 0 ? parseFloat((pricing.perPersonCharge / guests).toFixed(2)).toLocaleString() : 0})</span>
+                    <span className="font-black">
+                      ${pricing.perPersonCharge.toLocaleString()}
+                    </span>
+                  </div>
+                )}
 
                 {pricing.bond > 0 && (
                   <div className="flex justify-between text-xs font-bold text-gray-500">
+                    {/* SURGICAL FIX: Reverted bond string */}
                     <span>Security Deposit (Bond)</span>
                     <span className="font-black">
                       ${pricing.bond.toLocaleString()}
@@ -506,7 +516,6 @@ const ReservationPage = () => {
         </div>
       </div>
 
-      {/* SURGICAL FIX: The Mobile Sticky Info Bar */}
       <div
         className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pt-4 pb-6 px-6 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.1)] lg:hidden animate-slide-up"
         style={{ zIndex: 2147483647 }}

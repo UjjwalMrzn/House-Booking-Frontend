@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// SURGICAL FIX: Importing bondService correctly
 import { bondService, type BondCharge } from '../../../../../api/bondService';
 import { ShieldCheck, Trash2, Save, Plus, AlertCircle, RefreshCw, Edit2 } from 'lucide-react';
 import { useToast } from '../../../../ui/Toaster';
@@ -15,8 +14,11 @@ interface BondTabProps {
 const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
   const queryClient = useQueryClient();
   const toast = useToast();
-  const [amount, setAmount] = useState("");
-  const [isEditing, setIsEditing] = useState(false); // SURGICAL FIX: Edit State
+  
+  // SURGICAL FIX: Split amount into short and long stay states
+  const [shortStayAmount, setShortStayAmount] = useState("");
+  const [longStayAmount, setLongStayAmount] = useState("");
+  const [isEditing, setIsEditing] = useState(false); 
 
   const { data: bondsData, isLoading } = useQuery({
     queryKey: ['property-bond', propertyId],
@@ -32,16 +34,22 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
 
   useEffect(() => {
     if (existingBond) {
-      setAmount(existingBond.amount);
-      setIsEditing(false); // Lock when data loads
+      setShortStayAmount(existingBond.shortStayAmount || "");
+      setLongStayAmount(existingBond.longStayAmount || "");
+      setIsEditing(false);
     } else {
-      setAmount("");
-      setIsEditing(true); // Open edit if it's a new bond
+      setShortStayAmount("");
+      setLongStayAmount("");
+      setIsEditing(true); 
     }
   }, [existingBond]);
 
   const createMutation = useMutation({
-    mutationFn: (bondAmount: string) => bondService.createBond({ property: propertyId!, amount: bondAmount }),
+    mutationFn: () => bondService.createBond({ 
+      property: propertyId!, 
+      shortStayAmount, 
+      longStayAmount 
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-bond', propertyId] });
       toast.success("Security bond established successfully.");
@@ -50,11 +58,14 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (bondAmount: string) => bondService.updateBond(existingBond!.id!, bondAmount),
+    mutationFn: () => bondService.updateBond(existingBond!.id!, { 
+      shortStayAmount, 
+      longStayAmount 
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-bond', propertyId] });
-      toast.success("Bond amount updated.");
-      setIsEditing(false); // Lock after save
+      toast.success("Bond amounts updated.");
+      setIsEditing(false); 
     },
     onError: () => toast.error("Failed to update bond.")
   });
@@ -63,7 +74,8 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
     mutationFn: () => bondService.deleteBond(existingBond!.id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-bond', propertyId] });
-      setAmount("");
+      setShortStayAmount("");
+      setLongStayAmount("");
       toast.success("Bond removed.");
     },
     onError: () => toast.error("Failed to delete bond.")
@@ -91,7 +103,6 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
           <h3 className="text-lg font-black text-brand-dark tracking-tight">Security Deposit (Bond)</h3>
         </div>
         <div className="flex gap-2">
-          {/* SURGICAL FIX: Added Edit Pencil */}
           {existingBond && !isViewMode && !isEditing && (
             <button 
               onClick={() => setIsEditing(true)}
@@ -117,42 +128,54 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
         {isLoading ? (
           <div className="flex items-center gap-2 text-gray-400 font-bold"><RefreshCw className="animate-spin" size={16} /> Loading...</div>
         ) : (
-          <div className="max-w-md space-y-6">
+          <div className="max-w-2xl space-y-6">
             <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-start gap-3">
               <AlertCircle className="text-indigo-400 shrink-0 mt-0.5" size={16} />
               <p className="text-[11px] font-medium text-gray-500 leading-relaxed">
-                Only one security deposit is allowed per property. This amount is held during the guest's stay.
+                Set dynamic security deposits based on the length of the stay. Short stays (e.g. 2 nights) can carry a different bond than long stays (3+ nights).
               </p>
             </div>
 
-            <div className="relative">
+            {/* SURGICAL FIX: Added Grid for two inputs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
               <Input 
-                label="Bond Amount ($)" 
+                label="Short Stay Bond ($)" 
                 type="number" 
-                value={amount} 
-                onChange={(e: any) => setAmount(e.target.value)} 
-                disabled={isViewMode || (!isEditing && !!existingBond)} // SURGICAL FIX: Disabled logic
+                value={shortStayAmount} 
+                onChange={(e: any) => setShortStayAmount(e.target.value)} 
+                disabled={isViewMode || (!isEditing && !!existingBond)} 
+                placeholder="0.00"
+              />
+              <Input 
+                label="Long Stay Bond ($)" 
+                type="number" 
+                value={longStayAmount} 
+                onChange={(e: any) => setLongStayAmount(e.target.value)} 
+                disabled={isViewMode || (!isEditing && !!existingBond)} 
                 placeholder="0.00"
               />
             </div>
 
-            {/* SURGICAL FIX: Hide buttons unless in edit mode */}
             {!isViewMode && isEditing && (
-              <div className="flex gap-3">
+              <div className="flex gap-3 pt-2">
                 {existingBond && (
                   <button 
-                    onClick={() => { setIsEditing(false); setAmount(existingBond.amount); }}
+                    onClick={() => { 
+                      setIsEditing(false); 
+                      setShortStayAmount(existingBond.shortStayAmount);
+                      setLongStayAmount(existingBond.longStayAmount);
+                    }}
                     className="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors shrink-0"
                   >
                     Cancel
                   </button>
                 )}
                 <Button 
-                  onClick={() => existingBond ? updateMutation.mutate(amount) : createMutation.mutate(amount)} 
-                  disabled={!amount || createMutation.isPending || updateMutation.isPending}
-                  className="w-full h-14 shadow-lg shadow-brand-dark/10"
+                  onClick={() => existingBond ? updateMutation.mutate() : createMutation.mutate()} 
+                  disabled={!shortStayAmount || !longStayAmount || createMutation.isPending || updateMutation.isPending}
+                  className="w-full md:w-auto px-8 h-14 shadow-lg shadow-brand-dark/10"
                 >
-                  {existingBond ? (updateMutation.isPending ? "Updating..." : "Update Amount") : (createMutation.isPending ? "Creating..." : "Set Bond Amount")}
+                  {existingBond ? (updateMutation.isPending ? "Updating..." : "Update Amounts") : (createMutation.isPending ? "Creating..." : "Set Bond Amounts")}
                   {existingBond ? <Save size={16} className="ml-2" /> : <Plus size={16} className="ml-2" />}
                 </Button>
               </div>

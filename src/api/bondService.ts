@@ -3,7 +3,8 @@ import api from "./axiosInstance";
 export interface BondCharge {
   id?: number;
   property: number;
-  amount: string;
+  shortStayAmount: string;
+  longStayAmount: string;
   createdAt?: string;
 }
 
@@ -16,8 +17,8 @@ export const bondService = {
     const response = await api.post("/bondCharge/", data);
     return response.data;
   },
-  updateBond: async (id: number, amount: string) => {
-    const response = await api.patch(`/bondCharge/${id}/`, { amount });
+  updateBond: async (id: number, data: Partial<BondCharge>) => {
+    const response = await api.patch(`/bondCharge/${id}/`, data);
     return response.data;
   },
   deleteBond: async (id: number) => {
