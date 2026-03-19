@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { holidayService } from '../../../api/holidayService';
+import { schoolHolidayService } from '../../../api/schoolHolidayService';
 import { useToast } from '../../ui/Toaster';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
@@ -11,11 +11,11 @@ import SingleDatePicker from '../../ui/SingleDatePicker';
 import TableToolbar from '../../ui/TableToolbar';
 import { DayPicker } from 'react-day-picker';
 import { format, parseISO } from 'date-fns';
-import { CalendarDays, Plus, Edit2, Trash2, CheckCircle, XCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, XCircle, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
 import 'react-day-picker/dist/style.css';
 import AdminPageContainer from '../../layouts/AdminPageContainer';
 
-const AdminHolidaysPage = () => {
+const AdminSchoolHolidaysPage = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
 
@@ -24,19 +24,19 @@ const AdminHolidaysPage = () => {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [isRangeMode, setIsRangeMode] = useState(false); // SURGICAL FIX: Added Range Mode
+  const [isRangeMode, setIsRangeMode] = useState(false);
   
   const [formData, setFormData] = useState({ id: null as number | null, name: '', date: '', endDate: '', is_active: true });
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: number | null; name: string }>({ isOpen: false, id: null, name: '' });
 
   const { data: paginatedData, isLoading } = useQuery({
-    queryKey: ['admin-holidays', 'paginated', page, Number(pageSize)],
-    queryFn: () => holidayService.getAllHolidays(page, Number(pageSize)),
+    queryKey: ['admin-school-holidays', 'paginated', page, Number(pageSize)],
+    queryFn: () => schoolHolidayService.getSchoolHolidays(page, Number(pageSize)),
   });
 
   const { data: allHolidaysData } = useQuery({
-    queryKey: ['admin-holidays', 'all'],
-    queryFn: () => holidayService.getAllHolidays(1, 500),
+    queryKey: ['admin-school-holidays', 'all'],
+    queryFn: () => schoolHolidayService.getSchoolHolidays(1, 500),
   });
 
   const tableHolidays = useMemo(() => {
@@ -55,27 +55,28 @@ const AdminHolidaysPage = () => {
   const saveMutation = useMutation({
     mutationFn: (payloadData: typeof formData) => {
       if (isEdit && payloadData.id) {
-        return holidayService.updateHoliday(payloadData.id, { name: payloadData.name, date: payloadData.date, is_active: payloadData.is_active });
+        return schoolHolidayService.updateHoliday(payloadData.id, { name: payloadData.name, date: payloadData.date, is_active: payloadData.is_active });
       } else if (isRangeMode) {
-        return holidayService.createHolidayRange({ name: payloadData.name, start_date: payloadData.date, end_date: payloadData.endDate });
+        // We pass is_active just in case the backend accepts it, otherwise it defaults to true
+        return schoolHolidayService.createHolidayRange({ name: payloadData.name, start_date: payloadData.date, end_date: payloadData.endDate });
       } else {
-        return holidayService.createHoliday({ name: payloadData.name, date: payloadData.date, is_active: payloadData.is_active });
+        return schoolHolidayService.createHoliday({ name: payloadData.name, date: payloadData.date, is_active: payloadData.is_active });
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-holidays'] }); 
+      queryClient.invalidateQueries({ queryKey: ['admin-school-holidays'] }); 
       closeForm();
-      toast.success(`Holiday ${isEdit ? 'updated' : 'added'} successfully!`);
+      toast.success(`School Holiday ${isEdit ? 'updated' : 'added'} successfully!`);
     },
     onError: () => toast.error("Failed to save holiday.")
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => holidayService.deleteHoliday(id),
+    mutationFn: (id: number) => schoolHolidayService.deleteHoliday(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-holidays'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-school-holidays'] });
       setDeleteModal({ isOpen: false, id: null, name: '' });
-      toast.success("Holiday deleted permanently.");
+      toast.success("School Holiday deleted permanently.");
     }
   });
 
@@ -102,19 +103,18 @@ const AdminHolidaysPage = () => {
   return (
     <>
       <AdminPageContainer
-        title="Australian Holidays"
-        subtitle="Manage dates that affect booking availability and pricing."
-        icon={<CalendarDays size={32} />}
+        title="School Holidays"
+        subtitle="Manage school term breaks that affect booking availability and pricing."
+        icon={<BookOpen size={32} />}
         headerAction={
           <Button onClick={openAdd} className="w-full sm:w-auto px-6 py-3 flex items-center justify-center gap-2 shadow-lg shadow-brand-green/20">
             <Plus size={18} strokeWidth={3} /> Add Holiday
           </Button>
         }
       >
-        {/* SURGICAL FIX: Placed inside a distinct gray widget box to separate it from the table */}
         <div className="p-6 m-4 md:m-8 bg-gray-50/50 rounded-[2rem] border border-gray-100">
           <div className="flex items-center gap-3 mb-4 md:mb-8">
-            <div className="w-10 h-10 bg-white text-purple-500 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-gray-100">
+            <div className="w-10 h-10 bg-white text-teal-500 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-gray-100">
               <CalendarIcon size={20} strokeWidth={2.5} />
             </div>
             <h3 className="text-lg md:text-xl font-black text-brand-dark tracking-tight">Live Calendar Preview</h3>
@@ -123,11 +123,10 @@ const AdminHolidaysPage = () => {
           <div className="w-full flex justify-center py-4 max-w-full overflow-x-auto scrollbar-hide">
             <style>{`
               .holiday-preview .rdp-day_holiday { 
-                color: #8b5cf6 !important; 
+                color: #14b8a6 !important; 
                 background-color: transparent !important; 
                 font-weight: 900 !important;
               }
-              /* SURGICAL FIX: Weekend colors applied to Holiday Page Calendar */
               .holiday-preview .rdp-day_weekend {
                 color: #3b82f6 !important;
                 font-weight: 900 !important;
@@ -139,7 +138,7 @@ const AdminHolidaysPage = () => {
             <div className="holiday-preview select-none">
               <DayPicker 
                 numberOfMonths={window.innerWidth > 1024 ? 2 : 1}
-                defaultMonth={new Date()} // SURGICAL FIX: Forces calendar to start on today's month, ignoring 2031 data
+                defaultMonth={new Date()}
                 modifiers={{ holiday: holidayDates, weekend: { dayOfWeek: [0, 6] } }}
                 modifiersClassNames={{ holiday: "rdp-day_holiday", weekend: "rdp-day_weekend" }}
               />
@@ -152,13 +151,12 @@ const AdminHolidaysPage = () => {
               <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Weekend</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-purple-500 ring-4 ring-purple-50"></div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-purple-500">Active Public Holiday</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-teal-500 ring-4 ring-teal-50"></div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-teal-500">Active School Holiday</span>
             </div>
           </div>
         </div>
 
-        {/* BOTTOM: Managed Holidays List */}
         <div className="overflow-hidden">
           <TableToolbar 
             title={
@@ -177,18 +175,16 @@ const AdminHolidaysPage = () => {
           ) : tableHolidays.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center w-full">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-3 text-gray-300">
-                <CalendarDays size={24} />
+                <BookOpen size={24} />
               </div>
-              <p className="text-sm font-bold text-gray-400">No holidays found for this page.</p>
+              <p className="text-sm font-bold text-gray-400">No school holidays found.</p>
             </div>
           ) : (
             <div className="overflow-x-auto scrollbar-hide rounded-b-[2.5rem]">
               <table className="w-full text-left border-collapse min-w-[600px] md:min-w-[850px]">
                 <thead>
                   <tr className="bg-gray-50/30 border-b border-gray-100">
-                    {/* SURGICAL FIX: Added S.N. Column Header */}
                     <th className="py-4 px-4 md:px-8 text-[10px] font-black uppercase tracking-widest text-gray-400 w-12">S.N.</th>
-                    
                     <th className="py-4 px-4 md:px-8 text-[10px] font-black uppercase tracking-widest text-gray-400">Date</th>
                     <th className="py-4 px-4 md:px-8 text-[10px] font-black uppercase tracking-widest text-gray-400">Name</th>
                     <th className="py-4 px-4 md:px-8 text-[10px] font-black uppercase tracking-widest text-gray-400">Status</th>
@@ -197,15 +193,12 @@ const AdminHolidaysPage = () => {
                 </thead>
                 <tbody className="text-sm font-bold text-brand-dark">
                   {tableHolidays.map((holiday: any, index: number) => {
-                    /* SURGICAL FIX: Calculate continuous serial number */
                     const serialNumber = (page - 1) * Number(pageSize) + index + 1;
                     return (
                       <tr key={holiday.id} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors group cursor-default">
-                        {/* SURGICAL FIX: Added S.N. Cell */}
                         <td className="py-4 px-4 md:px-8 text-sm font-bold text-gray-500">{serialNumber}</td>
-                        
                         <td className="py-4 px-4 md:px-8 font-black text-brand-dark flex items-center gap-2 whitespace-nowrap">
-                          <CalendarIcon size={14} className="text-purple-400" />
+                          <CalendarIcon size={14} className="text-teal-400" />
                           {format(parseISO(holiday.date), 'dd MMM yyyy')}
                         </td>
                         <td className="py-4 px-4 md:px-8 font-bold truncate max-w-[150px] md:max-w-full">{holiday.name}</td>
@@ -242,7 +235,6 @@ const AdminHolidaysPage = () => {
 
       <FormModal isOpen={isFormOpen} onClose={closeForm} title={isEdit ? 'Edit Holiday' : 'Add Holiday'}>
         <div className="space-y-6">
-          {/* SURGICAL FIX: Added Single/Range Toggles */}
           {!isEdit && (
             <div className="flex bg-gray-100 p-1 rounded-xl">
               <button 
@@ -264,10 +256,9 @@ const AdminHolidaysPage = () => {
             label="Holiday Name" 
             value={formData.name} 
             onChange={(e: any) => setFormData({...formData, name: e.target.value})} 
-            placeholder="e.g., Australia Day"
+            placeholder="e.g., Easter Break"
           />
 
-          {/* SURGICAL FIX: Added Range Date Pickers */}
           {!isRangeMode ? (
             <SingleDatePicker label="Holiday Date" value={formData.date} onChange={(dateStr) => setFormData({...formData, date: dateStr})} />
           ) : (
@@ -277,8 +268,9 @@ const AdminHolidaysPage = () => {
             </div>
           )}
           
+          {/* SURGICAL FIX: Removed the condition hiding this so it shows in both Range and Single mode */}
           <Toggle label="Active Holiday" description="Toggle off to hide this date from the live calendar." checked={formData.is_active} onChange={(checked) => setFormData({...formData, is_active: checked})} />
-          
+
           <Button 
             onClick={() => saveMutation.mutate(formData)} 
             disabled={!formData.name || !formData.date || (isRangeMode && !formData.endDate) || saveMutation.isPending} 
@@ -295,4 +287,4 @@ const AdminHolidaysPage = () => {
   );
 };
 
-export default AdminHolidaysPage;
+export default AdminSchoolHolidaysPage;

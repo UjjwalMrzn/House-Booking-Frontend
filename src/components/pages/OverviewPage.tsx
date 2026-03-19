@@ -13,6 +13,7 @@ import { format, parseISO } from "date-fns";
 import { Users, Bed, Bath, MapPin, BedSingle, ChevronDown, ChevronUp } from "lucide-react";
 import DynamicIcon from "../ui/DynamicIcon";
 import { holidayService } from "../../api/holidayService";
+import { schoolHolidayService } from "../../api/schoolHolidayService"; // SURGICAL FIX
 
 const OverviewPage = () => {
   const navigate = useNavigate();
@@ -69,6 +70,18 @@ const OverviewPage = () => {
     const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
     return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
   }, [allHolidaysData]);
+
+  // SURGICAL FIX: Fetch and map school holidays
+  const { data: allSchoolHolidaysData } = useQuery({
+    queryKey: ['admin-school-holidays', 'all'],
+    queryFn: () => schoolHolidayService.getSchoolHolidays(1, 500),
+  });
+
+  const schoolHolidayDates = useMemo(() => {
+    if (!allSchoolHolidaysData) return [];
+    const list = Array.isArray(allSchoolHolidaysData) ? allSchoolHolidaysData : (allSchoolHolidaysData.results || []);
+    return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+  }, [allSchoolHolidaysData]);
 
   useEffect(() => {
     if (error && !hasShownError) {
@@ -197,7 +210,6 @@ const OverviewPage = () => {
                     key={tab.id}
                     data-tab-id={tab.id}
                     onClick={() => scrollToSection(tab.id)}
-                    /* SURGICAL FIX: Changed text-gray-400 to text-gray-500 for contrast */
                     className={`pb-4 text-[15px] font-bold transition-all border-b-[3px] -mb-[1.5px] shrink-0 ${
                       activeTab === tab.id
                         ? "border-brand-green text-brand-dark"
@@ -214,7 +226,6 @@ const OverviewPage = () => {
           <section id="description">
             <div className="flex items-center gap-2 mb-4">
               {isLoading ? <Skeleton variant="text" className="w-32" /> : (
-                /* SURGICAL FIX: Changed text-gray-400 to text-gray-500 for contrast */
                 <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-500 uppercase">
                   <MapPin size={14} /> {property?.address}
                 </div>
@@ -398,7 +409,6 @@ const OverviewPage = () => {
               <>
                 <div className="flex items-end gap-1">
                   <span className="text-3xl font-black text-brand-dark">${property?.base_price_per_night}</span>
-                  {/* SURGICAL FIX: Contrast fix from 400 to 500 */}
                   <span className="text-gray-500 font-bold text-sm mb-1">/ night</span>
                 </div>
                 
@@ -406,6 +416,7 @@ const OverviewPage = () => {
                   value={{ checkIn, checkOut }}
                   disabledDates={bookedRanges}
                   holidayDates={holidayDates}
+                  schoolHolidayDates={schoolHolidayDates} // SURGICAL FIX
                   onChange={(range: any) => {
                     setCheckIn(range?.from ? format(range.from, "yyyy-MM-dd") : "");
                     setCheckOut(range?.to ? format(range.to, "yyyy-MM-dd") : "");
@@ -427,7 +438,6 @@ const OverviewPage = () => {
                   Book Now
                 </Button>
                 
-                {/* SURGICAL FIX: Contrast fix from 400 to 500 */}
                 <div className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-widest">
                   No charge yet
                 </div>
@@ -445,10 +455,8 @@ const OverviewPage = () => {
           <div className="flex flex-col">
             <div className="flex items-end gap-1">
               <span className="text-xl font-black text-brand-dark">${property?.base_price_per_night}</span>
-              {/* SURGICAL FIX: Contrast fix from 400 to 500 */}
               <span className="text-gray-500 font-bold text-xs mb-1">/ night</span>
             </div>
-            {/* SURGICAL FIX: Contrast fix from 400 to 500 */}
             <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Select dates</span>
           </div>
           <Button onClick={scrollToBookingWidget} size="sm" className="px-6 rounded-lg">

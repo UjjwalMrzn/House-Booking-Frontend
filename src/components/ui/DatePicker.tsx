@@ -5,8 +5,8 @@ import { format, parseISO, differenceInDays } from 'date-fns';
 import { useToast } from './Toaster';
 import 'react-day-picker/dist/style.css';
 
-// FIXED: Added holidayDates to props
-const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDates = [] }: any) => {
+// SURGICAL FIX: Added schoolHolidayDates to props
+const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDates = [], schoolHolidayDates = [] }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropDirection, setDropDirection] = useState<'down' | 'up'>('down');
   
@@ -79,13 +79,17 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
           className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} left-1/2 -translate-x-1/2 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-gray-100 p-8 z-[99999] min-w-[320px] md:min-w-[620px] animate-entrance`}
         >
           <style>{`
-            /* SURGICAL FIX: Order matters. Weekend < Holiday < Booked */
             .rdp-day_weekend {
-              color: #3b82f6 !important; /* Soft Blue instead of harsh amber */
+              color: #3b82f6 !important; 
               font-weight: 900 !important;
             }
             .rdp-day_holiday { 
               color: #8b5cf6 !important; 
+              font-weight: 900 !important;
+            }
+            /* SURGICAL FIX: Added School Holiday modifier CSS (Teal) */
+            .rdp-day_school_holiday {
+              color: #14b8a6 !important;
               font-weight: 900 !important;
             }
             .rdp-day_booked { 
@@ -102,13 +106,9 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
             selected={range} 
             onSelect={(newRange) => { 
               if (newRange?.from && newRange?.to) {
-                // SURGICAL FIX: Calculate nights and enforce minimum 2-night stay
                 const nights = differenceInDays(newRange.to, newRange.from);
                 if (nights < 2) {
-                  // CHANGED: From toast.error to toast.info for better UX
                   toast.info("Minimum 2 nights required for booking."); 
-                  
-                  // Reset checkout date so they can pick again
                   onChange?.({ from: newRange.from, to: undefined });
                   return;
                 }
@@ -139,14 +139,16 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
               },
               weekend: { dayOfWeek: [0, 6] },
               booked: disabledDates,
-              holiday: holidayDates
+              holiday: holidayDates,
+              schoolHoliday: schoolHolidayDates // SURGICAL FIX: Bound the prop
             }}
             modifiersClassNames={{
               hoverRange: "rdp-day_range_middle", 
               hoverEnd: "rdp-day_selected",
               weekend: "rdp-day_weekend", 
               booked: "rdp-day_booked",
-              holiday: "rdp-day_holiday"
+              holiday: "rdp-day_holiday",
+              schoolHoliday: "rdp-day_school_holiday" // SURGICAL FIX: Bound the class
             }}
             components={{
               DayContent: (props) => {
@@ -167,7 +169,6 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
               <div className="w-2.5 h-2.5 rounded-full bg-brand-green shadow-sm ring-4 ring-brand-green/10"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark opacity-70">Pick Dates</span>
             </div>
-            {/* SURGICAL FIX: Soft Blue Weekend Legend */}
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm ring-4 ring-blue-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-blue-500">Weekend</span>
@@ -175,6 +176,11 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm ring-4 ring-purple-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-purple-500">Holiday</span>
+            </div>
+            {/* SURGICAL FIX: Added Teal School Holiday Legend */}
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-sm ring-4 ring-teal-50"></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-teal-500">School</span>
             </div>
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm ring-4 ring-red-50"></div>

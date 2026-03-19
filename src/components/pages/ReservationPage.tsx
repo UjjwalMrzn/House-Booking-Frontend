@@ -61,6 +61,7 @@ const ReservationPage = () => {
     bookedRanges,
     customerId,
     holidayDates,
+    schoolHolidayDates
   } = useReservation();
 
   const navigate = useNavigate();
@@ -184,18 +185,18 @@ const ReservationPage = () => {
                 });
               } catch (err) {
                 console.error("PayPal Capture Error:", err);
-
+                
+                // RESTORED: Original JSON Error Parsing Logic
                 if (err instanceof Error) {
                   try {
                     const jsonString = err.message.replace(
                       "Capture Error: ",
-                      "",
+                      ""
                     );
                     const parsedError = JSON.parse(jsonString);
-
                     toast.error(
                       parsedError.error ||
-                        "An error occurred with your payment.",
+                        "An error occurred with your payment."
                     );
                   } catch {
                     toast.error(err.message);
@@ -203,7 +204,7 @@ const ReservationPage = () => {
                 } else {
                   toast.error("An unexpected error occurred.");
                 }
-
+                
                 setIsSubmitting(false);
               }
             },
@@ -349,7 +350,7 @@ const ReservationPage = () => {
                     disabled={!isContactValid || isSubmitting}
                     onClick={saveCustomerAndContinue}
                     fullWidth
-                    className="hidden lg:flex" // Hide on mobile, use sticky bar
+                    className="hidden lg:flex" 
                   >
                     {isSubmitting ? "Saving..." : "Continue to Dates"}
                   </Button>
@@ -367,6 +368,7 @@ const ReservationPage = () => {
                     value={{ checkIn: dates.checkIn, checkOut: dates.checkOut }}
                     disabledDates={bookedRanges}
                     holidayDates={holidayDates}
+                    schoolHolidayDates={schoolHolidayDates}
                     onChange={(range: any) =>
                       setDates({
                         ...dates,
@@ -390,7 +392,7 @@ const ReservationPage = () => {
                     disabled={!isDatesValid}
                     onClick={() => setCurrentStep(3)}
                     fullWidth
-                    className="hidden lg:flex" // Hide on mobile, use sticky bar
+                    className="hidden lg:flex" 
                   >
                     Continue to Payment
                   </Button>
@@ -496,25 +498,15 @@ const ReservationPage = () => {
 
               <div className="bg-gray-50/80 border border-gray-100 rounded-2xl p-5 md:p-6 space-y-3">
                 <div className="flex justify-between text-xs font-bold text-gray-500">
-                  {/* SURGICAL FIX: Reverted rental string */}
                   <span>Rental ({pricing.nights} nights)</span>
                   <span className="font-black">
                     ${pricing.rental.toLocaleString()}
                   </span>
                 </div>
-
+                
                 {pricing.perPersonCharge > 0 && (
                   <div className="flex justify-between text-xs font-bold text-gray-500">
-                    {/* SURGICAL FIX: Only Per Person has calculation */}
-                    <span>
-                      Per Person Charge ({guests} x $
-                      {guests > 0
-                        ? parseFloat(
-                            (pricing.perPersonCharge / guests).toFixed(2),
-                          ).toLocaleString()
-                        : 0}
-                      )
-                    </span>
+                    <span>Per Person Charge ({guests} x ${guests > 0 ? parseFloat((pricing.perPersonCharge / guests).toFixed(2)).toLocaleString() : 0})</span>
                     <span className="font-black">
                       ${pricing.perPersonCharge.toLocaleString()}
                     </span>
@@ -523,7 +515,6 @@ const ReservationPage = () => {
 
                 {pricing.bond > 0 && (
                   <div className="flex justify-between text-xs font-bold text-gray-500">
-                    {/* SURGICAL FIX: Reverted bond string */}
                     <span>Security Deposit (Bond)</span>
                     <span className="font-black">
                       ${pricing.bond.toLocaleString()}

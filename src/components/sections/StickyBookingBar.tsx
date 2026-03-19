@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../api/bookingApi';
 import { propertyService } from '../../api/propertyService';
 import { holidayService } from "../../api/holidayService";
+import { schoolHolidayService } from "../../api/schoolHolidayService";
 
 const StickyBookingBar = () => {
   const navigate = useNavigate();
@@ -49,6 +50,17 @@ const StickyBookingBar = () => {
     const list = Array.isArray(allHolidaysData) ? allHolidaysData : (allHolidaysData.results || []);
     return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
   }, [allHolidaysData]);
+
+  const { data: allSchoolHolidaysData } = useQuery({
+    queryKey: ['admin-school-holidays', 'all'],
+    queryFn: () => schoolHolidayService.getSchoolHolidays(1, 500),
+  });
+
+  const schoolHolidayDates = useMemo(() => {
+    if (!allSchoolHolidaysData) return [];
+    const list = Array.isArray(allSchoolHolidaysData) ? allSchoolHolidaysData : (allSchoolHolidaysData.results || []);
+    return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+  }, [allSchoolHolidaysData]);
 
   useEffect(() => {
     const a = searchParams.get('adults');
@@ -128,13 +140,12 @@ const StickyBookingBar = () => {
                 <span className="text-[10px] font-black uppercase tracking-widest text-brand-green mb-0.5">Total due</span>
               </div>
               <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                {/* SURGICAL FIX: Reverted rental string */}
                 <span>Rental: ${pricing.rental.toLocaleString()}</span>
                 
                 {pricing.perPersonCharge > 0 && (
                   <>
                     <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                    {/* SURGICAL FIX: Added calculation only to Per Person */}
+                    {/* RESTORED: Calculation only for Per Person */}
                     <span>Per Person ({(adults + kids)}x${(adults + kids) > 0 ? parseFloat((pricing.perPersonCharge / (adults + kids)).toFixed(2)).toLocaleString() : 0}): ${pricing.perPersonCharge.toLocaleString()}</span>
                   </>
                 )}
@@ -142,7 +153,6 @@ const StickyBookingBar = () => {
                 {pricing.bond > 0 && (
                   <>
                     <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                    {/* SURGICAL FIX: Reverted bond string */}
                     <span>Bond: ${pricing.bond.toLocaleString()}</span>
                   </>
                 )}
@@ -162,6 +172,7 @@ const StickyBookingBar = () => {
                <DatePicker 
                 value={dates} disabledDates={bookedRanges}
                 holidayDates={holidayDates}
+                schoolHolidayDates={schoolHolidayDates}
                 onChange={(range: any) => setDates({
                   checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '',
                   checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : ''

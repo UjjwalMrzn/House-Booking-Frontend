@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { 
   LayoutDashboard, Home, CalendarCheck, Star, LogOut, 
   Hexagon, ListChecks, LayoutTemplate, CreditCard, 
-  Settings, CalendarDays, Contact, X , Users, ChevronLeft, ChevronRight
+  Settings, CalendarDays, Contact, X , Users, ChevronLeft, ChevronRight, BookOpen
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -17,7 +17,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Auto-close mobile sidebar when a link is clicked
   useEffect(() => {
     onClose();
   }, [location.pathname]);
@@ -41,7 +40,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
 
   return (
     <>
-      {/* Mobile Backdrop (Blur effect) */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-brand-dark/20 backdrop-blur-sm z-[60] lg:hidden animate-fade-in" 
@@ -49,7 +47,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
         />
       )}
 
-      {/* Responsive Sidebar Container */}
       <aside className={`
         fixed inset-y-0 left-0 z-[70] p-4 md:p-6 transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0 w-80' : '-translate-x-full w-80'}
@@ -58,7 +55,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
       `}>
         <div className={`bg-white rounded-[2.5rem] border border-gray-100 shadow-[0_30px_80px_rgba(0,0,0,0.04)] h-full flex flex-col relative transition-all duration-300 ${isCollapsed ? 'p-3' : 'p-6'}`}>
           
-          {/* Mobile Close Button */}
           <button 
             onClick={onClose}
             className="lg:hidden absolute top-8 right-8 text-gray-400 hover:text-brand-dark"
@@ -66,7 +62,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
             <X size={20} />
           </button>
 
-          {/* Desktop Collapse Toggle */}
           <button
             onClick={onToggleCollapse}
             className="hidden lg:flex absolute -right-3 top-[76px] w-8 h-8 bg-white border border-gray-200 rounded-full items-center justify-center text-gray-400 hover:text-brand-green hover:border-brand-green hover:shadow-md transition-all z-50"
@@ -74,7 +69,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
             {isCollapsed ? <ChevronRight size={16} strokeWidth={3} /> : <ChevronLeft size={16} strokeWidth={3} />}
           </button>
 
-          {/* Brand Header - Logo size locked, no morphing glitch */}
           <div className={`flex items-center mb-10 mt-2 transition-all duration-300 ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'}`}>
             <div className="bg-brand-green rounded-xl flex items-center justify-center text-white shadow-md shadow-brand-green/40 shrink-0 w-10 h-10">
               <Hexagon size={20} fill="currentColor" strokeWidth={2.5} />
@@ -85,7 +79,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
             </div>
           </div>
 
-          {/* Navigation */}
           <nav className={`flex-1 space-y-2 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${isCollapsed ? 'px-0' : 'pr-1'}`}>
             <NavLink to="/admin" end className={navStyles} title={isCollapsed ? "Dashboard" : ""}>
               <LayoutDashboard size={20} className="shrink-0" /> 
@@ -127,9 +120,15 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
               <span className={`transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>Customers</span>
             </NavLink>
 
-            <NavLink to="/admin/holidays" className={navStyles} title={isCollapsed ? "Holidays" : ""}>
+            <NavLink to="/admin/holidays" className={navStyles} title={isCollapsed ? "Public Holidays" : ""}>
               <CalendarDays size={20} className="shrink-0" /> 
-              <span className={`transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>Holidays</span>
+              <span className={`transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>Public Holidays</span>
+            </NavLink>
+
+            {/* SURGICAL FIX: Integrated the new School Holidays Route */}
+            <NavLink to="/admin/school-holidays" className={navStyles} title={isCollapsed ? "School Holidays" : ""}>
+              <BookOpen size={20} className="shrink-0" /> 
+              <span className={`transition-all duration-300 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>School Holidays</span>
             </NavLink>
 
             <NavLink to="/admin/contacts" className={navStyles} title={isCollapsed ? "Contacts" : ""}>
@@ -143,7 +142,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }: AdminS
             </NavLink>
           </nav>
 
-          {/* Footer Action */}
           <div className={`pt-4 border-t border-gray-50 mt-4 transition-all duration-300 ${isCollapsed ? 'flex justify-center' : ''}`}>
             <button 
               onClick={handleLogout} 

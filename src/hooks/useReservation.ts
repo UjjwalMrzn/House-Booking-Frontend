@@ -7,6 +7,7 @@ import { bookingService } from "../api/bookingApi";
 import { customerService } from "../api/customerService";
 import { useToast } from "../components/ui/Toaster";
 import { holidayService } from "../api/holidayService";
+import { schoolHolidayService } from "../api/schoolHolidayService"; // SURGICAL FIX
 
 export const useReservation = () => {
   const [searchParams] = useSearchParams();
@@ -44,6 +45,18 @@ export const useReservation = () => {
     return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
   }, [allHolidaysData]);
 
+  // SURGICAL FIX: Fetch and map school holidays
+  const { data: allSchoolHolidaysData } = useQuery({
+    queryKey: ['admin-school-holidays', 'all'],
+    queryFn: () => schoolHolidayService.getSchoolHolidays(1, 500),
+  });
+
+  const schoolHolidayDates = useMemo(() => {
+    if (!allSchoolHolidaysData) return [];
+    const list = Array.isArray(allSchoolHolidaysData) ? allSchoolHolidaysData : (allSchoolHolidaysData.results || []);
+    return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+  }, [allSchoolHolidaysData]);
+
   const [adults, setAdults] = useState(parseInt(searchParams.get("adults") || searchParams.get("guests") || "1"));
   const [kids, setKids] = useState(parseInt(searchParams.get("kids") || "0"));
   const guests = adults + kids;
@@ -55,7 +68,6 @@ export const useReservation = () => {
 
   const [contact, setContact] = useState({ firstName: "", lastName: "", email: "", phoneNumber: "", country: "" });
   
-  // SURGICAL FIX: Added 'perPersonCharge' to the pricing state
   const [pricing, setPricing] = useState({ nights: 0, rental: 0, bond: 0, perPersonCharge: 0, total: 0, dueNow: 0 });
 
   useEffect(() => {
@@ -76,11 +88,10 @@ export const useReservation = () => {
               kids: kids
             });
             
-            // SURGICAL FIX: Extracting per_person_charge and updating rental math
             const exactPrice = Number(res.total_price);
             const bondCharge = res.breakdown?.bond_charge ? Number(res.breakdown.bond_charge) : 0;
             const perPersonCharge = res.breakdown?.per_person_charge ? Number(res.breakdown.per_person_charge) : 0;
-            const rentalCharge = exactPrice - bondCharge - perPersonCharge; // Pure rental cost
+            const rentalCharge = exactPrice - bondCharge - perPersonCharge; 
 
             setPricing({ 
               nights, 
@@ -158,6 +169,6 @@ export const useReservation = () => {
     dates, setDates, guests, adults, setAdults, kids, setKids, 
     contact, setContact, pricing, isSubmitting, setIsSubmitting, 
     saveCustomerAndContinue, confirmBooking, bookedRanges,
-    customerId, holidayDates
+    customerId, holidayDates, schoolHolidayDates // SURGICAL FIX: Returning the new data
   };
 };
