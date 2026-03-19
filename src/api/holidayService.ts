@@ -11,6 +11,12 @@ export const holidayService = {
     const response = await api.post('/publicHoliday/', data);
     return response.data;
   },
+
+  // SURGICAL FIX: Added range endpoint for public holidays
+  createHolidayRange: async (data: { name: string; start_date: string; end_date: string }) => {
+    const response = await api.post('/publicHoliday/create_range/', data);
+    return response.data;
+  },
   
   updateHoliday: async (id: number, data: { date: string; name: string; is_active: boolean }) => {
     const response = await api.put(`/publicHoliday/${id}/`, data);
