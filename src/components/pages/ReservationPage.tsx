@@ -184,7 +184,26 @@ const ReservationPage = () => {
                 });
               } catch (err) {
                 console.error("PayPal Capture Error:", err);
-                toast.error("Payment capture failed. Please contact support.");
+
+                if (err instanceof Error) {
+                  try {
+                    const jsonString = err.message.replace(
+                      "Capture Error: ",
+                      "",
+                    );
+                    const parsedError = JSON.parse(jsonString);
+
+                    toast.error(
+                      parsedError.error ||
+                        "An error occurred with your payment.",
+                    );
+                  } catch {
+                    toast.error(err.message);
+                  }
+                } else {
+                  toast.error("An unexpected error occurred.");
+                }
+
                 setIsSubmitting(false);
               }
             },
@@ -483,11 +502,19 @@ const ReservationPage = () => {
                     ${pricing.rental.toLocaleString()}
                   </span>
                 </div>
-                
+
                 {pricing.perPersonCharge > 0 && (
                   <div className="flex justify-between text-xs font-bold text-gray-500">
                     {/* SURGICAL FIX: Only Per Person has calculation */}
-                    <span>Per Person Charge ({guests} x ${guests > 0 ? parseFloat((pricing.perPersonCharge / guests).toFixed(2)).toLocaleString() : 0})</span>
+                    <span>
+                      Per Person Charge ({guests} x $
+                      {guests > 0
+                        ? parseFloat(
+                            (pricing.perPersonCharge / guests).toFixed(2),
+                          ).toLocaleString()
+                        : 0}
+                      )
+                    </span>
                     <span className="font-black">
                       ${pricing.perPersonCharge.toLocaleString()}
                     </span>
