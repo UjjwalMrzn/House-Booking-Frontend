@@ -123,8 +123,10 @@ const StickyBookingBar = () => {
     return () => clearTimeout(timeoutId);
   }, [dates, realProperty, adults, kids]);
 
+  // SURGICAL FIX: The div below uses "relative w-full" instead of "fixed bottom-0"
+  // This locks it cleanly to the page scroll as requested!
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 shadow-[0_-15px_40px_rgba(0,0,0,0.12)] py-4 animate-slide-up">
+    <div className="relative w-full z-[100] bg-white border-t border-gray-200 shadow-[0_-15px_40px_rgba(0,0,0,0.12)] py-4 animate-slide-up">
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-12">
         
         <div className="flex-shrink-0 hidden sm:block">
@@ -145,7 +147,6 @@ const StickyBookingBar = () => {
                 {pricing.perPersonCharge > 0 && (
                   <>
                     <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                    {/* RESTORED: Calculation only for Per Person */}
                     <span>Per Person ({(adults + kids)}x${(adults + kids) > 0 ? parseFloat((pricing.perPersonCharge / (adults + kids)).toFixed(2)).toLocaleString() : 0}): ${pricing.perPersonCharge.toLocaleString()}</span>
                   </>
                 )}
