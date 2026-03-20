@@ -56,7 +56,7 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
             <Input label="Base Price ($) *" type="number" name="base_price_per_night" value={formData.base_price_per_night} onChange={handleChange} required disabled={isViewMode} />
             <Input label="Weekend Price ($)" type="number" name="weekend_price_per_night" value={formData.weekend_price_per_night} onChange={handleChange} disabled={isViewMode} placeholder="Optional" />
             <Input label="Holiday Price ($)" type="number" name="holiday_price_per_night" value={formData.holiday_price_per_night} onChange={handleChange} disabled={isViewMode} placeholder="Optional" />
-            <Input label="School Hol. Price ($)" type="number" name="school_holiday_price_per_night" value={formData.school_holiday_price_per_night} onChange={handleChange} disabled={isViewMode} placeholder="Optional" />
+            <Input label="School Holiday Price ($)" type="number" name="school_holiday_price_per_night" value={formData.school_holiday_price_per_night} onChange={handleChange} disabled={isViewMode} placeholder="Optional" />
           </div>
         </section>
 
