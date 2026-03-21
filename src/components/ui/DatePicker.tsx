@@ -105,6 +105,7 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
           className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} ${getAlignClass()} bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-gray-100 p-8 z-[99999] min-w-[320px] md:min-w-[620px] animate-entrance`}
         >
           <style>{`
+            /* SURGICAL FIX: Commented out holiday/weekend colors
             .rdp-day_weekend {
               color: #3b82f6 !important; 
               font-weight: 900 !important;
@@ -117,6 +118,7 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
               color: #14b8a6 !important;
               font-weight: 900 !important;
             }
+            */
             .rdp-day_booked { 
               color: #ef4444 !important; 
               background-color: transparent !important; 
@@ -195,6 +197,8 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
               <div className="w-2.5 h-2.5 rounded-full bg-brand-green shadow-sm ring-4 ring-brand-green/10"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark opacity-70">Pick Dates</span>
             </div>
+            
+            {/* SURGICAL FIX: Commented out legend items 
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm ring-4 ring-blue-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-blue-500">Weekend</span>
@@ -207,6 +211,8 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
               <div className="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-sm ring-4 ring-teal-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-teal-500">School Holiday</span>
             </div>
+            */}
+            
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm ring-4 ring-red-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-red-500">Reserved</span>
