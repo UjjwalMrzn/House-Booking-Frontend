@@ -7,6 +7,7 @@ import { MessageSquare, Star, Trash2, Eye, ArrowUpDown, ChevronUp, ChevronDown, 
 import Modal from '../../ui/Modal';
 import FormModal from '../../ui/FormModal';
 import TableToolbar from '../../ui/TableToolbar';
+import AdminPageContainer from '../../layouts/AdminPageContainer';
 
 type SortConfig = { key: string; direction: 'asc' | 'desc' } | null;
 
@@ -80,7 +81,8 @@ const AdminReviewsPage = () => {
         (review.customer_name || '').toLowerCase().includes(lowerSearch) ||
         (review.title || '').toLowerCase().includes(lowerSearch) ||
         (review.comment || '').toLowerCase().includes(lowerSearch) ||
-        (review.property_title || '').toLowerCase().includes(lowerSearch) 
+        (review.property_title || '').toLowerCase().includes(lowerSearch) ||
+        String(review.customer).includes(lowerSearch)
       );
     }
 
@@ -108,30 +110,23 @@ const AdminReviewsPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto w-full animate-fade-in pb-10 px-2 md:px-0">
-      
-      <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-brand-dark tracking-tight mb-1 flex items-center gap-3">
-            <MessageSquare className="text-brand-green" size={32} />
-            Reviews
-            <span className="hidden xs:inline-block ml-2 mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
-              {totalCount} Total
-            </span>
-          </h1>
-          <p className="text-sm font-bold text-gray-400 mt-1">Manage customer feedback and property ratings.</p>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
-        
+    <>
+      <AdminPageContainer
+        title="Reviews"
+        subtitle="Manage customer feedback and property ratings."
+        icon={<MessageSquare size={32} />}
+        headerAction={
+          <span className="hidden xs:inline-block text-[10px] font-black uppercase tracking-widest text-gray-400 bg-white shadow-sm px-2.5 py-1 rounded-md border border-gray-100">
+            {totalCount} Total
+          </span>
+        }
+      >
         <TableToolbar 
-          searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchPlaceholder="Search by review or property..."
+          searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchPlaceholder="Search customer, review, or ID..."
           filterOptions={RATING_OPTIONS} activeFilter={ratingFilter} setActiveFilter={setRatingFilter}
           page={page} setPage={setPage} pageSize={pageSize} setPageSize={setPageSize} hasNextPage={!!(reviewsData as any)?.next}
         />
 
-        {/* SURGICAL FIX: Extracted loading and empty states OUTSIDE the table for perfect centering */}
         {isLoading ? (
           <div className="py-16 text-center text-sm font-bold text-gray-400">Loading reviews...</div>
         ) : processedReviews.length === 0 ? (
@@ -142,42 +137,66 @@ const AdminReviewsPage = () => {
             <p className="text-sm font-bold text-gray-400">No reviews found.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto scrollbar-hide rounded-b-[2rem]">
+          <div className="overflow-x-auto scrollbar-hide rounded-b-[2.5rem]">
             <table className="w-full text-left border-separate border-spacing-y-2 min-w-[600px] md:min-w-[850px] px-2 md:px-4">
               <thead>
                 <tr>
+                  {/* SURGICAL FIX: Added S.N. Column Header */}
+                  <th className="py-2 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400 w-12">S.N.</th>
+                  
+                  {/* SURGICAL FIX: Added ID Column Header */}
+                  <th className="py-2 px-4"><button onClick={() => handleSort('id')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Review ID {renderSortIcon('id')}</button></th>
+
                   <th className="py-2 px-4 w-1/3"><button onClick={() => handleSort('title')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Review {renderSortIcon('title')}</button></th>
                   <th className="py-2 px-4"><button onClick={() => handleSort('rating')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Rating {renderSortIcon('rating')}</button></th>
-                  <th className="py-2 px-4"><button onClick={() => handleSort('customer_name')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Guest {renderSortIcon('customer_name')}</button></th>
+                  <th className="py-2 px-4"><button onClick={() => handleSort('customer_name')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Customer {renderSortIcon('customer_name')}</button></th>
                   <th className="hidden sm:table-cell py-2 px-4"><button onClick={() => handleSort('property_title')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Property {renderSortIcon('property_title')}</button></th>
                   <th className="hidden md:table-cell py-2 px-4"><button onClick={() => handleSort('createdAt')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark transition-colors">Date {renderSortIcon('createdAt')}</button></th>
                   <th className="py-2 px-4 text-[9px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-sm font-bold text-brand-dark">
-                {processedReviews.map((review: any) => (
-                  <tr key={review.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
-                    <td className="py-4 px-4 rounded-l-2xl">
-                      <div className="font-black text-brand-dark text-sm line-clamp-1">{review.title}</div>
-                      <div className="text-xs font-medium text-gray-500 mt-1 line-clamp-1">{review.comment}</div>
-                    </td>
-                    <td className="py-4 px-4"><div className="flex items-center gap-1.5 bg-amber-50 text-amber-500 w-fit px-2.5 py-1.5 rounded-lg border border-amber-100"><Star size={12} fill="currentColor" /><span className="text-[11px] font-black mt-0.5">{review.rating}.0</span></div></td>
-                    <td className="py-4 px-4"><div className="font-bold text-brand-dark text-sm flex items-center gap-2"><div className="w-6 h-6 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0"><User size={12} /></div><span className="truncate max-w-[120px]">{review.customer_name || 'Guest User'}</span></div></td>
-                    <td className="hidden sm:table-cell py-4 px-4"><div className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5 truncate max-w-[150px]" title={review.property_title}><MapPin size={11} className="text-indigo-400 shrink-0" /> {review.property_title}</div></td>
-                    <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{review.createdAt ? review.createdAt.split('T')[0] : 'N/A'}</div></td>
-                    <td className="py-4 px-4 text-right rounded-r-2xl">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setViewModal({ isOpen: true, review })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-brand-dark hover:border-gray-300 shadow-sm transition-colors" title="Read Full Review"><Eye size={14} /></button>
-                        <button onClick={() => setDeleteModal({ isOpen: true, id: review.id, title: review.title })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm" title="Delete Review"><Trash2 size={14} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {processedReviews.map((review: any, index: number) => {
+                  /* SURGICAL FIX: Calculate continuous serial number */
+                  const serialNumber = (page - 1) * Number(pageSize) + index + 1;
+                  return (
+                    <tr key={review.id} className="bg-white hover:bg-gray-50/50 transition-colors group">
+                      {/* SURGICAL FIX: Added S.N. Cell and shifted rounded-l-2xl here */}
+                      <td className="py-4 px-4 rounded-l-2xl whitespace-nowrap text-sm font-bold text-gray-500">{serialNumber}</td>
+                      
+                      {/* SURGICAL FIX: Added ID Cell */}
+                      <td className="py-4 px-4 md:rounded-none whitespace-nowrap"><div className="font-mono text-[10px] md:text-xs font-bold text-brand-dark bg-gray-100 px-2 py-1 rounded-md w-fit">#{review.id}</div></td>
+
+                      <td className="py-4 px-4">
+                        <div className="font-black text-brand-dark text-sm line-clamp-1">{review.title}</div>
+                        <div className="text-xs font-medium text-gray-500 mt-1 line-clamp-1">{review.comment}</div>
+                      </td>
+                      <td className="py-4 px-4"><div className="flex items-center gap-1.5 bg-amber-50 text-amber-500 w-fit px-2.5 py-1.5 rounded-lg border border-amber-100"><Star size={12} fill="currentColor" /><span className="text-[11px] font-black mt-0.5">{review.rating}.0</span></div></td>
+                      <td className="py-4 px-4">
+                        <div className="font-bold text-brand-dark text-sm flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0"><User size={12} /></div>
+                          <span className="truncate max-w-[120px]">
+                            {review.customer_name || 'Unknown Customer'}
+                            {review.customer && <span className="text-[11px] font-bold text-brand-green ml-1.5">• ID #{review.customer}</span>}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="hidden sm:table-cell py-4 px-4"><div className="text-[11px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5 truncate max-w-[150px]" title={review.property_title}><MapPin size={11} className="text-indigo-400 shrink-0" /> {review.property_title}</div></td>
+                      <td className="hidden md:table-cell py-4 px-4 whitespace-nowrap"><div className="font-bold text-brand-dark text-sm">{review.createdAt ? review.createdAt.split('T')[0] : 'N/A'}</div></td>
+                      <td className="py-4 px-4 text-right rounded-r-2xl">
+                        <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => setViewModal({ isOpen: true, review })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:text-brand-dark hover:border-gray-300 shadow-sm transition-colors" title="Read Full Review"><Eye size={14} /></button>
+                          <button onClick={() => setDeleteModal({ isOpen: true, id: review.id, title: review.title })} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shadow-sm" title="Delete Review"><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </AdminPageContainer>
 
       <Modal isOpen={deleteModal.isOpen} onClose={() => setDeleteModal({ isOpen: false, id: null, title: "" })} onConfirm={() => { if (deleteModal.id) deleteMutation.mutate(deleteModal.id); }} title="Delete Review" message={`Are you sure you want to delete the review "${deleteModal.title}"? This action cannot be undone.`} confirmText="Delete Permanently" variant="danger" loading={deleteMutation.isPending} />
 
@@ -203,8 +222,7 @@ const AdminReviewsPage = () => {
           </div>
         )}
       </FormModal>
-
-    </div>
+    </>
   );
 };
 

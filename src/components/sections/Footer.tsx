@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
+import { MapPin, Phone, Mail, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -27,13 +27,17 @@ const Footer = () => {
               An innovation first coastal retreat dedicated to building high performance relaxation and memorable holiday experiences.
             </p>
             <div className="flex items-center gap-4 pt-2">
-              {/* SURGICAL FIX: Added aria-label to social links so screen readers know what they do */}
-              <a href="#" aria-label="Visit our Facebook page" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white transition-all">
+              {/* SURGICAL FIX: Added actual href, target="_blank" to open in new tab, and rel security tags */}
+              <a 
+                href="https://www.facebook.com/profile.php?id=61586674963536" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Visit our Facebook page" 
+                className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white transition-all"
+              >
                 <Facebook size={18} />
               </a>
-              <a href="#" aria-label="Visit our Instagram page" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:bg-brand-green hover:text-white transition-all">
-                <Instagram size={18} />
-              </a>
+              {/* SURGICAL FIX: Instagram button removed completely */}
             </div>
           </div>
 

@@ -61,6 +61,7 @@ const ReservationPage = () => {
     bookedRanges,
     customerId,
     holidayDates,
+    schoolHolidayDates
   } = useReservation();
 
   const navigate = useNavigate();
@@ -116,6 +117,8 @@ const ReservationPage = () => {
                   booking: bookingIdRef.current,
                   check_in: dates.checkIn,
                   check_out: dates.checkOut,
+                  adults: adults,
+                  kids: kids,
                   price: pricing.total.toString(),
                 };
 
@@ -125,7 +128,7 @@ const ReservationPage = () => {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
-                  }
+                  },
                 );
 
                 if (!res.ok) throw new Error("Backend Error");
@@ -153,6 +156,8 @@ const ReservationPage = () => {
                   check_out: dates.checkOut,
                   booking: bookingIdRef.current,
                   price: pricing.total.toString(),
+                  adults: adults,
+                  kids: kids,
                 };
 
                 const res = await fetch(
@@ -161,7 +166,7 @@ const ReservationPage = () => {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
-                  }
+                  },
                 );
 
                 if (!res.ok) {
@@ -180,7 +185,26 @@ const ReservationPage = () => {
                 });
               } catch (err) {
                 console.error("PayPal Capture Error:", err);
-                toast.error("Payment capture failed. Please contact support.");
+                
+                // RESTORED: Original JSON Error Parsing Logic
+                if (err instanceof Error) {
+                  try {
+                    const jsonString = err.message.replace(
+                      "Capture Error: ",
+                      ""
+                    );
+                    const parsedError = JSON.parse(jsonString);
+                    toast.error(
+                      parsedError.error ||
+                        "An error occurred with your payment."
+                    );
+                  } catch {
+                    toast.error(err.message);
+                  }
+                } else {
+                  toast.error("An unexpected error occurred.");
+                }
+                
                 setIsSubmitting(false);
               }
             },
@@ -188,7 +212,7 @@ const ReservationPage = () => {
             onError: (err: any) => {
               console.error(err);
               toast.error(
-                "There was an error with your payment. Please try again."
+                "There was an error with your payment. Please try again.",
               );
               setIsSubmitting(false);
             },
@@ -228,10 +252,8 @@ const ReservationPage = () => {
   const isDatesValid = !!(dates.checkIn && dates.checkOut);
 
   return (
-    // SURGICAL FIX: Added pb-32 to account for the new sticky bottom bar!
     <main className="min-h-screen bg-[#FCFBF9] font-sans text-brand-dark pb-32 lg:pb-20 pt-24 animate-fade-in text-brand-dark">
       <div className="max-w-[1200px] mx-auto px-4 md:px-6">
-        
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 md:mb-16 gap-6">
           <div className="w-full md:w-auto flex justify-start">
             <button
@@ -242,7 +264,6 @@ const ReservationPage = () => {
             </button>
           </div>
 
-          {/* SURGICAL FIX: Changed w-full to w-fit and mx-auto so it hugs the steps tightly */}
           <div className="flex items-center justify-center bg-white border border-gray-100 p-1.5 rounded-full shadow-sm w-fit mx-auto md:mx-0 overflow-x-auto scrollbar-hide">
             {[
               { id: 1, label: "Contact" },
@@ -251,7 +272,9 @@ const ReservationPage = () => {
             ].map((step, idx) => (
               <div key={step.id} className="flex items-center">
                 <button
-                  onClick={() => step.id < currentStep && setCurrentStep(step.id)}
+                  onClick={() =>
+                    step.id < currentStep && setCurrentStep(step.id)
+                  }
                   className={`px-4 md:px-5 py-2 flex items-center gap-1.5 md:gap-2 text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] transition-all rounded-full whitespace-nowrap
                   ${currentStep === step.id ? "bg-brand-green text-white shadow-md shadow-green-100" : "text-gray-400 hover:text-brand-dark"}`}
                 >
@@ -327,7 +350,7 @@ const ReservationPage = () => {
                     disabled={!isContactValid || isSubmitting}
                     onClick={saveCustomerAndContinue}
                     fullWidth
-                    className="hidden lg:flex" // Hide on mobile, use sticky bar
+                    className="hidden lg:flex" 
                   >
                     {isSubmitting ? "Saving..." : "Continue to Dates"}
                   </Button>
@@ -345,6 +368,7 @@ const ReservationPage = () => {
                     value={{ checkIn: dates.checkIn, checkOut: dates.checkOut }}
                     disabledDates={bookedRanges}
                     holidayDates={holidayDates}
+                    schoolHolidayDates={schoolHolidayDates}
                     onChange={(range: any) =>
                       setDates({
                         ...dates,
@@ -368,7 +392,7 @@ const ReservationPage = () => {
                     disabled={!isDatesValid}
                     onClick={() => setCurrentStep(3)}
                     fullWidth
-                    className="hidden lg:flex" // Hide on mobile, use sticky bar
+                    className="hidden lg:flex" 
                   >
                     Continue to Payment
                   </Button>
@@ -480,6 +504,15 @@ const ReservationPage = () => {
                   </span>
                 </div>
                 
+                {pricing.perPersonCharge > 0 && (
+                  <div className="flex justify-between text-xs font-bold text-gray-500">
+                    <span>Per Person Charge ({guests} x ${guests > 0 ? parseFloat((pricing.perPersonCharge / guests).toFixed(2)).toLocaleString() : 0})</span>
+                    <span className="font-black">
+                      ${pricing.perPersonCharge.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+
                 {pricing.bond > 0 && (
                   <div className="flex justify-between text-xs font-bold text-gray-500">
                     <span>Security Deposit (Bond)</span>
@@ -488,7 +521,7 @@ const ReservationPage = () => {
                     </span>
                   </div>
                 )}
-                
+
                 <div className="flex justify-between text-lg md:text-xl font-black text-brand-dark pt-3 border-t border-gray-200">
                   <span>Total (AUD)</span>
                   <span className="text-brand-green font-black">
@@ -501,43 +534,58 @@ const ReservationPage = () => {
         </div>
       </div>
 
-      {/* SURGICAL FIX: The Mobile Sticky Info Bar */}
-      <div 
+      <div
         className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pt-4 pb-6 px-6 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.1)] lg:hidden animate-slide-up"
         style={{ zIndex: 2147483647 }}
       >
         <div className="flex flex-col">
           <div className="flex items-end gap-1">
-            <span className="text-xl font-black text-brand-dark">${pricing.total.toLocaleString()}</span>
+            <span className="text-xl font-black text-brand-dark">
+              ${pricing.total.toLocaleString()}
+            </span>
             <span className="text-gray-500 font-bold text-xs mb-1">AUD</span>
           </div>
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Total Due</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+            Total Due
+          </span>
         </div>
-        
+
         {currentStep === 1 && (
-          <Button disabled={!isContactValid || isSubmitting} onClick={saveCustomerAndContinue} size="sm" className="px-6 rounded-lg">
+          <Button
+            disabled={!isContactValid || isSubmitting}
+            onClick={saveCustomerAndContinue}
+            size="sm"
+            className="px-6 rounded-lg"
+          >
             {isSubmitting ? "Saving..." : "Next Step"}
           </Button>
         )}
         {currentStep === 2 && (
-          <Button disabled={!isDatesValid} onClick={() => setCurrentStep(3)} size="sm" className="px-6 rounded-lg">
+          <Button
+            disabled={!isDatesValid}
+            onClick={() => setCurrentStep(3)}
+            size="sm"
+            className="px-6 rounded-lg"
+          >
             Payment
           </Button>
         )}
         {currentStep === 3 && (
-          <Button 
-            disabled={isSubmitting} 
+          <Button
+            disabled={isSubmitting}
             onClick={() => {
-               paypalContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }} 
-            size="sm" 
+              paypalContainerRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+            }}
+            size="sm"
             className="px-6 rounded-lg"
           >
             Pay Now
           </Button>
         )}
       </div>
-
     </main>
   );
 };

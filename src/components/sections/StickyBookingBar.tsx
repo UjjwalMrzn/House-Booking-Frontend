@@ -4,12 +4,12 @@ import DatePicker from '../ui/DatePicker';
 import GuestSelector from '../ui/GuestSelector';
 import Button from '../ui/Button';
 import { Skeleton } from '../ui/Skeleton';
-// SURGICAL FIX: Added differenceInDays to calculate nights
 import { format, parseISO, differenceInDays } from 'date-fns'; 
 import { useQuery } from '@tanstack/react-query';
 import { bookingService } from '../../api/bookingApi';
 import { propertyService } from '../../api/propertyService';
 import { holidayService } from "../../api/holidayService";
+import { schoolHolidayService } from "../../api/schoolHolidayService";
 
 const StickyBookingBar = () => {
   const navigate = useNavigate();
@@ -19,8 +19,7 @@ const StickyBookingBar = () => {
   const [kids, setKids] = useState(0);
   const [dates, setDates] = useState({ checkIn: '', checkOut: '' });
 
-  // SURGICAL FIX: State for handling dynamic pricing breakdown
-  const [pricing, setPricing] = useState({ nights: 0, rental: 0, bond: 0, total: 0 });
+  const [pricing, setPricing] = useState({ nights: 0, rental: 0, bond: 0, perPersonCharge: 0, total: 0 });
   const [isCalculating, setIsCalculating] = useState(false);
 
   const { data: realProperty, isLoading } = useQuery({
@@ -52,6 +51,17 @@ const StickyBookingBar = () => {
     return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
   }, [allHolidaysData]);
 
+  const { data: allSchoolHolidaysData } = useQuery({
+    queryKey: ['admin-school-holidays', 'all'],
+    queryFn: () => schoolHolidayService.getSchoolHolidays(1, 500),
+  });
+
+  const schoolHolidayDates = useMemo(() => {
+    if (!allSchoolHolidaysData) return [];
+    const list = Array.isArray(allSchoolHolidaysData) ? allSchoolHolidaysData : (allSchoolHolidaysData.results || []);
+    return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+  }, [allSchoolHolidaysData]);
+
   useEffect(() => {
     const a = searchParams.get('adults');
     const k = searchParams.get('kids');
@@ -68,7 +78,6 @@ const StickyBookingBar = () => {
     });
   }, [searchParams]);
 
-  // SURGICAL FIX: Fetch dynamic exact price when dates/guests change
   useEffect(() => {
     const fetchPrice = async () => {
       if (dates.checkIn && dates.checkOut && realProperty?.id) {
@@ -88,26 +97,25 @@ const StickyBookingBar = () => {
               kids: kids
             });
             
-            // Extract the bond charge and separate the rental
             const exactPrice = Number(res.total_price);
             const bondCharge = res.breakdown?.bond_charge ? Number(res.breakdown.bond_charge) : 0;
-            const rentalCharge = exactPrice - bondCharge;
+            const perPersonCharge = res.breakdown?.per_person_charge ? Number(res.breakdown.per_person_charge) : 0;
+            const rentalCharge = exactPrice - bondCharge - perPersonCharge;
 
-            setPricing({ nights, rental: rentalCharge, bond: bondCharge, total: exactPrice });
+            setPricing({ nights, rental: rentalCharge, bond: bondCharge, perPersonCharge, total: exactPrice });
           } catch (error) {
             console.error("Failed to calculate price:", error);
           } finally {
             setIsCalculating(false);
           }
         } else {
-          setPricing({ nights: 0, rental: 0, bond: 0, total: 0 });
+          setPricing({ nights: 0, rental: 0, bond: 0, perPersonCharge: 0, total: 0 });
         }
       } else {
-        setPricing({ nights: 0, rental: 0, bond: 0, total: 0 });
+        setPricing({ nights: 0, rental: 0, bond: 0, perPersonCharge: 0, total: 0 });
       }
     };
     
-    // Add a small debounce to avoid spamming the backend while picking dates
     const timeoutId = setTimeout(() => {
       fetchPrice();
     }, 200);
@@ -115,8 +123,10 @@ const StickyBookingBar = () => {
     return () => clearTimeout(timeoutId);
   }, [dates, realProperty, adults, kids]);
 
+  // SURGICAL FIX: The div below uses "relative w-full" instead of "fixed bottom-0"
+  // This locks it cleanly to the page scroll as requested!
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 shadow-[0_-15px_40px_rgba(0,0,0,0.12)] py-4 animate-slide-up">
+    <div className="relative w-full z-[100] bg-white border-t border-gray-200 shadow-[0_-15px_40px_rgba(0,0,0,0.12)] py-4 animate-slide-up">
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between gap-12">
         
         <div className="flex-shrink-0 hidden sm:block">
@@ -126,7 +136,6 @@ const StickyBookingBar = () => {
               <Skeleton className="h-3 w-32 rounded-md" />
             </div>
           ) : pricing.nights > 0 ? (
-            // SURGICAL FIX: The separated breakdown and total sumup replacing title on selection
             <div className="animate-fade-in flex flex-col justify-center">
               <div className="flex items-end gap-2 mb-1.5">
                 <span className="text-2xl font-black text-brand-dark leading-none">${pricing.total.toLocaleString()}</span>
@@ -134,6 +143,14 @@ const StickyBookingBar = () => {
               </div>
               <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                 <span>Rental: ${pricing.rental.toLocaleString()}</span>
+                
+                {pricing.perPersonCharge > 0 && (
+                  <>
+                    <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                    <span>Per Person ({(adults + kids)}x${(adults + kids) > 0 ? parseFloat((pricing.perPersonCharge / (adults + kids)).toFixed(2)).toLocaleString() : 0}): ${pricing.perPersonCharge.toLocaleString()}</span>
+                  </>
+                )}
+
                 {pricing.bond > 0 && (
                   <>
                     <span className="w-1 h-1 rounded-full bg-gray-300"></span>
@@ -156,6 +173,7 @@ const StickyBookingBar = () => {
                <DatePicker 
                 value={dates} disabledDates={bookedRanges}
                 holidayDates={holidayDates}
+                schoolHolidayDates={schoolHolidayDates}
                 onChange={(range: any) => setDates({
                   checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '',
                   checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : ''

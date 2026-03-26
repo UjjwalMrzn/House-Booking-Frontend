@@ -9,6 +9,7 @@ import { bookingService } from '../../api/bookingApi';
 import { propertyService } from '../../api/propertyService';
 import { homeService } from '../../api/homeService';
 import { holidayService } from "../../api/holidayService";
+import { schoolHolidayService } from "../../api/schoolHolidayService"; // SURGICAL FIX
 
 const getImageUrl = (url: string) => {
   if (!url) return "";
@@ -60,7 +61,18 @@ const Hero = () => {
     return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
   }, [allHolidaysData]);
 
-  // THE FIX: Extracted isLoading here
+  // SURGICAL FIX: Fetch and map school holidays
+  const { data: allSchoolHolidaysData } = useQuery({
+    queryKey: ['admin-school-holidays', 'all'],
+    queryFn: () => schoolHolidayService.getSchoolHolidays(1, 500),
+  });
+
+  const schoolHolidayDates = useMemo(() => {
+    if (!allSchoolHolidaysData) return [];
+    const list = Array.isArray(allSchoolHolidaysData) ? allSchoolHolidaysData : (allSchoolHolidaysData.results || []);
+    return list.filter((h: any) => h.is_active).map((h: any) => parseISO(h.date));
+  }, [allSchoolHolidaysData]);
+
   const { data: homeImagesData, isLoading: isImagesLoading } = useQuery({
     queryKey: ['home-page-images'],
     queryFn: homeService.getHomePageImages,
@@ -77,8 +89,6 @@ const Hero = () => {
   const activeImageObj = homeImages.find((img: any) => img.is_main) || homeImages[0];
   const activeTitleObj = titles.find((t: any) => t.isMain) || titles[0];
   
-  /* SURGICAL FIX: Shaved bandwidth by dropping Unsplash quality to 50 and max width to 1080 */
-  // THE FIX: Added isImagesLoading check so it doesn't trigger Unsplash while waiting for the API
   const heroBackgroundImage = isImagesLoading 
     ? undefined 
     : (activeImageObj?.image 
@@ -89,15 +99,12 @@ const Hero = () => {
 
   return (
     <>
-      {/* SURGICAL FIX: Force the browser to preload the LCP hero image immediately, drastically dropping the "Render Delay" penalty in Lighthouse */}
-      {/* THE FIX: Only preload if the image is actually ready */}
       {heroBackgroundImage && <link rel="preload" as="image" href={heroBackgroundImage} />}
       
       <div className="w-full bg-[#fafafa] pb-24 overflow-visible">
         <div className="relative max-w-[96%] mx-auto mt-4 h-[550px] md:h-[600px] rounded-[3rem] overflow-hidden group shadow-2xl">
           
           <div className="absolute inset-0 transition-transform duration-[2000ms]">
-            {/* THE FIX: Only render the img tag if heroBackgroundImage is not undefined */}
             {heroBackgroundImage && (
               <img 
                 src={heroBackgroundImage} 
@@ -124,6 +131,7 @@ const Hero = () => {
                 value={dates} 
                 disabledDates={bookedRanges}
                 holidayDates={holidayDates}
+                schoolHolidayDates={schoolHolidayDates} // SURGICAL FIX
                 onChange={(range: any) => setDates({ 
                   checkIn: range?.from ? format(range.from, 'yyyy-MM-dd') : '', 
                   checkOut: range?.to ? format(range.to, 'yyyy-MM-dd') : '' 

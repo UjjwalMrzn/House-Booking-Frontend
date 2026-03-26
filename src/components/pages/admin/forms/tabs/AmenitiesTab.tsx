@@ -75,7 +75,7 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
     onError: () => toast.error("Failed to remove amenity.")
   });
 
-  const selectedAmenityName = availableAmenities.find((a: any) => String(a.id) === amenityForm.amenityId)?.name || 'Select an amenity...';
+  const selectedAmenity = availableAmenities.find((a: any) => String(a.id) === amenityForm.amenityId);
 
   return (
     <>
@@ -161,14 +161,28 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
               isDropdownOpen ? 'border-brand-green ring-2 ring-brand-green/10' : 'border-gray-200 hover:border-gray-300'
             } ${amenityForm.isEdit ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
           >
-            <span className={amenityForm.amenityId ? 'text-brand-dark' : 'text-gray-400'}>
-              {selectedAmenityName}
+            {/* SURGICAL FIX: Display icon + name on the closed button if selected */}
+            <span className={`flex items-center gap-2 ${amenityForm.amenityId ? 'text-brand-dark' : 'text-gray-400'}`}>
+              {selectedAmenity ? (
+                <>
+                  <DynamicIcon name={selectedAmenity.icon || 'ListChecks'} size={16} className="text-gray-400" />
+                  {selectedAmenity.name}
+                </>
+              ) : (
+                'Select an amenity...'
+              )}
             </span>
             <ChevronDown size={16} className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute z-50 top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-2 max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
+            <div className="absolute z-[120] top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-2 max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
+              {/* SURGICAL FIX: Overrode the overflow hiding on FormModal when open */}
+              <style>{`
+                .admin-modal-overlay .custom-scrollbar {
+                  overflow: visible !important;
+                }
+              `}</style>
               {availableAmenities.map((a: any) => (
                 <button
                   key={a.id}
@@ -179,7 +193,9 @@ const AmenitiesTab: React.FC<AmenitiesTabProps> = ({ propertyId, assignedAmeniti
                   }}
                   className="w-full text-left px-4 py-3 text-sm font-bold flex items-center justify-between transition-colors hover:bg-brand-green/5 hover:text-brand-green"
                 >
-                  <span className={amenityForm.amenityId === String(a.id) ? 'text-brand-green' : 'text-gray-600'}>
+                  {/* SURGICAL FIX: Display icon + name in dropdown options */}
+                  <span className={`flex items-center gap-2 ${amenityForm.amenityId === String(a.id) ? 'text-brand-green' : 'text-gray-600'}`}>
+                    <DynamicIcon name={a.icon || 'ListChecks'} size={16} className={amenityForm.amenityId === String(a.id) ? 'text-brand-green' : 'text-gray-400'} />
                     {a.name}
                   </span>
                   {amenityForm.amenityId === String(a.id) && <Check size={16} className="text-brand-green" />}

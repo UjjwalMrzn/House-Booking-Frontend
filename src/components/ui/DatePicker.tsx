@@ -1,17 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowRight, X } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInDays } from 'date-fns';
+import { useToast } from './Toaster';
 import 'react-day-picker/dist/style.css';
 
-// FIXED: Added holidayDates to props
-const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDates = [] }: any) => {
+const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDates = [], schoolHolidayDates = [] }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropDirection, setDropDirection] = useState<'down' | 'up'>('down');
+  const [horizontalAlign, setHorizontalAlign] = useState<'center' | 'left' | 'right'>('center');
   
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   
   const containerRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
 
   const range = value?.checkIn ? {
     from: parseISO(value.checkIn),
@@ -33,8 +35,28 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
     if (!isOpen && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
-      setDropDirection(spaceBelow < 420 ? 'up' : 'down');
+      const spaceAbove = rect.top;
+
+      // SURGICAL FIX: Flawless Vertical Math
+      if (spaceBelow < 420 && spaceAbove > spaceBelow) {
+        setDropDirection('up');
+      } else {
+        setDropDirection('down');
+      }
+
+      // SURGICAL FIX: Flawless Horizontal Math
+      const dropdownWidth = window.innerWidth > 768 ? 620 : 320;
+      const centerSpill = (dropdownWidth - rect.width) / 2;
+
+      if (rect.left - centerSpill < 20) {
+        setHorizontalAlign('left'); 
+      } else if (rect.right + centerSpill > window.innerWidth - 20) {
+        setHorizontalAlign('right'); 
+      } else {
+        setHorizontalAlign('center'); 
+      }
     }
+    
     if (isOpen) setHoveredDate(null);
     setIsOpen(!isOpen);
   };
@@ -43,6 +65,12 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
   const boxActiveStyles = isOpen ? "border-brand-green ring-1 ring-brand-green/20" : "hover:border-gray-300";
 
   const normalizeDate = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+  const getAlignClass = () => {
+    if (horizontalAlign === 'left') return 'left-0';
+    if (horizontalAlign === 'right') return 'right-0';
+    return 'left-1/2 -translate-x-1/2';
+  };
 
   return (
     <div className={`relative w-full group ${className}`} ref={containerRef}>
@@ -74,18 +102,23 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
 
       {isOpen && (
         <div 
-          className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} left-1/2 -translate-x-1/2 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-gray-100 p-8 z-[99999] min-w-[320px] md:min-w-[620px] animate-entrance`}
+          className={`absolute ${dropDirection === 'up' ? 'bottom-[calc(100%+12px)]' : 'top-[calc(100%+12px)]'} ${getAlignClass()} bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)] rounded-[2.5rem] border border-gray-100 p-8 z-[99999] min-w-[320px] md:min-w-[620px] animate-entrance`}
         >
           <style>{`
-            /* SURGICAL FIX: Order matters. Weekend < Holiday < Booked */
+            /* SURGICAL FIX: Commented out holiday/weekend colors
             .rdp-day_weekend {
-              color: #3b82f6 !important; /* Soft Blue instead of harsh amber */
+              color: #3b82f6 !important; 
               font-weight: 900 !important;
             }
             .rdp-day_holiday { 
               color: #8b5cf6 !important; 
               font-weight: 900 !important;
             }
+            .rdp-day_school_holiday {
+              color: #14b8a6 !important;
+              font-weight: 900 !important;
+            }
+            */
             .rdp-day_booked { 
               color: #ef4444 !important; 
               background-color: transparent !important; 
@@ -99,10 +132,19 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
             mode="range" 
             selected={range} 
             onSelect={(newRange) => { 
-              onChange?.(newRange); 
               if (newRange?.from && newRange?.to) {
+                const nights = differenceInDays(newRange.to, newRange.from);
+                if (nights < 2) {
+                  toast.info("Minimum 2 nights required for booking."); 
+                  onChange?.({ from: newRange.from, to: undefined });
+                  return;
+                }
+
+                onChange?.(newRange); 
                 setIsOpen(false); 
                 setHoveredDate(null);
+              } else {
+                onChange?.(newRange);
               }
             }} 
             numberOfMonths={window.innerWidth > 768 ? 2 : 1} 
@@ -124,14 +166,16 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
               },
               weekend: { dayOfWeek: [0, 6] },
               booked: disabledDates,
-              holiday: holidayDates
+              holiday: holidayDates,
+              schoolHoliday: schoolHolidayDates
             }}
             modifiersClassNames={{
               hoverRange: "rdp-day_range_middle", 
               hoverEnd: "rdp-day_selected",
               weekend: "rdp-day_weekend", 
               booked: "rdp-day_booked",
-              holiday: "rdp-day_holiday"
+              holiday: "rdp-day_holiday",
+              schoolHoliday: "rdp-day_school_holiday"
             }}
             components={{
               DayContent: (props) => {
@@ -147,12 +191,14 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
             }}
           />
 
-          <div className="mt-8 pt-6 border-t border-gray-50 flex flex-wrap items-center justify-center gap-y-3 gap-x-5 md:gap-10">
+          {/* SURGICAL FIX: Changed gap-x-5 md:gap-10 to gap-x-4 md:gap-x-6 so all 5 items fit on one line perfectly */}
+          <div className="mt-8 pt-6 border-t border-gray-50 flex flex-wrap items-center justify-center gap-y-3 gap-x-4 md:gap-x-6">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-brand-green shadow-sm ring-4 ring-brand-green/10"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-dark opacity-70">Pick Dates</span>
             </div>
-            {/* SURGICAL FIX: Soft Blue Weekend Legend */}
+            
+            {/* SURGICAL FIX: Commented out legend items 
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm ring-4 ring-blue-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-blue-500">Weekend</span>
@@ -161,6 +207,12 @@ const DatePicker = ({ value, onChange, className, disabledDates = [], holidayDat
               <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-sm ring-4 ring-purple-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-purple-500">Holiday</span>
             </div>
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-sm ring-4 ring-teal-50"></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] text-teal-500">School Holiday</span>
+            </div>
+            */}
+            
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm ring-4 ring-red-50"></div>
               <span className="text-[10px] font-black uppercase tracking-[0.15em] text-red-500">Reserved</span>

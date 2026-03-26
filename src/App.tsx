@@ -35,7 +35,10 @@ const AdminHomeSection = lazy(() => import('./components/pages/admin/AdminHomeSe
 const AdminPaymentPage = lazy(() => import('./components/pages/admin/AdminPaymentPage'));
 const AdminSettingsPage = lazy(() => import('./components/pages/admin/AdminSettingsPage'));
 const AdminHolidayPage = lazy(() => import('./components/pages/admin/AdminHolidayPage'));
+// SURGICAL FIX: Import the new School Holiday Page
+const AdminSchoolHolidayPage = lazy(() => import('./components/pages/admin/AdminSchoolHolidayPage'));
 const AdminContactsPage = lazy(() => import('./components/pages/admin/AdminContactsPage'));
+const AdminCustomersPage = lazy(() => import('./components/pages/admin/AdminCustomersPage'));
 
 // ==========================================
 // STATIC COMPONENTS (Load instantly)
@@ -117,8 +120,11 @@ function App() {
                 <Route path="reviews" element={<AdminReviewsPage />} />
                 <Route path="homesection" element={<AdminHomeSection />} />
                 <Route path="holidays" element={<AdminHolidayPage />} />
+                {/* SURGICAL FIX: Integrated the new Route */}
+                <Route path="school-holidays" element={<AdminSchoolHolidayPage />} />
                 <Route path="contacts" element={<AdminContactsPage />} /> 
                 <Route path="settings" element={<AdminSettingsPage />} />
+                <Route path="customers" element={<AdminCustomersPage />} />
               </Route>
             </Route>
             

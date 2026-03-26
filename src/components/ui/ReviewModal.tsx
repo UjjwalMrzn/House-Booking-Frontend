@@ -62,7 +62,8 @@ const ReviewModal = ({ isOpen, onClose, propertyId }: ReviewModalProps) => {
         lastName,
         email: formData.email,
         country: formData.location || "Not Specified",
-        phoneNumber: formData.phoneNumber || "0000000000"
+        phoneNumber: formData.phoneNumber || "0000000000",
+        action: "review"
       });
 
       await reviewService.createReview({
