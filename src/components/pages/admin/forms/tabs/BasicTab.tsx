@@ -30,7 +30,7 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
 
       <div className="p-4 md:p-8 space-y-12">
         
-        {/* --- CORE DETAILS --- */}
+        {/* --- CORE IDENTITY --- */}
         <section className="space-y-6">
           <div className="flex items-center gap-2 mb-2">
             <LayoutTemplate size={16} className="text-indigo-400" />
@@ -48,15 +48,16 @@ const BasicTab: React.FC<BasicTabProps> = ({ formData, handleChange, handleSubmi
         <section className="space-y-6">
           <div className="flex items-center gap-2 mb-2 border-t border-gray-50 pt-8">
             <DollarSign size={16} className="text-emerald-500" />
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Dynamic Pricing (Per Night)</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400">Dynamic Pricing & Fees</h4>
           </div>
           
-          {/* SURGICAL FIX: Changed grid to cols-4 to fit School Holiday Price */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          {/* SURGICAL FIX: Adjusted grid columns from lg:grid-cols-3 to lg:grid-cols-5 to make boxes smaller */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
             <Input label="Base Price ($) *" type="number" name="base_price_per_night" value={formData.base_price_per_night} onChange={handleChange} required disabled={isViewMode} />
             <Input label="Weekend Price ($)" type="number" name="weekend_price_per_night" value={formData.weekend_price_per_night} onChange={handleChange} disabled={isViewMode} placeholder="Optional" />
             <Input label="Holiday Price ($)" type="number" name="holiday_price_per_night" value={formData.holiday_price_per_night} onChange={handleChange} disabled={isViewMode} placeholder="Optional" />
             <Input label="School Holiday Price ($)" type="number" name="school_holiday_price_per_night" value={formData.school_holiday_price_per_night} onChange={handleChange} disabled={isViewMode} placeholder="Optional" />
+            <Input label="Reduced Price ($)" type="number" name="reduced_price" value={formData.reduced_price} onChange={handleChange} disabled={isViewMode} placeholder="Optional" />
           </div>
         </section>
 

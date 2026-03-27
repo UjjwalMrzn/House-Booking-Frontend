@@ -3,8 +3,7 @@ import api from "./axiosInstance";
 export interface BondCharge {
   id?: number;
   property: number;
-  shortStayAmount: string;
-  longStayAmount: string;
+  amount: string; // SURGICAL FIX: Restored to single amount
   createdAt?: string;
 }
 

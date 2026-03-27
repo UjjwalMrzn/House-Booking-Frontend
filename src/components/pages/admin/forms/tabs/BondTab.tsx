@@ -15,9 +15,7 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
   const queryClient = useQueryClient();
   const toast = useToast();
   
-  // SURGICAL FIX: Split amount into short and long stay states
-  const [shortStayAmount, setShortStayAmount] = useState("");
-  const [longStayAmount, setLongStayAmount] = useState("");
+  const [amount, setAmount] = useState("");
   const [isEditing, setIsEditing] = useState(false); 
 
   const { data: bondsData, isLoading } = useQuery({
@@ -34,12 +32,10 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
 
   useEffect(() => {
     if (existingBond) {
-      setShortStayAmount(existingBond.shortStayAmount || "");
-      setLongStayAmount(existingBond.longStayAmount || "");
+      setAmount(existingBond.amount || "");
       setIsEditing(false);
     } else {
-      setShortStayAmount("");
-      setLongStayAmount("");
+      setAmount("");
       setIsEditing(true); 
     }
   }, [existingBond]);
@@ -47,8 +43,7 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
   const createMutation = useMutation({
     mutationFn: () => bondService.createBond({ 
       property: propertyId!, 
-      shortStayAmount, 
-      longStayAmount 
+      amount 
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-bond', propertyId] });
@@ -59,12 +54,11 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
 
   const updateMutation = useMutation({
     mutationFn: () => bondService.updateBond(existingBond!.id!, { 
-      shortStayAmount, 
-      longStayAmount 
+      amount 
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-bond', propertyId] });
-      toast.success("Bond amounts updated.");
+      toast.success("Bond amount updated.");
       setIsEditing(false); 
     },
     onError: () => toast.error("Failed to update bond.")
@@ -74,8 +68,7 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
     mutationFn: () => bondService.deleteBond(existingBond!.id!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['property-bond', propertyId] });
-      setShortStayAmount("");
-      setLongStayAmount("");
+      setAmount("");
       toast.success("Bond removed.");
     },
     onError: () => toast.error("Failed to delete bond.")
@@ -132,25 +125,16 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
             <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-start gap-3">
               <AlertCircle className="text-indigo-400 shrink-0 mt-0.5" size={16} />
               <p className="text-[11px] font-medium text-gray-500 leading-relaxed">
-                Set dynamic security deposits based on the length of the stay. Short stays (e.g. 2 nights) can carry a different bond than long stays (3+ nights).
+                Set a standard security deposit (bond) amount for this property. This amount is collected or held to cover potential damages.
               </p>
             </div>
 
-            {/* SURGICAL FIX: Added Grid for two inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
               <Input 
-                label="Short Stay Bond ($)" 
+                label="Bond Amount ($)" 
                 type="number" 
-                value={shortStayAmount} 
-                onChange={(e: any) => setShortStayAmount(e.target.value)} 
-                disabled={isViewMode || (!isEditing && !!existingBond)} 
-                placeholder="0.00"
-              />
-              <Input 
-                label="Long Stay Bond ($)" 
-                type="number" 
-                value={longStayAmount} 
-                onChange={(e: any) => setLongStayAmount(e.target.value)} 
+                value={amount} 
+                onChange={(e: any) => setAmount(e.target.value)} 
                 disabled={isViewMode || (!isEditing && !!existingBond)} 
                 placeholder="0.00"
               />
@@ -162,8 +146,7 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
                   <button 
                     onClick={() => { 
                       setIsEditing(false); 
-                      setShortStayAmount(existingBond.shortStayAmount);
-                      setLongStayAmount(existingBond.longStayAmount);
+                      setAmount(existingBond.amount);
                     }}
                     className="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors shrink-0"
                   >
@@ -172,10 +155,10 @@ const BondTab: React.FC<BondTabProps> = ({ propertyId, isViewMode }) => {
                 )}
                 <Button 
                   onClick={() => existingBond ? updateMutation.mutate() : createMutation.mutate()} 
-                  disabled={!shortStayAmount || !longStayAmount || createMutation.isPending || updateMutation.isPending}
+                  disabled={!amount || createMutation.isPending || updateMutation.isPending}
                   className="w-full md:w-auto px-8 h-14 shadow-lg shadow-brand-dark/10"
                 >
-                  {existingBond ? (updateMutation.isPending ? "Updating..." : "Update Amounts") : (createMutation.isPending ? "Creating..." : "Set Bond Amounts")}
+                  {existingBond ? (updateMutation.isPending ? "Updating..." : "Update Amount") : (createMutation.isPending ? "Creating..." : "Set Bond Amount")}
                   {existingBond ? <Save size={16} className="ml-2" /> : <Plus size={16} className="ml-2" />}
                 </Button>
               </div>

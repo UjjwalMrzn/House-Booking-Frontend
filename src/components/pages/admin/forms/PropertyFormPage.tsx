@@ -34,10 +34,10 @@ const PropertyFormPage = () => {
     if (currentIndex > 0) setActiveTab(TABS[currentIndex - 1]);
   };
 
-  // SURGICAL FIX: Added school_holiday_price_per_night to initial state
+  // SURGICAL FIX: Changed to reduced_price
   const [formData, setFormData] = useState({
     title: '', description: '', highlight: '', overView: '', address: '', 
-    base_price_per_night: '', weekend_price_per_night: '', holiday_price_per_night: '', school_holiday_price_per_night: '',
+    base_price_per_night: '', weekend_price_per_night: '', holiday_price_per_night: '', school_holiday_price_per_night: '', reduced_price: '',
     max_guests: '', beds: '', bedrooms: '', bathroom: ''
   });
 
@@ -58,7 +58,8 @@ const PropertyFormPage = () => {
         base_price_per_night: existingProperty.base_price_per_night || '',
         weekend_price_per_night: existingProperty.weekend_price_per_night || '',
         holiday_price_per_night: existingProperty.holiday_price_per_night || '',
-        school_holiday_price_per_night: existingProperty.school_holiday_price_per_night || '', // SURGICAL FIX: Bind data if it exists
+        school_holiday_price_per_night: existingProperty.school_holiday_price_per_night || '', 
+        reduced_price: existingProperty.reduced_price || '', 
         max_guests: existingProperty.max_guests || '', 
         beds: existingProperty.beds || '',
         bedrooms: existingProperty.bedrooms || '', 
@@ -143,8 +144,9 @@ const PropertyFormPage = () => {
                   base_price_per_night: Number(formData.base_price_per_night),
                   weekend_price_per_night: formData.weekend_price_per_night ? Number(formData.weekend_price_per_night) : undefined,
                   holiday_price_per_night: formData.holiday_price_per_night ? Number(formData.holiday_price_per_night) : undefined,
-                  // SURGICAL FIX: Submit the new field
                   school_holiday_price_per_night: formData.school_holiday_price_per_night ? Number(formData.school_holiday_price_per_night) : undefined,
+                  // SURGICAL FIX: Sending reduced_price to the API
+                  reduced_price: formData.reduced_price ? Number(formData.reduced_price) : undefined,
                   max_guests: Number(formData.max_guests), 
                   beds: Number(formData.beds), 
                   bedrooms: Number(formData.bedrooms), 
