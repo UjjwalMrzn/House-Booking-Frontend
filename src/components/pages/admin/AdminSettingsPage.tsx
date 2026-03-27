@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, Target, ShieldCheck } from 'lucide-react';
+import { Settings, Save, Target } from 'lucide-react';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import { useToast } from '../../ui/Toaster';
@@ -45,18 +45,6 @@ const AdminSettingsPage = () => {
             <p className="text-[10px] font-normal text-gray-400 mt-2 ml-1">
               This value determines the progress bar percentage on your main dashboard.
             </p>
-          </div>
-        </section>
-
-        <section className="space-y-6 pt-4">
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
-            <ShieldCheck className="text-indigo-500" size={20} />
-            <h3 className="font-black text-brand-dark uppercase text-[10px] tracking-widest">Security & Access</h3>
-          </div>
-          {/* SURGICAL FIX: Allows wrapping on extremely narrow screens */}
-          <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-            <span className="text-xs font-bold text-indigo-700">Administrator Token Status</span>
-            <span className="w-fit text-[10px] font-black uppercase tracking-widest text-white bg-indigo-500 px-3 py-1 rounded-full shadow-sm">Active</span>
           </div>
         </section>
 
